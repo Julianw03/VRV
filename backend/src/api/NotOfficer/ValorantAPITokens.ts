@@ -1,0 +1,1 @@
+export const VALORANT_API_BASE_URL = Symbol('VALORANT_API_BASE_URL');
