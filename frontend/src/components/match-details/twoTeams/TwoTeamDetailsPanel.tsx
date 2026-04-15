@@ -1,5 +1,5 @@
 import type { MatchDetailsPanelProps, MinimalMatchPlayer } from '@/components/match-details/MatchDetailsPanel.tsx';
-import { formatDate, formatDuration, mapDisplayName } from '@/components/saved-replays/formatters.ts';
+import { formatDate, formatDuration } from '@/components/saved-replays/formatters.ts';
 import type { RiotMatchTeam } from '@/lib/api.ts';
 import { cn } from '@/lib/utils.ts';
 
@@ -41,12 +41,19 @@ function PlayerList({
         <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
                 <span className="flex-1">Player</span>
-                <span className="w-20 shrink-0 text-right font-mono grid grid-cols-[2ch_1ch_2ch_1ch_2ch] items-center whitespace-nowrap">
-          K / D / A
-        </span>
+                <span
+                    className="w-20 shrink-0 font-mono grid grid-cols-[3ch_1ch_3ch_1ch_3ch] items-center text-center whitespace-nowrap">
+                    <span>K</span>
+                    <span>/</span>
+                    <span>D</span>
+                    <span>/</span>
+                    <span>A</span>
+                </span>
             </div>
 
-            {players.map((player) => (
+            {players.sort((a, b) => {
+                return a.subject.localeCompare(b.subject);
+            }).map((player) => (
                 <PlayerRow
                     key={player.subject}
                     player={player}
@@ -76,27 +83,30 @@ function PlayerRow({ player, highlightPlayer }: PlayerRowProps) {
             className={cn(
                 'flex items-center gap-2 rounded-md px-2 py-1 text-xs',
                 isActive
-                    ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
-                    : 'bg-muted/30'
+                    ? 'bg-blue-500/20 text-blue-300 outline outline-1 outline-blue-400/30'
+                    : 'bg-muted/30',
             )}
         >
-      <span className="flex-1 truncate">
-        <span className={cn('font-medium', isActive && 'text-blue-300')}>
-          {player.gameName}
-        </span>
-        <span className="text-muted-foreground">
-          #{player.tagLine}
-        </span>
-      </span>
-
+            <span className="flex-1 truncate">
+                <span className={cn('font-medium', isActive && 'text-blue-300')}>
+                    {player.gameName}
+                </span>
+                <span className="text-muted-foreground">
+                    #{player.tagLine}
+                </span>
+            </span>
             <span
                 className={cn(
-                    'w-20 shrink-0 text-right font-mono grid grid-cols-[2ch_auto_2ch_auto_2ch] whitespace-nowrap',
-                    isActive ? 'text-blue-300' : 'text-muted-foreground'
+                    'w-20 shrink-0 font-mono grid grid-cols-[3ch_1ch_3ch_1ch_3ch] items-center text-center whitespace-nowrap',
+                    isActive ? 'text-blue-300' : 'text-muted-foreground',
                 )}
             >
-        {player.stats.kills}/{player.stats.deaths}/{player.stats.assists}
-      </span>
+                <span>{player.stats.kills}</span>
+                <span>/</span>
+                <span>{player.stats.deaths}</span>
+                <span>/</span>
+                <span>{player.stats.assists}</span>
+            </span>
         </div>
     );
 }
@@ -116,21 +126,9 @@ export const TwoTeamDetailsPanel = (
         <div className="border-t border-border/50 px-4 pb-4 pt-3">
             {/* Meta info */}
             <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                <span>Started {formatDate(matchInfo.gameStartMillis)}</span>
+                <span>{formatDate(matchInfo.gameStartMillis)}</span>
                 <span>·</span>
                 <span>{formatDuration(matchInfo.gameLengthMillis)}</span>
-                <span>·</span>
-                <span>{mapDisplayName(matchInfo.mapId)}</span>
-                {matchInfo.isRanked && (
-                    <>
-                        <span>·</span>
-                        <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 font-medium text-amber-400">
-              Ranked
-            </span>
-                    </>
-                )}
-                <span>·</span>
-                <span className="font-mono">{matchInfo.gameVersion}</span>
             </div>
 
             {teams && teams.length == 2 ? (

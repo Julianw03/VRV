@@ -6,12 +6,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { queryKeys, useDownloadState, useRetryDownload, useTriggerDownload } from '@/lib/queries';
 import { cn } from '@/lib/utils';
 import type { DownloadState, MatchHistoryEntry } from '@/lib/api';
-import { mapDisplayName, truncateId } from '@/components/saved-replays/formatters';
+import { mapDisplayName } from '@/components/saved-replays/formatters';
 import { MatchStatsPanel } from './MatchStatsPanel';
 import { useAppStore } from '@/store/useAppStore';
+import { useRelativeTime } from '@/hooks/useRelativeTime.ts';
 
-// Shared grid layout: matchId | queue | map | date | actions
-export const GRID_COLS = '9rem 7rem 6rem 1fr 8rem' as const;
+// Shared grid layout: queue | map | date | actions
+export const GRID_COLS = '7rem 6rem 1fr 8rem' as const;
 
 function formatDate(millis: number): string {
     return new Date(millis).toLocaleString('en-US', {
@@ -69,6 +70,7 @@ export function MatchRow({ match }: MatchRowProps) {
     const { data: downloadState } = useDownloadState(match.MatchID);
     const { mutate: triggerDownload } = useTriggerDownload();
     const { mutate: retryDownload } = useRetryDownload();
+    const relativeTime = useRelativeTime(match.GameStartTime);
 
     const matchStats = useAppStore((s) => s.matchStatsCache[match.MatchID]);
     const mapId = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo.mapId : null;
@@ -107,20 +109,17 @@ export function MatchRow({ match }: MatchRowProps) {
                         }}
                     />
                 )}
-
-                <div className="font-mono text-xs text-muted-foreground truncate" title={match.MatchID}>
-                    {truncateId(match.MatchID)}
-                </div>
                 <div>
                     <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
                         {match.QueueID || 'Unknown'}
                     </span>
                 </div>
-                <div className="text-xs text-muted-foreground truncate" title={mapAsset?.displayName ?? mapId ?? undefined}>
+                <div className="text-xs text-muted-foreground truncate"
+                     title={mapAsset?.displayName ?? mapId ?? undefined}>
                     {mapId ? (mapAsset?.displayName ?? mapDisplayName(mapId)) : '—'}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                    {formatDate(match.GameStartTime)}
+                    {formatDate(match.GameStartTime)} · {relativeTime}
                 </div>
 
                 <div className="flex items-center justify-end gap-1">

@@ -22,8 +22,10 @@ import {
 } from '@/utils/AsyncResult';
 import type { SimpleUUID } from '@/caching/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import { RiotMatchApiResponseDTO } from '@/caching/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
+import { ProductSessionGuard, RequiredProduct } from '@/caching/ProductSessionManager/ProductSessionGuard';
 
-@UseGuards(RiotClientReadyGuard)
+@RequiredProduct('valorant')
+@UseGuards(RiotClientReadyGuard, ProductSessionGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller({
     version: '1',

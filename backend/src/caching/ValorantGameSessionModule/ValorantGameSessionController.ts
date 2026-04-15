@@ -11,8 +11,10 @@ import { ApiNotFoundResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ValorantGameSessionManager } from '@/caching/ValorantGameSessionModule/ValorantGameSessionManager';
 import { MatchStatusDTO } from '@/caching/ValorantGameSessionModule/MatchStatusDTO';
 import type { SimpleUUID } from '@/caching/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
+import { ProductSessionGuard, RequiredProduct } from '@/caching/ProductSessionManager/ProductSessionGuard';
 
-@UseGuards(RiotClientReadyGuard)
+@RequiredProduct('valorant')
+@UseGuards(RiotClientReadyGuard, ProductSessionGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller({
     path: 'caching/valorant-game-sessions',

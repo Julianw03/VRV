@@ -144,13 +144,13 @@
     [role="button"]:not([disabled]) {
         cursor: pointer;
     }
-}
 
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
 
-img, picture, video, canvas, svg {
-  display: block;
-  max-width: 100%;
+    img, picture, video, canvas, svg {
+        display: block;
+        max-width: 100%;
+    }
 }

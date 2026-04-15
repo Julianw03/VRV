@@ -25,46 +25,17 @@ interface RmsEnvelope {
 
 @Injectable()
 export class ValorantGameLoopRCUAdapter
-    extends RCUDataAdapter<ValorantGameLoopManager>
-    implements OnModuleDestroy {
+    extends RCUDataAdapter<ValorantGameLoopManager> {
     private static readonly ENDPOINT_REGEX =
         /^\/riot-messaging-service\/v1\/message\/ares-session\/v1\/sessions\/.+$/;
-
-    private readonly reset$ = new Subject<void>();
-    private sub?: Subscription;
 
     constructor(
         @Inject(RIOT_CLIENT_SERVICE)
         protected readonly rcService: RiotClientService,
         protected readonly manager: ValorantGameLoopManager,
-        protected readonly eventBus: SimpleEventBus,
         protected readonly valApi: RiotValorantAPI,
     ) {
         super(rcService, manager);
-
-        this.sub = this.reset$
-            .pipe(
-                startWith(void 0),
-                switchMap(() =>
-                    onSource(this.eventBus, ProductSessionManager.name).pipe(
-                        tap((evt) => {
-                            this.logger.log(evt);
-                        }),
-                        filter((evt) => evt.type === EventType.StateUpdated),
-                        filter(
-                            (evt: StateUpdatedEvent<Map<SimpleUUID, any>>) =>
-                                evt.payload.value?.size !== 0,
-                        ),
-                    ),
-                ),
-                tap(() => {
-                    this.logger.log('Fetching initial game loop state');
-                    this.fetchAndSetGameLoop().then(() => {
-                        this.logger.log('Done');
-                    });
-                }),
-            )
-            .subscribe();
     }
 
     protected getEndpointRegex(): RegExp {
@@ -81,11 +52,10 @@ export class ValorantGameLoopRCUAdapter
             case RCUMessageType.CREATE:
                 break;
             case RCUMessageType.DELETE:
+            default:
                 return;
         }
         const envelope = data as unknown as RmsEnvelope;
-
-        this.logger.log(envelope);
 
         let payload: AresSessionPayload = JSON.parse(
             envelope.payload,
@@ -104,10 +74,6 @@ export class ValorantGameLoopRCUAdapter
     }
 
     async handleDisconnected(): Promise<void> {
-        this.reset$.next();
-    }
 
-    onModuleDestroy(): any {
-        this.sub?.unsubscribe();
     }
 }

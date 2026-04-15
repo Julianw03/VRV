@@ -7,7 +7,7 @@ export class RiotClientListener {
 
     @OnEvent('rcuMessage', { async: true })
     private async onRcuMessage(message: RCUMessage) {
-        this.logger.log(
+        this.logger.verbose(
             `${message.type} ${message.uri} ${JSON.stringify(message.data)}`,
         );
     }

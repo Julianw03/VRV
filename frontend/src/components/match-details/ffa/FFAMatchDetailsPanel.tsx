@@ -99,7 +99,7 @@ export const FFAMatchDetailsPanel = ({
     return (
         <div className="border-t border-border/50 px-4 pb-4 pt-3">
             <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                <span>Started {formatDate(matchInfo.gameStartMillis)}</span>
+                <span>{formatDate(matchInfo.gameStartMillis)}</span>
                 <span>·</span>
                 <span>{formatDuration(matchInfo.gameLengthMillis)}</span>
                 <span>·</span>

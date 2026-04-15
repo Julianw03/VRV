@@ -8,7 +8,7 @@ import { RCUMapDataAdapter } from '@/riotclient/adapters/RCUMapDataAdapter';
 import { RIOT_CLIENT_SERVICE } from '@/riotclient/RiotClientTokens';
 
 @Injectable()
-export class ValorantGameInProgressChampSelectRCUAdapter extends RCUMapDataAdapter<ValorantGameSessionManager> {
+export class ValorantGameInProgressRCUAdapter extends RCUMapDataAdapter<ValorantGameSessionManager> {
     constructor(
         @Inject(RIOT_CLIENT_SERVICE)
         protected readonly rcService: RiotClientService,
@@ -22,7 +22,7 @@ export class ValorantGameInProgressChampSelectRCUAdapter extends RCUMapDataAdapt
     );
 
     protected getEndpointRegex(): RegExp {
-        return ValorantGameInProgressChampSelectRCUAdapter.REGEX;
+        return ValorantGameInProgressRCUAdapter.REGEX;
     }
 
     protected async handleRCUEvent(
@@ -35,10 +35,7 @@ export class ValorantGameInProgressChampSelectRCUAdapter extends RCUMapDataAdapt
         switch (type) {
             case RCUMessageType.UPDATE:
             case RCUMessageType.CREATE:
-                if (this.getEntry(matchId) !== null) {
-                    return;
-                }
-                this.logger.log('Received match ended message', data);
+                this.logger.log('Received match in progress', data);
                 this.setKeyValue(matchId, MatchStatus.IN_PROGRESS);
                 break;
             case RCUMessageType.DELETE:
