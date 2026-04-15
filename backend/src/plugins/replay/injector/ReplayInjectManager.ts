@@ -22,6 +22,7 @@ export enum InjectState {
     DOWNLOADING_PLACEHOLDER = 'DOWNLOADING_PLACEHOLDER',
     AWAITING_REPLAY_START = 'AWAITING_REPLAY_START',
     INJECTED = 'INJECTED',
+    RESTORING_ORIGINAL_REPLAY = 'RESTORING_ORIGINAL_REPLAY',
     FAILED = 'FAILED',
 }
 
@@ -188,13 +189,32 @@ export class ReplayInjectManager implements OnModuleDestroy {
                     if (event.payload.value === 'MENUS') {
                         this.unsubscribeFromSession?.();
                         this.unsubscribeFromSession = null;
-                        this.logger.log(
-                            'Inject session ended, resetting state',
-                        );
-                        this.reset();
+                        this.restoreOriginalReplayFile(this.placeholderMatchId)
+                        .then(() => {
+                            this.reset();
+                        })
+                        .catch((e) => {
+                            this.logger.error(
+                                'Failed to restore original replay file after inject',
+                                e,
+                            );
+                            this.state = InjectState.FAILED;
+                        });
                     }
                 },
             );
+    }
+
+    private async restoreOriginalReplayFile(targetMatchId: string | null): Promise<void> {
+        if (!targetMatchId) return;
+        const targetData = await fs.readFile(
+            this.ioManager.replayFilePath(targetMatchId),
+        );
+        await fs.writeFile(
+            path.join(this.demosDir, `${targetMatchId}.vrf`),
+            targetData,
+        );
+        return;
     }
 
     private reset(): void {

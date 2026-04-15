@@ -98,7 +98,7 @@ export class RiotValorantAPI {
 
         return {
             region,
-            version: releaseVersion,
+            version: releaseVersion.version,
             puuid: entitlements.subject,
         };
     }

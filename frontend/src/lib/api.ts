@@ -4,6 +4,10 @@ export const API_BASE = LocalLinkResolver.resolve("/api/v1", "http");
 
 // ---- Types ----
 
+export interface MinimalVersionInfo {
+    version: string;
+}
+
 export interface StorageStatus {
     isSetup: boolean;
     matchCount: number;
@@ -64,6 +68,7 @@ export const InjectStates = {
     DOWNLOADING_PLACEHOLDER: 'DOWNLOADING_PLACEHOLDER',
     AWAITING_REPLAY_START: 'AWAITING_REPLAY_START',
     INJECTED: 'INJECTED',
+    RESTORING_ORIGINAL_REPLAY: 'RESTORING_ORIGINAL_REPLAY',
     FAILED: 'FAILED',
 } as const;
 
@@ -182,6 +187,9 @@ export const api = {
     riotClient: {
         isConnected: () => request<boolean>('/riotclient/status/connected'),
         connect: () => request('/riotclient/connect', { method: 'POST' }),
+    },
+    versionInfo: {
+        get: () => request<MinimalVersionInfo>('/caching/version-info'),
     },
     storage: {
         getStatus: () => request<StorageStatus>('/plugins/replay/storage/status'),

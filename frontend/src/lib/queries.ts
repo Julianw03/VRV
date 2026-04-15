@@ -1,111 +1,130 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, proxyAssetUrl } from '@/lib/api'
-import { useAppStore } from '@/store/useAppStore'
-import type { MapAsset, MatchStatsResult } from '@/lib/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { MapAsset, MatchStatsResult } from '@/lib/api';
+import { api, proxyAssetUrl } from '@/lib/api';
+import { useAppStore } from '@/store/useAppStore';
 
 // ---- Query keys ----
 
 export const queryKeys = {
-  isConnected: ['isConnected'] as const,
-  storageStatus: ['storageStatus'] as const,
-  storedMatches: ['storedMatches'] as const,
-  recentMatches: (offset: number, limit: number) => ['recentMatches', offset, limit] as const,
-  downloadState: (matchId: string) => ['downloadState', matchId] as const,
-  injectStatus: ['injectStatus'] as const,
-  matchStats: (matchId: string) => ['matchStats', matchId] as const,
-  mapRegistry: ['mapRegistry'] as const,
-} as const
+    isConnected: ['isConnected'] as const,
+    storageStatus: ['storageStatus'] as const,
+    storedMatches: ['storedMatches'] as const,
+    currentShippingVersion: ['currentShippingVersion'] as const,
+    recentMatches: (offset: number, limit: number) => ['recentMatches', offset, limit] as const,
+    downloadState: (matchId: string) => ['downloadState', matchId] as const,
+    injectStatus: ['injectStatus'] as const,
+    matchStats: (matchId: string) => ['matchStats', matchId] as const,
+    mapRegistry: ['mapRegistry'] as const,
+} as const;
 
 // ---- Riot Client ----
 
 export function useIsConnected() {
-  return useQuery({
-    queryKey: queryKeys.isConnected,
-    queryFn: () => api.riotClient.isConnected(),
-    // Fast-poll when disconnected, stop when connected
-    refetchInterval: (query) => (query.state.data === false ? 2000 : false),
-    staleTime: 0,
-    retry: 2,
-  })
+    return useQuery({
+        queryKey: queryKeys.isConnected,
+        queryFn: () => api.riotClient.isConnected(),
+        // Fast-poll when disconnected, stop when connected
+        refetchInterval: (query) => (query.state.data === false ? 2000 : false),
+        staleTime: 0,
+        retry: 2,
+    });
 }
 
 export function useConnect() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => api.riotClient.connect(),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.isConnected }),
-  })
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => api.riotClient.connect(),
+        onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.isConnected }),
+    });
 }
 
 // ---- Storage ----
 
 export function useStorageStatus() {
-  return useQuery({
-    queryKey: queryKeys.storageStatus,
-    queryFn: () => api.storage.getStatus(),
-  })
+    return useQuery({
+        queryKey: queryKeys.storageStatus,
+        queryFn: () => api.storage.getStatus(),
+    });
 }
 
 export function useSetupStorage() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => api.storage.setup(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus }),
-  })
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => api.storage.setup(),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus }),
+    });
 }
 
 export function useTeardownStorage() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => api.storage.teardown(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus })
-      queryClient.invalidateQueries({ queryKey: queryKeys.storedMatches })
-    },
-  })
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => api.storage.teardown(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus });
+            queryClient.invalidateQueries({ queryKey: queryKeys.storedMatches });
+        },
+    });
 }
 
 // ---- Stored matches ----
 
 export function useStoredMatches() {
-  return useQuery({
-    queryKey: queryKeys.storedMatches,
-    queryFn: () => api.storage.listMatches(),
-  })
+    return useQuery({
+        queryKey: queryKeys.storedMatches,
+        queryFn: () => api.storage.listMatches(),
+    });
 }
 
 export function useDeleteMatch() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (matchId: string) => api.storage.deleteMatch(matchId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.storedMatches })
-      queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus })
-    },
-  })
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (matchId: string) => api.storage.deleteMatch(matchId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.storedMatches });
+            queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus });
+        },
+    });
 }
 
 export function useUploadReplay() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ file, override }: { file: File; override: boolean }) =>
-      api.storage.uploadReplay(file, override),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.storedMatches })
-      queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus })
-    },
-  })
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ file, override }: { file: File; override: boolean }) =>
+            api.storage.uploadReplay(file, override),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.storedMatches });
+            queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus });
+        },
+    });
 }
 
 // ---- Recent matches ----
 
-export const RECENT_MATCHES_PAGE_SIZE = 10
+export const RECENT_MATCHES_PAGE_SIZE = 10;
 
 export function useRecentMatches(offset: number) {
-  return useQuery({
-    queryKey: queryKeys.recentMatches(offset, RECENT_MATCHES_PAGE_SIZE),
-    queryFn: () => api.remote.getRecentMatches(offset, RECENT_MATCHES_PAGE_SIZE),
-  })
+    return useQuery({
+        queryKey: queryKeys.recentMatches(offset, RECENT_MATCHES_PAGE_SIZE),
+        queryFn: () => api.remote.getRecentMatches(offset, RECENT_MATCHES_PAGE_SIZE),
+    });
+}
+
+export function useShippingVersion() {
+    const existing = useAppStore((s) => s.currentShippingVersion);
+    const setShippingVersion = useAppStore((s) => s.setCurrentShippingVersion);
+
+    return useQuery({
+        queryKey: queryKeys.currentShippingVersion,
+        queryFn: async () => {
+            const versionInfo = await api.versionInfo.get();
+            console.log(versionInfo);
+            setShippingVersion(versionInfo.version);
+            return versionInfo;
+        },
+        enabled: !existing,
+        refetchInterval: 3_000,
+        staleTime: 0,
+    });
 }
 
 /**
@@ -114,55 +133,55 @@ export function useRecentMatches(offset: number) {
  * Polls every 3s while PENDING, stops on SUCCESS or FAILURE.
  */
 export function useDownloadState(matchId: string) {
-  const isTriggered = useAppStore((s) => s.triggeredMatchIds.includes(matchId))
+    const isTriggered = useAppStore((s) => s.triggeredMatchIds.includes(matchId));
 
-  return useQuery({
-    queryKey: queryKeys.downloadState(matchId),
-    queryFn: () => api.remote.getDownloadState(matchId),
-    enabled: isTriggered,
-    refetchInterval: (query) =>
-      query.state.data?.type === 'PENDING' ? 3000 : false,
-    staleTime: 0,
-  })
+    return useQuery({
+        queryKey: queryKeys.downloadState(matchId),
+        queryFn: () => api.remote.getDownloadState(matchId),
+        enabled: isTriggered,
+        refetchInterval: (query) =>
+            query.state.data?.type === 'PENDING' ? 3000 : false,
+        staleTime: 0,
+    });
 }
 
 export function useTriggerDownload() {
-  const queryClient = useQueryClient()
-  const addTriggeredMatch = useAppStore((s) => s.addTriggeredMatch)
+    const queryClient = useQueryClient();
+    const addTriggeredMatch = useAppStore((s) => s.addTriggeredMatch);
 
-  return useMutation({
-    mutationFn: (matchId: string) => api.remote.triggerDownload(matchId),
-    onMutate: (matchId) => {
-      addTriggeredMatch(matchId)
-      // Optimistically set PENDING so polling starts immediately
-      queryClient.setQueryData(queryKeys.downloadState(matchId), { type: 'PENDING' })
-    },
-    onError: (e: Error, matchId) => {
-      queryClient.setQueryData(queryKeys.downloadState(matchId), {
-        type: 'FAILURE',
-        error: { message: e.message },
-      })
-    },
-  })
+    return useMutation({
+        mutationFn: (matchId: string) => api.remote.triggerDownload(matchId),
+        onMutate: (matchId) => {
+            addTriggeredMatch(matchId);
+            // Optimistically set PENDING so polling starts immediately
+            queryClient.setQueryData(queryKeys.downloadState(matchId), { type: 'PENDING' });
+        },
+        onError: (e: Error, matchId) => {
+            queryClient.setQueryData(queryKeys.downloadState(matchId), {
+                type: 'FAILURE',
+                error: { message: e.message },
+            });
+        },
+    });
 }
 
 export function useRetryDownload() {
-  const queryClient = useQueryClient()
-  const addTriggeredMatch = useAppStore((s) => s.addTriggeredMatch)
+    const queryClient = useQueryClient();
+    const addTriggeredMatch = useAppStore((s) => s.addTriggeredMatch);
 
-  return useMutation({
-    mutationFn: (matchId: string) => api.remote.retryDownload(matchId),
-    onMutate: (matchId) => {
-      addTriggeredMatch(matchId)
-      queryClient.setQueryData(queryKeys.downloadState(matchId), { type: 'PENDING' })
-    },
-    onError: (e: Error, matchId) => {
-      queryClient.setQueryData(queryKeys.downloadState(matchId), {
-        type: 'FAILURE',
-        error: { message: e.message },
-      })
-    },
-  })
+    return useMutation({
+        mutationFn: (matchId: string) => api.remote.retryDownload(matchId),
+        onMutate: (matchId) => {
+            addTriggeredMatch(matchId);
+            queryClient.setQueryData(queryKeys.downloadState(matchId), { type: 'PENDING' });
+        },
+        onError: (e: Error, matchId) => {
+            queryClient.setQueryData(queryKeys.downloadState(matchId), {
+                type: 'FAILURE',
+                error: { message: e.message },
+            });
+        },
+    });
 }
 
 // ---- Match stats ----
@@ -174,47 +193,47 @@ export function useRetryDownload() {
  * - Only fetches when `enabled` is true (lazy – open collapsible to trigger).
  */
 export function useMatchStats(matchId: string, enabled = true) {
-  const wsData = useAppStore((s) => s.matchStatsCache[matchId])
-  const setMatchStat = useAppStore((s) => s.setMatchStat)
+    const wsData = useAppStore((s) => s.matchStatsCache[matchId]);
+    const setMatchStat = useAppStore((s) => s.setMatchStat);
 
-  const query = useQuery<MatchStatsResult | null>({
-    queryKey: queryKeys.matchStats(matchId),
-    queryFn: async () => {
-      try {
-        const result = await api.matchStats.getById(matchId)
-        setMatchStat(matchId, result)
-        return result
-      } catch (e) {
-        if (e instanceof Error && e.message.startsWith('HTTP 404')) {
-          return null
-        }
-        throw e
-      }
-    },
-    // Skip the REST call if WS already delivered data
-    enabled: enabled && wsData === undefined,
-    staleTime: Infinity,
-    retry: false,
-  })
+    const query = useQuery<MatchStatsResult | null>({
+        queryKey: queryKeys.matchStats(matchId),
+        queryFn: async () => {
+            try {
+                const result = await api.matchStats.getById(matchId);
+                setMatchStat(matchId, result);
+                return result;
+            } catch (e) {
+                if (e instanceof Error && e.message.startsWith('HTTP 404')) {
+                    return null;
+                }
+                throw e;
+            }
+        },
+        // Skip the REST call if WS already delivered data
+        enabled: enabled && wsData === undefined,
+        staleTime: Infinity,
+        retry: false,
+    });
 
-  if (wsData !== undefined) {
-    return { data: wsData, isLoading: false, isError: false, isFetching: false } as const
-  }
-  return query
+    if (wsData !== undefined) {
+        return { data: wsData, isLoading: false, isError: false, isFetching: false } as const;
+    }
+    return query;
 }
 
 export function useTriggerMatchStatsFetch() {
-  const setMatchStat = useAppStore((s) => s.setMatchStat)
-  const queryClient = useQueryClient()
+    const setMatchStat = useAppStore((s) => s.setMatchStat);
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (matchId: string) => api.matchStats.triggerFetch(matchId),
-    onMutate: (matchId) => {
-      // Optimistically mark as pending so the panel shows a spinner immediately
-      setMatchStat(matchId, { type: 'PENDING' })
-      queryClient.removeQueries({ queryKey: queryKeys.matchStats(matchId) })
-    },
-  })
+    return useMutation({
+        mutationFn: (matchId: string) => api.matchStats.triggerFetch(matchId),
+        onMutate: (matchId) => {
+            // Optimistically mark as pending so the panel shows a spinner immediately
+            setMatchStat(matchId, { type: 'PENDING' });
+            queryClient.removeQueries({ queryKey: queryKeys.matchStats(matchId) });
+        },
+    });
 }
 
 // ---- Map registry ----
@@ -225,75 +244,75 @@ export function useTriggerMatchStatsFetch() {
  * Once loaded, the registry is stable and never re-fetched.
  */
 export function useMapRegistry() {
-  const setMapRegistry = useAppStore((s) => s.setMapRegistry)
-  const existing = useAppStore((s) => s.mapRegistry)
+    const setMapRegistry = useAppStore((s) => s.setMapRegistry);
+    const existing = useAppStore((s) => s.mapRegistry);
 
-  return useQuery<Record<string, MapAsset> | null>({
-    queryKey: queryKeys.mapRegistry,
-    queryFn: async () => {
-      try {
-        const raw = await api.assets.getAllMaps()
-        // Rewrite all image URLs to go through the local proxy cache
-        const proxied = Object.fromEntries(
-          Object.entries(raw).map(([mapUrl, asset]) => [
-            mapUrl,
-            {
-              ...asset,
-              displayIcon: proxyAssetUrl(asset.displayIcon),
-              listViewIcon: proxyAssetUrl(asset.listViewIcon),
-              listViewIconTall: proxyAssetUrl(asset.listViewIconTall),
-              splash: proxyAssetUrl(asset.splash),
-              stylizedBackgroundImage: proxyAssetUrl(asset.stylizedBackgroundImage),
-              premierBackgroundImage: proxyAssetUrl(asset.premierBackgroundImage),
-            } satisfies MapAsset,
-          ])
-        )
-        setMapRegistry(proxied)
-        return proxied
-      } catch (e) {
-        if (e instanceof Error && e.message.startsWith('HTTP 404')) {
-          return null
-        }
-        throw e
-      }
-    },
-    // Skip the fetch entirely if the registry is already populated in the store
-    enabled: existing === null,
-    // Poll every 3s while the backend hasn't produced data yet
-    refetchInterval: (query) => query.state.data === null ? 3000 : false,
-    staleTime: Infinity,
-    retry: false,
-  })
+    return useQuery<Record<string, MapAsset> | null>({
+        queryKey: queryKeys.mapRegistry,
+        queryFn: async () => {
+            try {
+                const raw = await api.assets.getAllMaps();
+                // Rewrite all image URLs to go through the local proxy cache
+                const proxied = Object.fromEntries(
+                    Object.entries(raw).map(([mapUrl, asset]) => [
+                        mapUrl,
+                        {
+                            ...asset,
+                            displayIcon: proxyAssetUrl(asset.displayIcon),
+                            listViewIcon: proxyAssetUrl(asset.listViewIcon),
+                            listViewIconTall: proxyAssetUrl(asset.listViewIconTall),
+                            splash: proxyAssetUrl(asset.splash),
+                            stylizedBackgroundImage: proxyAssetUrl(asset.stylizedBackgroundImage),
+                            premierBackgroundImage: proxyAssetUrl(asset.premierBackgroundImage),
+                        } satisfies MapAsset,
+                    ]),
+                );
+                setMapRegistry(proxied);
+                return proxied;
+            } catch (e) {
+                if (e instanceof Error && e.message.startsWith('HTTP 404')) {
+                    return null;
+                }
+                throw e;
+            }
+        },
+        // Skip the fetch entirely if the registry is already populated in the store
+        enabled: existing === null,
+        // Poll every 3s while the backend hasn't produced data yet
+        refetchInterval: (query) => query.state.data === null ? 3000 : false,
+        staleTime: Infinity,
+        retry: false,
+    });
 }
 
 // ---- Injector ----
 
 export function useInjectStatus() {
-  return useQuery({
-    queryKey: queryKeys.injectStatus,
-    queryFn: () => api.injector.getStatus(),
-    // Poll every 3s while an injection is actively in progress
-    refetchInterval: (query) => {
-      const state = query.state.data?.state
-      const terminal = !state || state === 'IDLE' || state === 'INJECTED' || state === 'FAILED'
-      return terminal ? false : 3000
-    },
-    staleTime: 0,
-  })
+    return useQuery({
+        queryKey: queryKeys.injectStatus,
+        queryFn: () => api.injector.getStatus(),
+        // Poll every 3s while an injection is actively in progress
+        refetchInterval: (query) => {
+            const state = query.state.data?.state;
+            const terminal = !state || state === 'IDLE' || state === 'INJECTED' || state === 'FAILED';
+            return terminal ? false : 3000;
+        },
+        staleTime: 0,
+    });
 }
 
 export function useStartInject() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (matchId: string) => api.injector.startInject(matchId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.injectStatus }),
-  })
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (matchId: string) => api.injector.startInject(matchId),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.injectStatus }),
+    });
 }
 
 export function useCancelInject() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => api.injector.cancelInject(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.injectStatus }),
-  })
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => api.injector.cancelInject(),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.injectStatus }),
+    });
 }

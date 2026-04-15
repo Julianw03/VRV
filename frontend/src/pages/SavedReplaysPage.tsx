@@ -74,10 +74,8 @@ export function SavedReplaysPage() {
                                 className="grid items-center gap-3 px-4 text-xs font-medium text-muted-foreground"
                                 style={{gridTemplateColumns: GRID_COLS}}
                             >
-                                <div>Match ID</div>
                                 <div>Queue</div>
                                 <div>Map</div>
-                                <div>Version</div>
                                 <div>User</div>
                                 <div>Downloaded</div>
                                 <div/>

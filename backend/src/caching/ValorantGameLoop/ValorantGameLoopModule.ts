@@ -5,9 +5,10 @@ import { ValorantGameLoopRCUAdapter } from '@/caching/ValorantGameLoop/ValorantG
 import { ValorantGameLoopController } from '@/caching/ValorantGameLoop/ValorantGameLoopController';
 import { ValorantGameLoopManager } from '@/caching/ValorantGameLoop/ValorantGameLoopManager';
 import { RiotValorantAPIModule } from '@/api/riot/RiotValorantAPIModule';
+import { ProductSessionModule } from '@/caching/ProductSessionManager/ProductSessionModule';
 
 @Module({
-    imports: [RiotClientModule, EventBusModule, RiotValorantAPIModule],
+    imports: [RiotClientModule, EventBusModule, RiotValorantAPIModule, ProductSessionModule],
     controllers: [ValorantGameLoopController],
     providers: [ValorantGameLoopManager, ValorantGameLoopRCUAdapter],
     exports: [ValorantGameLoopManager],

@@ -8,14 +8,17 @@ import {
     Logger,
     Param,
     Post,
-    Query,
+    Query, UseGuards,
 } from '@nestjs/common';
 import { ApiAcceptedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { AsyncResultUnion } from '@/utils/AsyncResult';
 import { ReplayIOManager } from '@/plugins/replay/storage/ReplayIOManager';
 import { GetRecentMatchesDto } from '@/plugins/replay/remote/GetRecentMatchesDTO';
 import { MatchHistoryEntry } from '@/api/riot/RiotValorantAPI';
+import { ProductSessionGuard, RequiredProduct } from '@/caching/ProductSessionManager/ProductSessionGuard';
 
+@RequiredProduct('valorant')
+@UseGuards(ProductSessionGuard)
 @Controller({
     path: 'plugins/replay/remote',
 })

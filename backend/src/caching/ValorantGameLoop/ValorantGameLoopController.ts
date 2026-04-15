@@ -10,8 +10,10 @@ import {
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { RiotClientReadyGuard } from '@/riotclient/RiotClientReadyGuard';
 import { ValorantGameLoopManager } from '@/caching/ValorantGameLoop/ValorantGameLoopManager';
+import { ProductSessionGuard, RequiredProduct } from '@/caching/ProductSessionManager/ProductSessionGuard';
 
-@UseGuards(RiotClientReadyGuard)
+@RequiredProduct('valorant')
+@UseGuards(RiotClientReadyGuard, ProductSessionGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller({
     version: '1',

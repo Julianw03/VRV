@@ -17,19 +17,21 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 23
+          node-version: 24
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - run: |
+      - name: Build frontend
+        run: |
           cd frontend
           npm ci
           npm run build
 
-      - run: |
+      - name: Prepare backend bundle
+        run: |
           cd backend
           mkdir -p public
           cp -r ../frontend/dist/* public/
@@ -46,6 +48,14 @@ jobs:
             backend/package.json
             backend/package-lock.json
 
+      - name: Upload Changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: |
+            CHANGELOG.md
+  
+
   package-windows:
     runs-on: windows-latest
     needs: build
@@ -58,7 +68,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
 
       - run: |
           cd backend
@@ -72,7 +82,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: package-windows
+    needs: [package-windows, build]
 
     steps:
       - uses: actions/download-artifact@v4
@@ -80,25 +90,22 @@ jobs:
           name: windows-binary
           path: windows
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: changelog
+          path: changelog
 
       - name: Prepare release assets
         run: |
           mkdir release
           cp windows/*.exe release/
 
-      - name: Create Checksums
-        run: |
-          cd release
-          # We should only have binaries in this folder, so creating checksums for all files should be fine.
-          for file in *; do
-            sha256sum "$file" > "$file.sha256"
-          done
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.version }}
           name: ${{ github.event.inputs.version }}
+          bodyPath: changelog/CHANGELOG.md
           files: release/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

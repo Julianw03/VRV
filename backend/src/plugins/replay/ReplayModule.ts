@@ -22,7 +22,7 @@ import { AccountNameAndTagLineModule } from '@/caching/AccountNameAndTagLineModu
         ValorantMatchStatsModule,
         EventBusModule,
         ValorantGameLoopModule,
-        RiotValorantAPIModule,
+        RiotValorantAPIModule
     ],
     providers: [ReplayIOManager, ReplayFetchManager, ReplayInjectManager],
     controllers: [

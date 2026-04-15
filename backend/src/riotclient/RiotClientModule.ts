@@ -7,6 +7,7 @@ import {
     RIOT_CLIENT_SERVICE,
 } from './RiotClientTokens';
 import { RiotClientController } from './RiotClientController';
+import { RiotClientListener } from '@/riotclient/RiotClientListener';
 
 @Module({
     imports: [EventEmitterModule.forRoot()],
@@ -17,6 +18,7 @@ import { RiotClientController } from './RiotClientController';
             useClass: LockfileParameterAcquisitionStrategy,
         },
         { provide: RIOT_CLIENT_SERVICE, useClass: RiotClientServiceImpl },
+        RiotClientListener
     ],
     exports: [RIOT_CLIENT_SERVICE],
 })

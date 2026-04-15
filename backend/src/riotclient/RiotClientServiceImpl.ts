@@ -30,9 +30,6 @@ export class RiotClientServiceImpl implements RiotClientService {
     private apiCache: Map<string, any> = new Map();
 
     private readonly logger = new Logger(RiotClientServiceImpl.name);
-    private readonly simpleHttpsAgentOptions = {
-        rejectUnauthorized: false, // Disable SSL certificate validation as Riot Client uses self-signed certificates
-    };
 
     constructor(
         @Inject(RIOT_CLIENT_PARAMETER_ACQUISITION_STRATEGY)
@@ -95,14 +92,15 @@ export class RiotClientServiceImpl implements RiotClientService {
         const tempAgent = this.setupAgent(tempParameters);
         const tempConfig = new Configuration({
             basePath: `https://127.0.1:${tempParameters.port}`,
-            username: 'riot',
-            password: tempParameters.authSecret,
             baseOptions: {
+                auth: {
+                    username: 'riot',
+                    password: tempParameters.authSecret,
+                },
                 headers: {
                     Accept: 'application/json',
                 },
-                httpsAgent: tempAgent,
-                transformResponse: [(data) => JSON.parse(data)],
+                httpsAgent: tempAgent
             },
         });
 
@@ -118,6 +116,7 @@ export class RiotClientServiceImpl implements RiotClientService {
                         "Riot Client REST API returned 404 for App-Info, most likely its in 'AppBackground' mode",
                     );
                 }
+
             }
 
             throw new Error(
@@ -338,9 +337,8 @@ export class RiotClientServiceImpl implements RiotClientService {
 
     private setupAgent(params: RiotClientConnectionParameters) {
         const agentOptions = {
-            ...this.simpleHttpsAgentOptions,
             port: params.port,
-            defaultPort: params.port,
+            rejectUnauthorized: false
         };
         return new https.Agent(agentOptions);
     }
