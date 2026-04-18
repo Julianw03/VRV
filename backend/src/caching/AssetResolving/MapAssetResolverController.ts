@@ -27,6 +27,6 @@ export class MapAssetResolverController {
         if (!allAssets) {
             throw new NotFoundException(`Map assets not ready yet.`);
         }
-        return Object.fromEntries(allAssets);
+        return allAssets;
     }
 }

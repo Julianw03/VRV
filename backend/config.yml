@@ -1,0 +1,25 @@
+version:
+  config: 1
+  app: "0.3.0"
+filepaths:
+  riot-games-folder:
+   relativeToEnvVar: 'LOCALAPPDATA'
+   path: ["Riot Games"]
+  valorant-saved:
+    relativeToEnvVar: 'LOCALAPPDATA'
+    path: ["VALORANT", "Saved"]
+configurations:
+  app:
+    port: 3000
+    additional-cors-origins: []
+  valorant-version-read:
+    regex: "CI server version: (\\S*)"
+    retry-timeout-ms: 5000
+  valorant-api:
+    sgpHosts:
+overrides:
+  valorant-version-read:
+    version:
+  valorant-api:
+    region:
+    shard:

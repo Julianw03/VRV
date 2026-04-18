@@ -15,18 +15,23 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MapAssetResolverModule } from '@/caching/AssetResolving/MapAssetResolverModule';
 import { StaticAssetProxyModule } from '@/caching/AssetProxy/StaticAssetProxyModule';
-import { VersionInfoModule } from '@/caching/VersionInfo/VersionInfoModule';
+import { ValorantVersionInfoModule } from '@/caching/ValorantVersionInfo/ValorantVersionInfoModule';
+import { appConfig } from '@/config/configLoader';
+import { ConfigurationModule } from '@/config/ConfigurationModule';
+import { getPackageAwarePath } from '@/utils/PackagedPath';
 
 
 @Module({
     imports: [
         ServeStaticModule.forRoot({
-            rootPath: join(__dirname, '..', 'public'),
+            rootPath: getPackageAwarePath("public"),
             serveRoot: '/',
         }),
         ConfigModule.forRoot({
+            load: [appConfig],
             isGlobal: true,
         }),
+        ConfigurationModule,
         RiotClientModule,
         ProductSessionModule,
         AccountNameAndTagLineModule,
@@ -38,7 +43,7 @@ import { VersionInfoModule } from '@/caching/VersionInfo/VersionInfoModule';
         ValorantAssetAPIModule,
         MapAssetResolverModule,
         StaticAssetProxyModule,
-        VersionInfoModule,
+        ValorantVersionInfoModule,
         EventBusModule,
         ReplayModule,
     ],

@@ -10,8 +10,9 @@ export abstract class MapDataManager<
     K extends PropertyKey,
     V,
     E,
-> extends GenericDataManager<Map<K, V>, Map<K, E | null>> {
+> extends GenericDataManager<Map<K, V>, Record<K, E | null>> {
     private state: Map<K, V> = new Map<K, V>();
+    private view: Record<K, E | null> = {} as Record<K, E | null>;
 
     protected constructor() {
         super();
@@ -19,21 +20,21 @@ export abstract class MapDataManager<
 
     protected abstract getViewForValue(value: V | null): E | null;
 
-    public getViewFor(val: Map<K, V>): Map<K, E | null> | null {
+    public getViewFor(val: Map<K, V>): Record<K, E | null> {
         if (val === null) {
-            return null;
+            return {} as Record<K, E | null>;
         }
 
-        return new Map<K, E | null>(
-            Array.from(val.entries()).map(([key, value]) => {
-                return [key, this.getViewForValue(value)] as [K, E | null];
-            }),
-        );
+        return Object.fromEntries(
+            Array.from(val.entries()).map(([key, value]) => [
+                key,
+                this.getViewForValue(value),
+            ]),
+        ) as Record<K, E | null>;
     }
 
     public getEntryView(key: K): E | null {
-        const value = this.get(key);
-        return this.getViewForValue(value);
+        return this.view[key] ?? null;
     }
 
     protected getState(): Map<K, V> | null {
@@ -42,6 +43,7 @@ export abstract class MapDataManager<
 
     protected setState(state: Map<K, V>): void {
         this.state = state;
+        this.view = this.getViewFor(state);
     }
 
     protected get(key: K): V | null {
@@ -50,21 +52,17 @@ export abstract class MapDataManager<
 
     protected setKeyValue(key: K, value: V): void {
         this.state.set(key, value);
+        this.view[key] = this.getViewForValue(value);
     }
 
     protected deleteKey(key: K): void {
         this.state.delete(key);
+        this.view[key] = this.getViewForValue(null);
     }
 
-    public [_INTERNALS_MAP_GET_ENTRY](key: K): V | null {
-        return this.get(key);
-    }
+    public [_INTERNALS_MAP_GET_ENTRY] = this.getEntryView.bind(this);
 
-    public [_INTERNALS_MAP_SET_KEY_VALUE](key: K, value: V): void {
-        this.setKeyValue(key, value);
-    }
+    public [_INTERNALS_MAP_SET_KEY_VALUE] = this.setKeyValue.bind(this);
 
-    public [_INTERNALS_MAP_DELETE_KEY](key: K): void {
-        this.deleteKey(key);
-    }
+    public [_INTERNALS_MAP_DELETE_KEY] = this.deleteKey.bind(this);
 }

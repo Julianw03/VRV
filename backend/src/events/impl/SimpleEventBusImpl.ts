@@ -20,7 +20,7 @@ export class SimpleEventBusImpl implements SimpleEventBus {
             throw new Error('Event must have a source and type');
         }
         this.logger.verbose(event);
-        this.eventEmitter.emit(`${event.source}:${event.type}`, event);
+        this.eventEmitter.emitAsync(`${event.source}:${event.type}`, event);
     }
 
     subscribeOnAll<T extends EventType>(

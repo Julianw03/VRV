@@ -3,9 +3,10 @@ import { Module } from '@nestjs/common';
 import { RiotClientModule } from '@/riotclient/RiotClientModule';
 import { ProductSessionRCUAdapter } from '@/caching/ProductSessionManager/ProductSessionRCUAdapter';
 import { ProductSessionGuard } from '@/caching/ProductSessionManager/ProductSessionGuard';
+import { EventBusModule } from '@/events/EventBusModule';
 
 @Module({
-    imports: [RiotClientModule],
+    imports: [RiotClientModule, EventBusModule],
     providers: [ProductSessionManager, ProductSessionRCUAdapter, ProductSessionGuard],
     exports: [ProductSessionManager, ProductSessionGuard],
 })

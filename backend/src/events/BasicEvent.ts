@@ -14,7 +14,13 @@ export interface StateUpdatedEvent<T>
     readonly payload: { value: T | null };
 }
 
+export enum KeyUpdateActionType {
+    CREATED = 'CREATED',
+    UPDATED = 'UPDATED',
+    DELETED = 'DELETED'
+}
+
 export interface KeyValueUpdatedEvent<K extends PropertyKey, V>
     extends BasicEvent<EventType.KeyValueUpdated> {
-    readonly payload: { key: K; value: V | null };
+    readonly payload: { key: K; value: V | null; action: KeyUpdateActionType };
 }

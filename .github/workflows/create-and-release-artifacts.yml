@@ -26,13 +26,13 @@ jobs:
 
       - name: Build frontend
         run: |
-          cd frontend
+          cd ./frontend
           npm ci
           npm run build
 
       - name: Prepare backend bundle
         run: |
-          cd backend
+          cd ./backend
           mkdir -p public
           cp -r ../frontend/dist/* public/
           npm ci
@@ -105,7 +105,7 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.version }}
           name: ${{ github.event.inputs.version }}
-          bodyPath: changelog/CHANGELOG.md
+          body_path: ${{ github.workspace }}/changelog/CHANGELOG.md
           files: release/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

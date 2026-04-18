@@ -17,8 +17,7 @@ import { RiotClientListener } from '@/riotclient/RiotClientListener';
             provide: RIOT_CLIENT_PARAMETER_ACQUISITION_STRATEGY,
             useClass: LockfileParameterAcquisitionStrategy,
         },
-        { provide: RIOT_CLIENT_SERVICE, useClass: RiotClientServiceImpl },
-        RiotClientListener
+        { provide: RIOT_CLIENT_SERVICE, useClass: RiotClientServiceImpl }
     ],
     exports: [RIOT_CLIENT_SERVICE],
 })

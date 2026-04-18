@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { MapAsset, MatchStatsResult } from '@/lib/api';
+import type { ConfigOverrides, MapAsset, MatchStatsResult } from '@/lib/api';
 import { api, proxyAssetUrl } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -15,6 +15,8 @@ export const queryKeys = {
     injectStatus: ['injectStatus'] as const,
     matchStats: (matchId: string) => ['matchStats', matchId] as const,
     mapRegistry: ['mapRegistry'] as const,
+    effectiveConfig: ['effectiveConfig'] as const,
+    configOverrides: ['configOverrides'] as const,
 } as const;
 
 // ---- Riot Client ----
@@ -110,13 +112,13 @@ export function useRecentMatches(offset: number) {
 }
 
 export function useShippingVersion() {
-    const existing = useAppStore((s) => s.currentShippingVersion);
+    const existing = useAppStore((s) => s.currentValorantShippingVersion);
     const setShippingVersion = useAppStore((s) => s.setCurrentShippingVersion);
 
     return useQuery({
         queryKey: queryKeys.currentShippingVersion,
         queryFn: async () => {
-            const versionInfo = await api.versionInfo.get();
+            const versionInfo = await api.valorantVersionInfo.get();
             console.log(versionInfo);
             setShippingVersion(versionInfo.version);
             return versionInfo;
@@ -314,5 +316,54 @@ export function useCancelInject() {
     return useMutation({
         mutationFn: () => api.injector.cancelInject(),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.injectStatus }),
+    });
+}
+
+// ---- Configuration ----
+
+export function useEffectiveConfig() {
+    return useQuery({
+        queryKey: queryKeys.effectiveConfig,
+        queryFn: () => api.config.getCurrent(),
+        staleTime: 30_000,
+    });
+}
+
+export function useConfigOverrides() {
+    return useQuery({
+        queryKey: queryKeys.configOverrides,
+        queryFn: async () => {
+            try {
+                return await api.config.getOverrides();
+            } catch (e) {
+                if (e instanceof Error && e.message.startsWith('HTTP 404')) {
+                    return null;
+                }
+                throw e;
+            }
+        },
+        staleTime: 30_000,
+    });
+}
+
+export function useSaveConfigOverrides() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (overrides: ConfigOverrides) => api.config.saveOverrides(overrides),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.configOverrides });
+            queryClient.invalidateQueries({ queryKey: queryKeys.effectiveConfig });
+        },
+    });
+}
+
+export function useDeleteConfigOverrides() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => api.config.deleteOverrides(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.configOverrides });
+            queryClient.invalidateQueries({ queryKey: queryKeys.effectiveConfig });
+        },
     });
 }

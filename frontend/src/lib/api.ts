@@ -160,6 +160,48 @@ export function proxyAssetUrl(externalUrl: string): string {
     return `${API_BASE}/assets/proxy?url=${encodeURIComponent(externalUrl)}`;
 }
 
+// ---- Configuration ----
+
+export type SupportedRegion = 'na' | 'latam' | 'eu' | 'ap' | 'kr' | 'br';
+export type SupportedShard = 'na' | 'pbe' | 'eu' | 'ap' | 'kr';
+
+export const SUPPORTED_REGIONS: SupportedRegion[] = ['na', 'latam', 'eu', 'ap', 'kr', 'br'];
+export const SUPPORTED_SHARDS: SupportedShard[] = ['na', 'pbe', 'eu', 'ap', 'kr'];
+
+export interface ConfigOverrides {
+    overrides: {
+        'valorant-api': {
+            region?: SupportedRegion | null;
+            shard?: SupportedShard | null;
+        };
+        'valorant-version-read': {
+            version?: string | null;
+        };
+    };
+}
+
+export interface EffectiveConfig {
+    overrides: {
+        'valorant-api': {
+            region?: SupportedRegion | null;
+            shard?: SupportedShard | null;
+        };
+        'valorant-version-read': {
+            version?: string | null;
+        };
+    };
+    configurations: {
+        app: {
+            port: number;
+            'additional-cors-origins': string[];
+        };
+        'valorant-version-read': {
+            'retry-timeout-ms': number;
+            regex: string;
+        };
+    };
+}
+
 // ---- HTTP client ----
 
 async function request<T = void>(path: string, options?: RequestInit): Promise<T> {
@@ -188,8 +230,11 @@ export const api = {
         isConnected: () => request<boolean>('/riotclient/status/connected'),
         connect: () => request('/riotclient/connect', { method: 'POST' }),
     },
-    versionInfo: {
-        get: () => request<MinimalVersionInfo>('/caching/version-info'),
+    application: {
+        getVersion: () => request<string>('/application/version'),
+    },
+    valorantVersionInfo: {
+        get: () => request<MinimalVersionInfo>('/caching/valorant-version-info'),
     },
     storage: {
         getStatus: () => request<StorageStatus>('/plugins/replay/storage/status'),
@@ -235,5 +280,16 @@ export const api = {
             request<MatchStatsResult>(`/caching/valorant-game-stats/${matchId}`),
         triggerFetch: (matchId: string) =>
             request(`/caching/valorant-game-stats/${matchId}/fetch`, { method: 'POST' }),
+    },
+    config: {
+        getCurrent: () => request<EffectiveConfig>('/configuration/current'),
+        getOverrides: () => request<ConfigOverrides>('/configuration/overrides'),
+        saveOverrides: (overrides: ConfigOverrides) =>
+            request<ConfigOverrides>('/configuration/overrides', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(overrides),
+            }),
+        deleteOverrides: () => request('/configuration/overrides', { method: 'DELETE' }),
     },
 } as const;

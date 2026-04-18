@@ -12,6 +12,8 @@ import { ValorantGameLoopManager } from '@/caching/ValorantGameLoop/ValorantGame
 import { ValorantGameSessionManager } from '@/caching/ValorantGameSessionModule/ValorantGameSessionManager';
 import { ValorantMatchStatsManager } from '@/caching/ValorantMatchStatsModule/ValorantMatchStatsManager';
 import { ReplayInjectManager } from '@/plugins/replay/injector/ReplayInjectManager';
+import { ValorantVersionInfoManager } from '@/caching/ValorantVersionInfo/ValorantVersionInfoManager';
+import { ProductSessionManager } from '@/caching/ProductSessionManager/ProductSessionManager';
 
 @WebSocketGateway({})
 @Injectable()
@@ -34,6 +36,8 @@ export class WSEventPublisher
         ValorantGameSessionManager.name,
         ValorantMatchStatsManager.name,
         ReplayInjectManager.name,
+        ValorantVersionInfoManager.name,
+        ProductSessionManager.name
     ]);
 
     private unsubscribeAll: (() => void) | null = null;

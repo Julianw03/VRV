@@ -61,10 +61,21 @@ export class ProductSessionRCUAdapter extends RCUMapDataAdapter<ProductSessionMa
         const api = this.rcService.getCachedApi(PluginProductSessionApi);
         const resp = await api.productSessionV1SessionsGet();
         if (!resp || resp.status !== HttpStatus.OK) {
+            this.logger.warn(
+                'Failed to fetch initial product session data on RCU connection',
+                resp?.status,
+            );
             return;
         }
-        const data = resp.data!;
+
+        const data = resp.data;
         const currentState = this.getState();
-        this.setState(new Map([...currentState, ...Object.entries(data)]));
+        const newState = new Map([
+            ...currentState,
+            ...Object.entries(data),
+        ]);
+        this.logger.log(newState);
+
+        this.setState(newState);
     }
 }
