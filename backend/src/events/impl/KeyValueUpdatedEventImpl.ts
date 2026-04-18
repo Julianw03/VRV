@@ -1,9 +1,8 @@
-import { KeyValueUpdatedEvent } from '@/events/BasicEvent';
+import { KeyUpdateActionType, KeyValueUpdatedEvent } from '@/events/BasicEvent';
 import { EventType } from '@/events/EventTypes';
 
 export class KeyValueUpdatedEventImpl<K extends PropertyKey, V>
-    implements KeyValueUpdatedEvent<K, V>
-{
+    implements KeyValueUpdatedEvent<K, V> {
     public readonly type = EventType.KeyValueUpdated;
     public readonly timestamp = Date.now();
 
@@ -12,8 +11,10 @@ export class KeyValueUpdatedEventImpl<K extends PropertyKey, V>
         public readonly payload: {
             key: K;
             value: V | null;
-        },
-    ) {}
+            action: KeyUpdateActionType;
+        }
+    ) {
+    }
 
     static of<K extends PropertyKey, T>(
         source: string,
@@ -23,6 +24,29 @@ export class KeyValueUpdatedEventImpl<K extends PropertyKey, V>
         return new KeyValueUpdatedEventImpl<K, T>(source, {
             key,
             value,
+            action: KeyUpdateActionType.UPDATED
+        });
+    }
+
+    static ofDiff<K extends PropertyKey, T>(
+        source: string,
+        key: K,
+        value: T | null,
+        prevValue: T | null,
+    ): KeyValueUpdatedEventImpl<K, T> {
+        let action: KeyUpdateActionType;
+        if (prevValue === null && value !== null) {
+            action = KeyUpdateActionType.CREATED;
+        } else if (prevValue !== null && value === null) {
+            action = KeyUpdateActionType.DELETED;
+        } else {
+            action = KeyUpdateActionType.UPDATED;
+        }
+
+        return new KeyValueUpdatedEventImpl<K, T>(source, {
+            key,
+            value,
+            action
         });
     }
 }

@@ -1,11 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { EntitlementTokenManager } from '@/caching/EntitlementTokenManager/EntitlementTokenManager';
 import { ProductSessionManager } from '@/caching/ProductSessionManager/ProductSessionManager';
 import { ValorantMatchStatsManager } from '@/caching/ValorantMatchStatsModule/ValorantMatchStatsManager';
 import { RiotMatchApiResponse } from '@/caching/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
-import { getGlzApiBase, getPdApiBase, getSgpApiBase } from '@/plugins/replay/ReplayRegionUtil';
-import { ValorantAssetAPI } from '@/api/NotOfficer/ValorantAssetAPI';
-import { VersionInfoManager } from '@/caching/VersionInfo/VersionInfoManager';
+import { ValorantVersionInfoManager } from '@/caching/ValorantVersionInfo/ValorantVersionInfoManager';
+import { ConfigService, type ConfigType } from '@nestjs/config';
+import { appConfig } from '@/config/configLoader';
+import { RegionToDefaultShardMap, SupportedRegion } from '@/config/ConfigV1DTO';
 
 export interface ReplaySummary {
     GameVersion: string;
@@ -28,6 +29,7 @@ interface MatchHistoryResponse {
 
 export interface DeploymentContext {
     region: string;
+    shard: string;
     version: string;
     puuid: string;
 }
@@ -65,12 +67,16 @@ export interface ClientPlatformInfo {
 @Injectable()
 export class RiotValorantAPI {
     private readonly logger = new Logger(this.constructor.name);
+    private readonly regionMap: Record<SupportedRegion, string>;
 
     constructor(
+        @Inject(appConfig.KEY)
+        protected readonly config: ConfigType<typeof appConfig>,
         private readonly entitlementTokenManager: EntitlementTokenManager,
         private readonly productSessionManager: ProductSessionManager,
-        private readonly versionInfoManager: VersionInfoManager,
+        private readonly versionInfoManager: ValorantVersionInfoManager,
     ) {
+        this.regionMap = config.configurations['valorant-api'].sgpHosts;
     }
 
     private getDeploymentContext(): DeploymentContext {
@@ -88,7 +94,8 @@ export class RiotValorantAPI {
         if (!deploymentArg)
             throw new Error('Deployment region not found in launch arguments');
 
-        const region = deploymentArg.split(
+
+        const region = this.config.overrides['valorant-api'].region ?? deploymentArg.split(
             ValorantMatchStatsManager.KEY_ARES_DEPLOYMENT,
         )[1];
         if (!region) throw new Error('Invalid deployment region value');
@@ -96,8 +103,12 @@ export class RiotValorantAPI {
         const entitlements = this.entitlementTokenManager.getView();
         if (!entitlements) throw new Error('No entitlement tokens available');
 
+        const shard = this.config.overrides['valorant-api'].shard ?? RegionToDefaultShardMap[region];
+        if (!shard) throw new Error('Unable to determine shard for region ' + region);
+
         return {
             region,
+            shard: shard,
             version: releaseVersion.version,
             puuid: entitlements.subject,
         };
@@ -119,7 +130,7 @@ export class RiotValorantAPI {
         endIndex = 20,
     ): Promise<MatchHistoryEntry[]> {
         const { region, version, puuid } = this.getDeploymentContext();
-        const url = `${getPdApiBase(region)}/match-history/v1/history/${puuid}?startIndex=${startIndex}&endIndex=${endIndex}`;
+        const url = `${this.getPdApiBase(region)}/match-history/v1/history/${puuid}?startIndex=${startIndex}&endIndex=${endIndex}`;
 
         const response = await fetch(url, {
             headers: this.getAuthHeaders(version),
@@ -136,7 +147,7 @@ export class RiotValorantAPI {
 
     async getMatchDetails(matchId: string): Promise<RiotMatchApiResponse> {
         const { region, version } = this.getDeploymentContext();
-        const url = `${getPdApiBase(region)}/match-details/v1/matches/${matchId}`;
+        const url = `${this.getPdApiBase(region)}/match-details/v1/matches/${matchId}`;
 
         const response = await fetch(url, {
             headers: this.getAuthHeaders(version),
@@ -152,7 +163,7 @@ export class RiotValorantAPI {
 
     async getReplaySummary(matchId: string): Promise<ReplaySummary> {
         const { region, version } = this.getDeploymentContext();
-        const url = `${getSgpApiBase(region)}/match-history-query/v3/product/valorant/matchId/${matchId}/infoType/summary`;
+        const url = `${this.getSgpApiBase(region)}/match-history-query/v3/product/valorant/matchId/${matchId}/infoType/summary`;
 
         const response = await fetch(url, {
             headers: this.getAuthHeaders(version),
@@ -168,7 +179,7 @@ export class RiotValorantAPI {
 
     async downloadReplayFile(matchId: string): Promise<Buffer> {
         const { region, version } = this.getDeploymentContext();
-        const url = `${getSgpApiBase(region)}/match-history-query/v3/product/valorant/matchId/${matchId}/infoType/replay`;
+        const url = `${this.getSgpApiBase(region)}/match-history-query/v3/product/valorant/matchId/${matchId}/infoType/replay`;
 
         const response = await fetch(url, {
             headers: this.getAuthHeaders(version),
@@ -183,8 +194,8 @@ export class RiotValorantAPI {
     }
 
     async getGameLoopState(): Promise<ConnectionState> {
-        const { region, version, puuid } = this.getDeploymentContext();
-        const url = `${getGlzApiBase(region)}/session/v1/sessions/${puuid}`;
+        const { region, version, puuid, shard } = this.getDeploymentContext();
+        const url = `${this.getGlzApiBase(region, shard)}/session/v1/sessions/${puuid}`;
 
         const response = await fetch(url, {
             headers: this.getAuthHeaders(version),
@@ -198,5 +209,18 @@ export class RiotValorantAPI {
         const data = await response.json();
         this.logger.log(`Game loop state response: ${JSON.stringify(data)}`);
         return data;
+    }
+
+    public getPdApiBase(deploymentRegion: string): string {
+        return `https://pd.${deploymentRegion}.a.pvp.net`;
+    }
+
+    public getSgpApiBase(deploymentRegion: string): string {
+        const regionMap = this.regionMap[deploymentRegion];
+        return `${regionMap}`;
+    }
+
+    public getGlzApiBase(deploymentRegion: string, shard: string): string {
+        return `https://glz-${deploymentRegion}-1.${shard}.a.pvp.net`;
     }
 }

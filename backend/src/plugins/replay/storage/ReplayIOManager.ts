@@ -22,7 +22,7 @@ export class ReplayIOManager {
         const localAppData =
             process.env.LOCALAPPDATA ??
             path.join(os.homedir(), 'AppData', 'Local');
-        this.storageBasePath = path.join(localAppData, 'VViewer', 'replays');
+        this.storageBasePath = path.join(localAppData, 'ValorantReplayViewer', 'replays');
     }
 
     private matchDir(matchId: string): string {

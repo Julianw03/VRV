@@ -58,14 +58,14 @@ export class ReplayFetchManager {
             .then(() => {
                 this.downloadStates.set(
                     matchId,
-                    AsyncResult.ofSuccess<void>(undefined as never),
+                    AsyncResult.ofSuccess<unknown>(undefined as never),
                 );
             })
             .catch((e: Error) => {
                 this.logger.error(`Download failed for match ${matchId}`, e);
                 this.downloadStates.set(
                     matchId,
-                    AsyncResult.ofFailure<void>(e),
+                    AsyncResult.ofFailure<unknown>(e),
                 );
             });
     }

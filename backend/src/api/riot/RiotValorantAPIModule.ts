@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { EntitlementTokenModule } from '@/caching/EntitlementTokenManager/EntitlementTokenModule';
 import { ProductSessionModule } from '@/caching/ProductSessionManager/ProductSessionModule';
 import { RiotValorantAPI } from '@/api/riot/RiotValorantAPI';
-import { VersionInfoModule } from '@/caching/VersionInfo/VersionInfoModule';
+import { ValorantVersionInfoModule } from '@/caching/ValorantVersionInfo/ValorantVersionInfoModule';
 
 @Module({
-    imports: [EntitlementTokenModule, ProductSessionModule, VersionInfoModule],
+    imports: [EntitlementTokenModule, ProductSessionModule, ValorantVersionInfoModule],
     providers: [RiotValorantAPI],
     exports: [RiotValorantAPI],
 })

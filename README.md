@@ -23,7 +23,6 @@ Once the app runs [click here](http://localhost:3000) or open "http://localhost:
 - After injection **START A REPLAY OF THE FIRST REPLAYABLE MATCH IN YOUR HISTORY**, it will look like the original replay
 is loaded initially but once you are loaded in the replay will be the one you have selected for injection.
 
-
 ## Disclaimer
 
 **VRV isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved 
@@ -47,11 +46,6 @@ VRV solves this by allowing you to view Replays from all your account's and frie
 with no need to coordinate downloads or screen shares.
 VRV only supports viewing replays that are recorded by the Valorant servers. That means custom games are as of now not supported.
 
-
-### Use cases
-- **Watch a friend's match** — Pull up any recent match from your friends list and jump straight into the replay, no coordination needed.
-- **Async coaching** — Coaches can review team scrimmages at their own pace without needing to be online during the match or rely on a screen share stream. Watch, rewind, and analyze whenever it suits you.
-
 ## Security notice
 
 > **Only download VRV from the official release page.**
@@ -60,8 +54,3 @@ This application connects to your local Riot Client and has access to your sessi
 
 - Only run official, releases from the project's release page.
 - Do not run modified builds or binaries you received from untrusted sources.
-
-## How it works
-Your local Riot client exposes a local API that can be monitored. We can use this to track when matches start / end without
-actively needing to poll the Valorant Servers.
-For example once a match ends, we can download the stats and replay information for that match and make it available in our app.

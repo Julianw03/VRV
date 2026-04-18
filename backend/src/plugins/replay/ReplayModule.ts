@@ -13,6 +13,7 @@ import { ValorantGameLoopModule } from '@/caching/ValorantGameLoop/ValorantGameL
 import { RiotValorantAPIModule } from '@/api/riot/RiotValorantAPIModule';
 import { ValorantMatchStatsModule } from '@/caching/ValorantMatchStatsModule/ValorantMatchStatsModule';
 import { AccountNameAndTagLineModule } from '@/caching/AccountNameAndTagLineModule/AccountNameAndTagLineModule';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
     imports: [
@@ -22,7 +23,8 @@ import { AccountNameAndTagLineModule } from '@/caching/AccountNameAndTagLineModu
         ValorantMatchStatsModule,
         EventBusModule,
         ValorantGameLoopModule,
-        RiotValorantAPIModule
+        RiotValorantAPIModule,
+        ConfigModule
     ],
     providers: [ReplayIOManager, ReplayFetchManager, ReplayInjectManager],
     controllers: [

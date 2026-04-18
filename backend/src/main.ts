@@ -5,25 +5,19 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as process from 'node:process';
 import 'reflect-metadata';
+import { appConfig } from '@/config/configLoader';
 
-//TODO:
-// 1. Simple REST Api for Match-Info
-// 2. Set up CORS
-// 3. ? Think about how other consumer plugins can be implemented
 async function bootstrap() {
     const isDev = process.env.NODE_ENV === 'development';
-
-    const port = process.env.port || 3000;
-
     const logLevel = isDev ? ['log', 'error', 'warn', 'debug'] : ['log', 'error', 'warn'];
-    const corsOrigin = isDev ? '*' : [`http://127.0.0.1:${port}`, `http://localhost:${port}`];
-
     console.log("Using log level:", logLevel);
-    console.log("Using CORS origin:", corsOrigin);
 
     const app = await NestFactory.create(AppModule, {
         logger: logLevel as any,
     });
+    const configuration = app.get(appConfig.KEY);
+    const configuredPort = configuration.configurations.app.port;
+    const corsOrigin = [`http://127.0.0.1:${configuredPort}`, `http://localhost:${configuredPort}`, ...configuration.configurations.app["additional-cors-origins"]];
     app.enableVersioning({
         type: VersioningType.URI,
         defaultVersion: '1',
@@ -34,7 +28,7 @@ async function bootstrap() {
     app.useGlobalPipes(
         new ValidationPipe({ transform: true, whitelist: true }),
     );
-    app.enableCors({ origin: corsOrigin });
+    app.enableCors({ origin: isDev ? '*' : corsOrigin });
 
     const config = new DocumentBuilder()
         .setTitle('Valorant Replay Viewer')
@@ -43,8 +37,8 @@ async function bootstrap() {
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
-    await app.listen(port);
+    SwaggerModule.setup('docs', app, document);
+    await app.listen(configuredPort);
 }
 
 bootstrap();

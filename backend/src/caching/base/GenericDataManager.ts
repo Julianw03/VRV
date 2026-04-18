@@ -22,15 +22,9 @@ export abstract class GenericDataManager<T, E> {
     // We expose these internal methods via symbols to avoid accidental misuse
     // while still allowing Adapters to interact with the internal state when necessary.
 
-    public [_INTERNALS_READ_STATE](): T | null {
-        return this.getState();
-    }
+    public [_INTERNALS_READ_STATE] = this.getState.bind(this);
 
-    public [_INTERNALS_WRITE_STATE](data: T | null): void {
-        this.setState(data);
-    }
+    public [_INTERNALS_WRITE_STATE] = this.setState.bind(this);
 
-    public [_INTERNALS_RESET_STATE](): Promise<void> {
-        return this.resetInternalState();
-    }
+    public [_INTERNALS_RESET_STATE] = this.resetInternalState.bind(this);
 }

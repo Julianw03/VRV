@@ -1,13 +1,6 @@
-import {
-    ConflictException,
-    Injectable,
-    Logger,
-    NotFoundException,
-    OnModuleDestroy,
-} from '@nestjs/common';
+import { ConflictException, Inject, Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import * as os from 'node:os';
 import { ReplayIOManager } from '@/plugins/replay/storage/ReplayIOManager';
 import { ReplayFetchManager } from '@/plugins/replay/remote/ReplayFetchManager';
 import { SimpleEventBus } from '@/events/SimpleEventBus';
@@ -16,6 +9,8 @@ import { StateUpdatedEvent } from '@/events/BasicEvent';
 import { StateUpdatedEventImpl } from '@/events/impl/StateUpdatedEventImpl';
 import { ValorantGameLoopManager } from '@/caching/ValorantGameLoop/ValorantGameLoopManager';
 import { RiotValorantAPI } from '@/api/riot/RiotValorantAPI';
+import { type ConfigType } from '@nestjs/config';
+import { appConfig } from '@/config/configLoader';
 
 export enum InjectState {
     IDLE = 'IDLE',
@@ -46,16 +41,14 @@ export class ReplayInjectManager implements OnModuleDestroy {
     private readonly demosDir: string;
 
     constructor(
+        @Inject(appConfig.KEY)
+        private config: ConfigType<typeof appConfig>,
         private readonly apiClient: RiotValorantAPI,
         private readonly ioManager: ReplayIOManager,
         private readonly fetchManager: ReplayFetchManager,
         private readonly eventBus: SimpleEventBus,
-        private readonly aresSessionManager: ValorantGameLoopManager,
     ) {
-        const localAppData =
-            process.env.LOCALAPPDATA ??
-            path.join(os.homedir(), 'AppData', 'Local');
-        this.demosDir = path.join(localAppData, 'VALORANT', 'Saved', 'Demos');
+        this.demosDir = path.join(config.filepaths['valorant-saved'].getResolvedPath(), 'Demos');
     }
 
     setInjectState(newState: InjectState) {
@@ -190,16 +183,16 @@ export class ReplayInjectManager implements OnModuleDestroy {
                         this.unsubscribeFromSession?.();
                         this.unsubscribeFromSession = null;
                         this.restoreOriginalReplayFile(this.placeholderMatchId)
-                        .then(() => {
-                            this.reset();
-                        })
-                        .catch((e) => {
-                            this.logger.error(
-                                'Failed to restore original replay file after inject',
-                                e,
-                            );
-                            this.state = InjectState.FAILED;
-                        });
+                            .then(() => {
+                                this.reset();
+                            })
+                            .catch((e) => {
+                                this.logger.error(
+                                    'Failed to restore original replay file after inject',
+                                    e,
+                                );
+                                this.state = InjectState.FAILED;
+                            });
                     }
                 },
             );

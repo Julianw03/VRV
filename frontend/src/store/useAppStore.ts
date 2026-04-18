@@ -46,7 +46,7 @@ interface AppState {
     triggeredMatchIds: string[];
 
     currentInjectState: InjectState;
-    currentShippingVersion: string | null;
+    currentValorantShippingVersion: string | null;
 
     // WS-pushed match stats cache keyed by matchId.
     matchStatsCache: Record<string, MatchStatsResult>;
@@ -72,7 +72,7 @@ export const useAppStore = create<AppState>((set) => {
     const state = {
         wsConnected: false,
         playerAlias: null,
-        currentShippingVersion: null,
+        currentValorantShippingVersion: null,
         triggeredMatchIds: [],
         matchStatsCache: {},
         mapRegistry: null,
@@ -95,7 +95,7 @@ export const useAppStore = create<AppState>((set) => {
 
         setMapRegistry: (registry: Record<string, MapAsset>) => set({ mapRegistry: registry }),
 
-        setCurrentShippingVersion: (version: string | null) => set({ currentShippingVersion: version }),
+        setCurrentShippingVersion: (version: string | null) => set({ currentValorantShippingVersion: version }),
     };
 
     const handleWSEvent = (event: AnyBasicEvent) => {
@@ -118,10 +118,10 @@ export const useAppStore = create<AppState>((set) => {
                     state.setMatchStat(matchId, result);
                 }
             },
-            VersionInfoManager: (event: AnyBasicEvent) => {
+            ValorantVersionInfoManager: (event: AnyBasicEvent) => {
                 if (event.type !== 'StateUpdated') return;
                 const currentVersion = event.payload.value as string | null;
-                set({ currentShippingVersion: currentVersion });
+                set({ currentValorantShippingVersion: currentVersion });
             },
         };
 

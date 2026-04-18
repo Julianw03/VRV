@@ -28,12 +28,14 @@ export abstract class EmittingMapDataManager<
         const prev = this.get(key);
         super.deleteKey(key);
         const newView = this.getViewForValue(null);
+        const prevView = this.getViewForValue(prev);
         if (this.getViewForValue(prev) !== null) {
             this.eventBus.publish<EventType.KeyValueUpdated>(
-                KeyValueUpdatedEventImpl.of(
+                KeyValueUpdatedEventImpl.ofDiff(
                     this.constructor.name,
                     key,
                     newView,
+                    prevView
                 ),
             );
         }
@@ -43,12 +45,14 @@ export abstract class EmittingMapDataManager<
         const prev = this.get(key) ?? null;
         super.setKeyValue(key, value);
         const newView = this.getViewForValue(value);
-        if (this.getViewForValue(prev) !== newView) {
+        const prevView = this.getViewForValue(prev);
+        if (prevView !== newView) {
             this.eventBus.publish<EventType.KeyValueUpdated>(
-                KeyValueUpdatedEventImpl.of(
+                KeyValueUpdatedEventImpl.ofDiff(
                     this.constructor.name,
                     key,
                     newView,
+                    prevView
                 ),
             );
         }

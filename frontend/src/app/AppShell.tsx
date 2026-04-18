@@ -10,6 +10,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/recent': 'Recent Matches',
   '/saved': 'Saved Replays',
   '/injector': 'Injector',
+  '/config': 'Configuration',
 }
 
 export function AppShell() {
