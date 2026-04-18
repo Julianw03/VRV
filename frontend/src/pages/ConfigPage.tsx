@@ -440,7 +440,7 @@ export function ConfigPage() {
                         </FieldRow>
                         <FieldRow label="Version regex" description="Regex pattern used to parse the version string from the client." effective={effRegex ?? null}>
                             <Input value={form.regex} onChange={e => update('regex', e.target.value)}
-                                   placeholder={effectiveConfig.configurations['valorant-version-read'].regex} className="font-mono text-xs" disabled={isBusy} />
+                                   placeholder={effectiveConfig?.configurations?.['valorant-version-read']?.regex} className="font-mono text-xs" disabled={isBusy} />
                         </FieldRow>
                     </div>
 
