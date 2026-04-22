@@ -1,6 +1,7 @@
-import * as LocalLinkResolver from "@/lib/LocalLinkResolver.ts"
+import * as LocalLinkResolver from '@/lib/LocalLinkResolver.ts';
+import type { ProductSession } from '#/dto/ProductSession.ts';
 
-export const API_BASE = LocalLinkResolver.resolve("/api/v1", "http");
+export const API_BASE = LocalLinkResolver.resolve('/api/v1', 'http');
 
 // ---- Types ----
 
@@ -44,7 +45,7 @@ export interface ReplayMetadata {
 
 export interface DownloadInfo {
     downloadedAt: number;
-    downloaderId: string
+    downloaderId: string;
 }
 
 export interface MatchInfo {
@@ -271,6 +272,9 @@ export const api = {
     },
     account: {
         getAlias: () => request<PlayerAlias>('/caching/account-name-and-tag-line/active'),
+    },
+    sessions: {
+        getAllProductSessions: () => request<Record<string, ProductSession>>('/caching/product-sessions'),
     },
     assets: {
         getAllMaps: () => request<Record<string, MapAsset>>('/assets/maps/'),

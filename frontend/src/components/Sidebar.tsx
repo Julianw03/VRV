@@ -18,8 +18,8 @@ import { ConnectionStatus } from '@/components/ConnectionStatus';
 import { cn } from '@/lib/utils';
 
 const replayNavItems = [
-    { title: 'Recent Matches', path: '/recent', icon: Clock },
     { title: 'Saved Replays', path: '/saved', icon: HardDrive },
+    { title: 'Recent Matches', path: '/recent', icon: Clock },
     { title: 'Injector', path: '/injector', icon: BugPlay },
 ];
 

@@ -7,13 +7,10 @@ import * as readline from 'node:readline';
 import { ProductSessionManager } from '@/caching/ProductSessionManager/ProductSessionManager';
 import { type ConfigType } from '@nestjs/config';
 import { appConfig } from '@/config/configLoader';
-
-export interface MinimalVersionInfo {
-    version: string;
-}
+import { MinimalVersionInfoDTO } from '@/caching/ValorantVersionInfo/MinimalVersionInfoDTO';
 
 @Injectable()
-export class ValorantVersionInfoManager extends EmittingObjectDataManager<MinimalVersionInfo, MinimalVersionInfo> implements OnModuleInit, OnModuleDestroy {
+export class ValorantVersionInfoManager extends EmittingObjectDataManager<MinimalVersionInfoDTO, MinimalVersionInfoDTO> implements OnModuleInit, OnModuleDestroy {
 
     constructor(
         @Inject(appConfig.KEY)
@@ -87,7 +84,7 @@ export class ValorantVersionInfoManager extends EmittingObjectDataManager<Minima
     }
 
 
-    protected getViewFor(state: MinimalVersionInfo | null): MinimalVersionInfo | null {
+    protected getViewFor(state: MinimalVersionInfoDTO | null): MinimalVersionInfoDTO | null {
         if (!state) return null;
         return state;
     }
