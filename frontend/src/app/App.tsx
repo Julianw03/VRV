@@ -1,35 +1,42 @@
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { AppShell } from './AppShell'
-import { ConnectPage } from '@/pages/ConnectPage'
-import { RecentMatchesPage } from '@/pages/RecentMatchesPage'
-import { SavedReplaysPage } from '@/pages/SavedReplaysPage'
-import { InjectorPage } from '@/pages/InjectorPage'
-import { ConfigPage } from '@/pages/ConfigPage'
-import { useWebSocket } from '@/hooks/useWebSocket'
-import { useMapRegistry } from '@/lib/queries'
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AppShell } from './AppShell';
+import { ConnectPage } from '@/pages/ConnectPage';
+import { RecentMatchesPage } from '@/pages/RecentMatchesPage';
+import { SavedReplaysPage } from '@/pages/SavedReplaysPage';
+import { InjectorPage } from '@/pages/InjectorPage';
+import { ConfigPage } from '@/pages/ConfigPage';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { useMapRegistry } from '@/lib/queries';
+import { RequireSessionGuard } from '@/components/RequireSessionGuard.tsx';
 
 function App() {
-  useWebSocket()
-  useMapRegistry()
+    useWebSocket();
+    useMapRegistry();
 
-  return (
-    <HashRouter>
-      <Routes>
-        {/* Connection gate — shown before the Riot Client is connected */}
-        <Route path="/connect" element={<ConnectPage />} />
+    return (
+        <HashRouter>
+            <Routes>
+                <Route path="/connect" element={<ConnectPage />} />
 
-        {/* Main app shell — redirects to /connect if not connected */}
-        <Route element={<AppShell />}>
-          <Route index element={<Navigate to="/saved" replace />} />
-          <Route path="/recent" element={<RecentMatchesPage />} />
-          <Route path="/saved" element={<SavedReplaysPage />} />
-          <Route path="/injector" element={<InjectorPage />} />
-          <Route path="/config" element={<ConfigPage />} />
-          <Route path="*" element={<Navigate to="/recent" replace />} />
-        </Route>
-      </Routes>
-    </HashRouter>
-  )
+                <Route element={<AppShell />}>
+                    { /* Todo use proper routing definition */}
+                    <Route index element={<Navigate to="/recent" replace />} />
+                    <Route path="/saved" element={<SavedReplaysPage />} />
+                    <Route path="/recent" element={
+                        <RequireSessionGuard productId={'valorant'}>
+                            {() => <RecentMatchesPage />}
+                        </RequireSessionGuard>} />
+                    <Route path="/injector" element={
+                        <RequireSessionGuard productId={'valorant'}>
+                            {() => <InjectorPage />}
+                        </RequireSessionGuard>
+                    } />
+                    <Route path="/config" element={<ConfigPage />} />
+                    <Route path="*" element={<Navigate to="/recent" replace />} />
+                </Route>
+            </Routes>
+        </HashRouter>
+    );
 }
 
-export default App
+export default App;

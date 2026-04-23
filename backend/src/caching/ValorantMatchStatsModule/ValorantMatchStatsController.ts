@@ -3,7 +3,7 @@ import {
     ClassSerializerInterceptor,
     Controller,
     Get,
-    HttpCode,
+    HttpCode, HttpStatus,
     Logger,
     NotFoundException,
     Param,
@@ -75,7 +75,7 @@ export class ValorantMatchStatsController {
     }
 
     @Post(':id/fetch')
-    @HttpCode(202)
+    @HttpCode(HttpStatus.ACCEPTED.valueOf())
     public triggerFetch(@Param('id') id: UUID) {
         if (!id) throw new BadRequestException();
         this.valorantMatchEndedManager.requestMatchFetch(id);

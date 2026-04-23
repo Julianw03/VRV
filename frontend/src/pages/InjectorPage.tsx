@@ -113,7 +113,7 @@ export function InjectorPage() {
     const injectStatus = useAppStore((s) => s.currentInjectState);
     const { mutate: cancelInject, isPending: isCancelling } = useCancelInject();
 
-    const isActive = injectStatus !== 'IDLE';
+    const isActive = injectStatus !== InjectStates.IDLE;
 
     return (
         <div className="flex w-full flex-col gap-4">

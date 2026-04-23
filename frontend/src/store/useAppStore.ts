@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { type InjectState, InjectStates, type MapAsset, type MatchStatsResult, type PlayerAlias } from '@/lib/api';
+import type { ProductSession } from '#/dto/ProductSession.ts';
+import type { MinimalVersionInfo } from '#/dto/MinimalVersionInfo.ts';
 
 export type EventType =
     | 'StateUpdated'
@@ -49,15 +51,17 @@ interface AppState {
     currentValorantShippingVersion: string | null;
 
     // WS-pushed match stats cache keyed by matchId.
-    matchStatsCache: Record<string, MatchStatsResult>;
+    matchStatsCache: Record<string, MatchStatsResult> | null;
 
     // Map asset registry keyed by mapUrl (e.g. "/Game/Maps/Ascent/Ascent").
     mapRegistry: Record<string, MapAsset> | null;
+    sessionRegistry: Record<string, ProductSession> | null;
 
     setWsConnected: (connected: boolean) => void;
     addTriggeredMatch: (matchId: string) => void;
     setMatchStat: (matchId: string, result: MatchStatsResult) => void;
     setMapRegistry: (registry: Record<string, MapAsset>) => void;
+    setSessionRegistry: (registry: Record<string, ProductSession>) => void;
     setCurrentShippingVersion: (version: string | null) => void;
 
     /**
@@ -74,9 +78,9 @@ export const useAppStore = create<AppState>((set) => {
         playerAlias: null,
         currentValorantShippingVersion: null,
         triggeredMatchIds: [],
-        matchStatsCache: {},
+        matchStatsCache: null,
         mapRegistry: null,
-
+        sessionRegistry: null,
         currentInjectState: InjectStates.IDLE,
 
         setWsConnected: (connected: boolean) => set({ wsConnected: connected }),
@@ -89,11 +93,16 @@ export const useAppStore = create<AppState>((set) => {
             })),
 
         setMatchStat: (matchId: string, result: MatchStatsResult) =>
-            set((s) => ({
-                matchStatsCache: { ...s.matchStatsCache, [matchId]: result },
-            })),
+            set((s) => {
+                const prev = s.matchStatsCache;
+                if (prev == null) return { matchStatsCache: null};
+
+                return { matchStatsCache: { ...prev, [matchId]: result } };
+            }),
 
         setMapRegistry: (registry: Record<string, MapAsset>) => set({ mapRegistry: registry }),
+
+        setSessionRegistry: (registry: Record<string, ProductSession>) => set({ sessionRegistry: registry }),
 
         setCurrentShippingVersion: (version: string | null) => set({ currentValorantShippingVersion: version }),
     };
@@ -120,8 +129,42 @@ export const useAppStore = create<AppState>((set) => {
             },
             ValorantVersionInfoManager: (event: AnyBasicEvent) => {
                 if (event.type !== 'StateUpdated') return;
-                const currentVersion = event.payload.value as string | null;
-                set({ currentValorantShippingVersion: currentVersion });
+                console.log('Received ValorantVersionInfoManager event: ', event);
+                const currentVersion = event.payload.value as MinimalVersionInfo | null;
+                set({ currentValorantShippingVersion: currentVersion?.version ?? null });
+            },
+            ProductSessionManager: (event: AnyBasicEvent) => {
+                switch (event.type) {
+                    case 'StateUpdated': {
+                        const currentSessions = event.payload.value as Record<string, ProductSession>;
+                        if (currentSessions !== undefined) {
+                            set({ sessionRegistry: currentSessions });
+                        }
+                        break;
+                    }
+                    case 'KeyValueUpdated': {
+                        const sessionId = event.payload.key as string;
+                        const session = event.payload.value as ProductSession | null;
+                        if (session) {
+                            console.log(`Updating session registry with new/updated session ${sessionId}`);
+                            set((s) => {
+                                const prev = s.sessionRegistry;
+                                if (prev == null) return  { sessionRegistry: null };
+                                return { sessionRegistry: { ...prev, [sessionId]: session } };
+                            });
+                        }
+                        if (session === null) {
+                            console.log('Removing session from registry with id ', sessionId);
+                            set((s) => {
+                                if (!s.sessionRegistry) return { sessionRegistry: null};
+                                const newRegistry = { ...s.sessionRegistry };
+                                delete newRegistry[sessionId];
+                                return { sessionRegistry: newRegistry };
+                            });
+                        }
+                        break;
+                    }
+                }
             },
         };
 

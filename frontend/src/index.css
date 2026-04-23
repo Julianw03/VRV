@@ -81,6 +81,15 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+
+    top: 0;
+    left: 0;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    scrollbar-gutter: stable;
 }
 
 .dark {
@@ -127,16 +136,6 @@
   html {
     @apply font-sans;
     }
-}
-
-:root {
-    top: 0;
-    left: 0;
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
 }
 
 @layer base {

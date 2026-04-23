@@ -24,10 +24,9 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"],
+      "#/*": ["../backend/shared/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "../backend/shared"],
 }

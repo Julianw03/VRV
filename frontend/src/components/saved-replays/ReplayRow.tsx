@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { BugPlay, ChevronLeft, Download, Loader2, Trash2 } from 'lucide-react';
+import { ChevronLeft, Download, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { useDeleteMatch, useShippingVersion, useStartInject } from '@/lib/queries';
+import { useDeleteMatch } from '@/lib/queries';
 import type { ReplayMetadata } from '@/lib/api';
 import { API_BASE } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -17,7 +16,7 @@ import {
     type MinimalMatchPlayer,
     type MinimalMatchTeam,
 } from '@/components/match-details/MatchDetailsPanel.tsx';
-import { TooltipContent, TooltipTrigger, Tooltip } from '@/components/ui/tooltip.tsx';
+import { InjectButton } from '@/components/saved-replays/InjectButton.tsx';
 
 // Shared grid layout — applied to both the header row and each replay row so
 // columns are always aligned. Columns:  queue | map | version | stored | actions
@@ -68,15 +67,10 @@ const renderPanel = (replay: ReplayMetadata) => {
 };
 
 export function ReplayRow({ replay }: ReplayRowProps) {
-    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const { mutate: deleteMatch, isPending: isDeleting } = useDeleteMatch();
-    const { mutate: startInject, isPending: isInjecting } = useStartInject();
     const storedAt = useRelativeTime(replay.downloadInfo.downloadedAt);
     const mapAsset = useAppStore((s) => s.mapRegistry?.[replay.matchInfo.mapId] ?? null);
-    const { data: shippingVersion } = useShippingVersion();
-
-    const isCurrentVersion = shippingVersion ? replay.matchInfo.gameVersion === shippingVersion.version : true;
 
     const {
         gameName,
@@ -117,7 +111,8 @@ export function ReplayRow({ replay }: ReplayRowProps) {
                         {replay.matchInfo.queueID || 'Unknown'}
                     </span>
                 </div>
-                <div className="truncate text-xs text-muted-foreground" title={mapAsset?.displayName ?? replay.matchInfo.mapId}>
+                <div className="truncate text-xs text-muted-foreground"
+                     title={mapAsset?.displayName ?? replay.matchInfo.mapId}>
                     {mapAsset?.displayName ?? mapDisplayName(replay.matchInfo.mapId)}
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -131,26 +126,7 @@ export function ReplayRow({ replay }: ReplayRowProps) {
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-1">
-                    {
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <span>
-                                    <Button
-                                        size="icon-sm"
-                                        variant="ghost"
-                                        className={'cursor-pointer'}
-                                        disabled={isInjecting || !isCurrentVersion}
-                                        onClick={() => startInject(replay.matchInfo.matchId, { onSuccess: () => navigate('/injector') })}
-                                    >
-                                    {isInjecting ? <Loader2 className="animate-spin" /> : <BugPlay />}
-                                </Button>
-                                </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p> { isCurrentVersion ? 'Inject this replay into the game client' : 'Replay version does not match current game version!' }</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    }
+                    <InjectButton replay={replay} />
                     <Button size="icon-sm" variant="ghost" title="Download .vrp file" asChild>
                         <a href={downloadHref} download={`${replay.matchInfo.matchId}.vrp`}>
                             <Download />

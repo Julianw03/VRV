@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ConfigOverrides, MapAsset, MatchStatsResult } from '@/lib/api';
-import { api, proxyAssetUrl } from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
+import type { ProductSession } from '#/dto/ProductSession.ts';
 
 // ---- Query keys ----
 
@@ -15,6 +16,7 @@ export const queryKeys = {
     injectStatus: ['injectStatus'] as const,
     matchStats: (matchId: string) => ['matchStats', matchId] as const,
     mapRegistry: ['mapRegistry'] as const,
+    productSessionRegistry: ['productSessionRegistry'] as const,
     effectiveConfig: ['effectiveConfig'] as const,
     configOverrides: ['configOverrides'] as const,
 } as const;
@@ -115,18 +117,19 @@ export function useShippingVersion() {
     const existing = useAppStore((s) => s.currentValorantShippingVersion);
     const setShippingVersion = useAppStore((s) => s.setCurrentShippingVersion);
 
-    return useQuery({
+    useQuery({
         queryKey: queryKeys.currentShippingVersion,
         queryFn: async () => {
             const versionInfo = await api.valorantVersionInfo.get();
-            console.log(versionInfo);
             setShippingVersion(versionInfo.version);
             return versionInfo;
         },
         enabled: !existing,
-        refetchInterval: 3_000,
+        refetchInterval: 5_000,
         staleTime: 0,
     });
+
+    return existing;
 }
 
 /**
@@ -195,7 +198,7 @@ export function useRetryDownload() {
  * - Only fetches when `enabled` is true (lazy – open collapsible to trigger).
  */
 export function useMatchStats(matchId: string, enabled = true) {
-    const wsData = useAppStore((s) => s.matchStatsCache[matchId]);
+    const wsData = useAppStore((s) => s.matchStatsCache?.[matchId]);
     const setMatchStat = useAppStore((s) => s.setMatchStat);
 
     const query = useQuery<MatchStatsResult | null>({
@@ -254,23 +257,8 @@ export function useMapRegistry() {
         queryFn: async () => {
             try {
                 const raw = await api.assets.getAllMaps();
-                // Rewrite all image URLs to go through the local proxy cache
-                const proxied = Object.fromEntries(
-                    Object.entries(raw).map(([mapUrl, asset]) => [
-                        mapUrl,
-                        {
-                            ...asset,
-                            displayIcon: proxyAssetUrl(asset.displayIcon),
-                            listViewIcon: proxyAssetUrl(asset.listViewIcon),
-                            listViewIconTall: proxyAssetUrl(asset.listViewIconTall),
-                            splash: proxyAssetUrl(asset.splash),
-                            stylizedBackgroundImage: proxyAssetUrl(asset.stylizedBackgroundImage),
-                            premierBackgroundImage: proxyAssetUrl(asset.premierBackgroundImage),
-                        } satisfies MapAsset,
-                    ]),
-                );
-                setMapRegistry(proxied);
-                return proxied;
+                setMapRegistry(raw);
+                return raw;
             } catch (e) {
                 if (e instanceof Error && e.message.startsWith('HTTP 404')) {
                     return null;
@@ -285,6 +273,31 @@ export function useMapRegistry() {
         staleTime: Infinity,
         retry: false,
     });
+}
+
+export function useProductSessionRegistry() {
+    const sessionRegistry = useAppStore((s) => s.sessionRegistry);
+    const setSessionRegistry = useAppStore((s) => s.setSessionRegistry);
+
+    useQuery({
+        queryKey: queryKeys.productSessionRegistry,
+        queryFn: async () => {
+            const data = await api.sessions.getAllProductSessions();
+            setSessionRegistry(data);
+            return data;
+        },
+        enabled: sessionRegistry === null,
+        staleTime: Infinity,
+        retry: false,
+    });
+
+    return sessionRegistry;
+}
+
+export function useProductSession(productId: string): ProductSession | null {
+    const registry = useProductSessionRegistry();
+    if (!registry) return null;
+    return Object.values(registry).find((s) => s.productId === productId) ?? null;
 }
 
 // ---- Injector ----

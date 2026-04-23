@@ -72,7 +72,7 @@ export function MatchRow({ match }: MatchRowProps) {
     const { mutate: retryDownload } = useRetryDownload();
     const relativeTime = useRelativeTime(match.GameStartTime);
 
-    const matchStats = useAppStore((s) => s.matchStatsCache[match.MatchID]);
+    const matchStats = useAppStore((s) => s.matchStatsCache?.[match.MatchID]);
     const mapId = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo.mapId : null;
     const mapAsset = useAppStore((s) => (mapId ? s.mapRegistry?.[mapId] ?? null : null));
 
