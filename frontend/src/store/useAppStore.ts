@@ -95,7 +95,7 @@ export const useAppStore = create<AppState>((set) => {
         setMatchStat: (matchId: string, result: MatchStatsResult) =>
             set((s) => {
                 const prev = s.matchStatsCache;
-                if (prev == null) return null;
+                if (prev == null) return { matchStatsCache: null};
 
                 return { matchStatsCache: { ...prev, [matchId]: result } };
             }),
@@ -137,7 +137,7 @@ export const useAppStore = create<AppState>((set) => {
                 switch (event.type) {
                     case 'StateUpdated': {
                         const currentSessions = event.payload.value as Record<string, ProductSession>;
-                        if (currentSessions) {
+                        if (currentSessions !== undefined) {
                             set({ sessionRegistry: currentSessions });
                         }
                         break;
@@ -149,14 +149,14 @@ export const useAppStore = create<AppState>((set) => {
                             console.log(`Updating session registry with new/updated session ${sessionId}`);
                             set((s) => {
                                 const prev = s.sessionRegistry;
-                                if (prev == null) return null;
+                                if (prev == null) return  { sessionRegistry: null };
                                 return { sessionRegistry: { ...prev, [sessionId]: session } };
                             });
                         }
                         if (session === null) {
                             console.log('Removing session from registry with id ', sessionId);
                             set((s) => {
-                                if (!s.sessionRegistry) return null;
+                                if (!s.sessionRegistry) return { sessionRegistry: null};
                                 const newRegistry = { ...s.sessionRegistry };
                                 delete newRegistry[sessionId];
                                 return { sessionRegistry: newRegistry };
