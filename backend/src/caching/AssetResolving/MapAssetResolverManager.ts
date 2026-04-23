@@ -26,7 +26,7 @@ export class MapAssetResolverManager extends MapDataManager<MapId, MapEntry, Map
         return `http://127.0.0.1:${this.config.configurations.app.port}/api/v1/assets/proxy?url=${encodeURIComponent(externalUrl)}`;
     }
 
-    private overrideProxyRessourcesFor(entry: MapEntry) {
+    private overrideProxyResourcesFor(entry: MapEntry) {
         for (const [key, value] of Object.entries(entry)) {
             if (typeof value === 'string' && value.startsWith('http')) {
                 entry[key as keyof MapAsset] = this.proxyAssetUrl(value);
@@ -40,7 +40,7 @@ export class MapAssetResolverManager extends MapDataManager<MapId, MapEntry, Map
             .then(data => {
                 const map = new Map<string, MapEntry>();
                 for (const entry of data) {
-                    map.set(entry.mapUrl, this.overrideProxyRessourcesFor(entry));
+                    map.set(entry.mapUrl, this.overrideProxyResourcesFor(entry));
                 }
                 this.logger.log('Fetched map list and updated state.');
                 this.setState(map);

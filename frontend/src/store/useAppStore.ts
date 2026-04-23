@@ -78,7 +78,7 @@ export const useAppStore = create<AppState>((set) => {
         playerAlias: null,
         currentValorantShippingVersion: null,
         triggeredMatchIds: [],
-        matchStatsCache: {},
+        matchStatsCache: null,
         mapRegistry: null,
         sessionRegistry: null,
         currentInjectState: InjectStates.IDLE,
@@ -93,9 +93,12 @@ export const useAppStore = create<AppState>((set) => {
             })),
 
         setMatchStat: (matchId: string, result: MatchStatsResult) =>
-            set((s) => ({
-                matchStatsCache: { ...s.matchStatsCache, [matchId]: result },
-            })),
+            set((s) => {
+                const prev = s.matchStatsCache;
+                if (prev == null) return null;
+
+                return { matchStatsCache: { ...prev, [matchId]: result } };
+            }),
 
         setMapRegistry: (registry: Record<string, MapAsset>) => set({ mapRegistry: registry }),
 
@@ -144,13 +147,16 @@ export const useAppStore = create<AppState>((set) => {
                         const session = event.payload.value as ProductSession | null;
                         if (session) {
                             console.log(`Updating session registry with new/updated session ${sessionId}`);
-                            set((s) => ({
-                                sessionRegistry: { ...s.sessionRegistry, [sessionId]: session },
-                            }));
+                            set((s) => {
+                                const prev = s.sessionRegistry;
+                                if (prev == null) return null;
+                                return { sessionRegistry: { ...prev, [sessionId]: session } };
+                            });
                         }
                         if (session === null) {
                             console.log('Removing session from registry with id ', sessionId);
                             set((s) => {
+                                if (!s.sessionRegistry) return null;
                                 const newRegistry = { ...s.sessionRegistry };
                                 delete newRegistry[sessionId];
                                 return { sessionRegistry: newRegistry };

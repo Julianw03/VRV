@@ -19,7 +19,7 @@ export class ProductSessionController {
         return this.productSessionManager.getView();
     }
 
-    @Get('/{productSessionId}')
+    @Get(':productSessionId')
     public async getProductSessionById(
         @Param('productSessionId') productSessionId: string,
     ) {
