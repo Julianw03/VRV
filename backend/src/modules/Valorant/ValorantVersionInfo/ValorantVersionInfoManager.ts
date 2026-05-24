@@ -33,7 +33,26 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
     private lastSeesSessionId: string | null = null;
     private readonly regex: RegExp;
 
-    private async loadAndSetState(retryCount = 0): Promise<void> {
+    private async readValue(signal?: AbortSignal): Promise<MinimalVersionInfoDTO> {
+        const filePath = path.join(this.config.filepaths['valorant-saved'].getResolvedPath(), 'Logs', 'ShooterGame.log');
+        const stream = fs.createReadStream(filePath, { encoding: 'utf-8' });
+        const rl = readline.createInterface({
+            input: stream,
+            crlfDelay: Infinity,
+        });
+        for await (const line of rl) {
+            if (signal?.aborted) throw new Error('Operation aborted');
+            const match = this.regex.exec(line);
+            if (match && match[1]) {
+                return {
+                    version: match[1],
+                };
+            }
+        }
+        throw new Error('No version info found in log file');
+    }
+
+    private async loadAndSetState(retryIterations: number): Promise<void> {
         const optOverride = this.config.overrides['valorant-version-read'].version;
         if (optOverride) {
             this.manager.updateValue({
@@ -43,34 +62,23 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
         }
 
         try {
-            const filePath = path.join(this.config.filepaths['valorant-saved'].getResolvedPath(), 'Logs', 'ShooterGame.log');
-            const stream = fs.createReadStream(filePath, { encoding: 'utf-8' });
-            const rl = readline.createInterface({
-                input: stream,
-                crlfDelay: Infinity,
-            });
-            for await (const line of rl) {
-                const match = this.regex.exec(line);
-                if (match && match[1]) {
-                    const version = match[1];
-                    this.logger.log('Extracted version:', version);
-                    this.manager.updateValue({
-                        version: version,
-                    });
-                    return;
-                }
-            }
-            throw new Error('No version info found in log file');
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(), 5_000);
+            const version = await this.readValue(controller.signal);
+            this.logger.debug('Extracted version:', version);
+            this.manager.updateValue(version);
         } catch (error) {
             this.logger.warn('Failed to fetch version info', error);
-            if (retryCount > this.maxRetryCount) {
-                this.logger.error('Max retry count reached. Giving up on fetching version info for this session.', retryCount);
-            }
-            this.logger.debug('Retrying to fetch version info after timeout.', retryCount);
-            this.timeoutHandle = setTimeout(() => {
-                this.loadAndSetState(retryCount + 1);
-            }, this.config.configurations['valorant-version-read']['retry-timeout-ms']);
         }
+        if (retryIterations <= 0) {
+            this.logger.log('Max retry count reached. Assuming that the current available version (if present) is the correct one.');
+            return;
+        }
+        const newRetryCount = retryIterations - 1;
+        this.logger.debug('Retrying to fetch version info after timeout, iterations remaining', newRetryCount);
+        this.timeoutHandle = setTimeout(() => {
+            this.loadAndSetState(newRetryCount);
+        }, this.config.configurations['valorant-version-read']['retry-timeout-ms']);
     }
 
     onModuleInit() {
@@ -83,7 +91,7 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
                         return;
                     }
                     this.lastSeesSessionId = sessionId;
-                    this.loadAndSetState();
+                    this.loadAndSetState(this.maxRetryCount);
                 },
             },
         );
