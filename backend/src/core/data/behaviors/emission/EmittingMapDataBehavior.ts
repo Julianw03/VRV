@@ -2,6 +2,7 @@ import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { KeyValueUpdatedEventImpl } from '@/core/events/impl/KeyValueUpdatedEventImpl';
 import { StateUpdatedEventImpl } from '@/core/events/impl/StateUpdatedEventImpl';
+import isEqual from 'lodash/isEqual';
 
 export class EmittingMapDataBehavior<K extends PropertyKey, S, V> implements IMapDataManager<K, S, V> {
     constructor(
@@ -15,7 +16,7 @@ export class EmittingMapDataBehavior<K extends PropertyKey, S, V> implements IMa
         const prev = this.inner.getKeyView(key);
         this.inner.updateKeyValue(key, value);
         const next = this.inner.getKeyView(key);
-        if (prev !== next) {
+        if (!isEqual(prev, next)) {
             this.eventBus.publish(KeyValueUpdatedEventImpl.ofDiff(this.source, key, next, prev));
         }
     }
@@ -37,7 +38,7 @@ export class EmittingMapDataBehavior<K extends PropertyKey, S, V> implements IMa
         const prev = this.inner.getKeyView(key);
         this.inner.deleteKey(key);
         const next = this.inner.getKeyView(key);
-        if (prev !== next) {
+        if (!isEqual(prev, next)) {
             this.eventBus.publish(KeyValueUpdatedEventImpl.ofDiff(this.source, key, next, prev));
         }
     }
