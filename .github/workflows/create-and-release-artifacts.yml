@@ -76,7 +76,7 @@ jobs:
           path: |
             backend/dist
             backend/package.json
-            backend/package-lock.json
+            backend/pnpm-lock.yaml
 
       - name: Upload Changelog
         uses: actions/upload-artifact@v4
@@ -105,7 +105,6 @@ jobs:
           node-version: 24
           cache: pnpm
           cache-dependency-path: |
-            frontend/pnpm-lock.yaml
             backend/pnpm-lock.yaml
 
       - run: |
