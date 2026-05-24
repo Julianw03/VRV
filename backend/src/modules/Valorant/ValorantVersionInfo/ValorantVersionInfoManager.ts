@@ -40,19 +40,32 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
             input: stream,
             crlfDelay: Infinity,
         });
-        for await (const line of rl) {
-            if (signal?.aborted) {
-                rl.close();
-                throw new Error('Operation aborted');
-            }
-            const match = this.regex.exec(line);
-            if (match && match[1]) {
-                return {
-                    version: match[1],
-                };
+        const onAbort = () => {
+            rl.close();
+            stream.destroy(new Error('Operation aborted'));
+        };
+        if (signal) {
+            if (signal.aborted) {
+                onAbort();
+            } else {
+                signal.addEventListener('abort', onAbort, { once: true });
             }
         }
-        rl.close();
+        try {
+            for await (const line of rl) {
+                const match = this.regex.exec(line);
+                if (match && match[1]) {
+                    return {
+                        version: match[1],
+                    };
+                }
+                if (signal?.aborted) throw new Error('Operation aborted');
+            }
+        } finally {
+            signal?.removeEventListener('abort', onAbort);
+            rl.close();
+            stream.destroy();
+        }
         throw new Error('No version info found in log file');
     }
 
