@@ -41,7 +41,10 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
             crlfDelay: Infinity,
         });
         for await (const line of rl) {
-            if (signal?.aborted) throw new Error('Operation aborted');
+            if (signal?.aborted) {
+                rl.close();
+                throw new Error('Operation aborted');
+            }
             const match = this.regex.exec(line);
             if (match && match[1]) {
                 return {
@@ -49,6 +52,7 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
                 };
             }
         }
+        rl.close();
         throw new Error('No version info found in log file');
     }
 
