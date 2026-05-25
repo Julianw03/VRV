@@ -76,6 +76,7 @@ jobs:
           path: |
             backend/dist
             backend/package.json
+            backend/pnpm-workspace.yaml
             backend/pnpm-lock.yaml
 
       - name: Upload Changelog
