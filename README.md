@@ -7,6 +7,13 @@ A desktop application that lets you to download, share and watch Replays as if t
 
 Once the app runs [click here](http://localhost:3000) or open "http://localhost:3000" in your browser to access the interface.
 
+## Please read 
+As of [Patch 12.10](https://playvalorant.com/en-us/news/game-updates/valorant-patch-notes-12-10/), Valorant now supports viewing replays from friends directly through the official replay system.
+
+This is the significantly easier and more TOS-friendly approach for most users.
+
+Because of this change, VRV no longer provides the same level of utility it originally aimed to solve. I am still unsure whether continued development of this project makes sense going forward.
+
 ## How to use
 [Showcase Video](https://youtu.be/Pxiy_7opG3E)
 
