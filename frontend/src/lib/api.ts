@@ -2,6 +2,8 @@ import * as LocalLinkResolver from '@/lib/LocalLinkResolver.ts';
 import type { ProductSession } from '#/dto/ProductSession.ts';
 import type { DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
 import type { PlayerAliasDTO } from '#/dto/PlayerAliasDTO.ts';
+import type { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO.ts';
+import type { MapAssetDTO } from '#/dto/assets/MapAssetDTO.ts';
 
 export const API_BASE = LocalLinkResolver.resolve('/api/v1', 'http');
 
@@ -82,22 +84,6 @@ export interface InjectStatus {
     state: InjectState;
     targetMatchId: string | null;
     placeholderMatchId: string | null;
-}
-
-// ---- Map assets ----
-
-export interface MapAsset {
-    displayName: string;
-    narrativeDescription: string | null;
-    coordinates: string | null;
-    displayIcon: string;
-    listViewIcon: string;
-    listViewIconTall: string;
-    splash: string;
-    stylizedBackgroundImage: string;
-    premierBackgroundImage: string;
-    assetPath: string;
-    mapUrl: string;
 }
 
 // ---- Match stats (from Riot API via backend cache) ----
@@ -273,7 +259,8 @@ export const api = {
         getAllProductSessions: () => request<Record<string, ProductSession>>('/caching/product-sessions'),
     },
     assets: {
-        getAllMaps: () => request<Record<string, MapAsset>>('/assets/maps/'),
+        getAllMaps: () => request<Record<string, MapAssetDTO>>('/assets/maps/'),
+        getAllAgents: () => request<Record<string, AgentAssetDTO>>('/assets/agents'),
     },
     matchStats: {
         getById: (matchId: string) =>
