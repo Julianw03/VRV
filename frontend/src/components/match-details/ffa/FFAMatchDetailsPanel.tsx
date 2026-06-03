@@ -11,7 +11,7 @@ type LeaderboardRowProps = {
 
 function LeaderboardRow({ player, rank, highlightPlayer }: LeaderboardRowProps) {
     const agentRegistry = useAgentRegistry();
-    const agentInfo = agentRegistry[player.characterId];
+    const agentInfo = agentRegistry?.[player.characterId];
     const isActive = player.subject === highlightPlayer;
 
     return (
@@ -33,7 +33,7 @@ function LeaderboardRow({ player, rank, highlightPlayer }: LeaderboardRowProps) 
       </span>
 
             <span className={'shrink-0 aspect-square w-6'}>
-                <img draggable={false} className={'object-cover h-auto'} src={agentInfo.displayIconSmall} />
+                <img draggable={false} className={'object-cover h-auto'} src={agentInfo?.displayIconSmall ?? ""} />
             </span>
             <span className="flex-1 truncate">
         <span className={cn('font-medium', isActive && 'text-blue-300')}>
