@@ -1,6 +1,7 @@
 import type { MatchDetailsPanelProps, MinimalMatchPlayer } from '@/components/match-details/MatchDetailsPanel.tsx';
 import { formatDate, formatDuration } from '@/components/saved-replays/formatters.ts';
 import { cn } from '@/lib/utils.ts';
+import { useAgentRegistry } from '@/lib/queries.ts';
 
 type LeaderboardRowProps = {
     player: MinimalMatchPlayer;
@@ -9,6 +10,8 @@ type LeaderboardRowProps = {
 };
 
 function LeaderboardRow({ player, rank, highlightPlayer }: LeaderboardRowProps) {
+    const agentRegistry = useAgentRegistry();
+    const agentInfo = agentRegistry?.[player.characterId];
     const isActive = player.subject === highlightPlayer;
 
     return (
@@ -29,6 +32,9 @@ function LeaderboardRow({ player, rank, highlightPlayer }: LeaderboardRowProps) 
         {rank}
       </span>
 
+            <span className={'shrink-0 aspect-square w-6'}>
+                <img draggable={false} className={'object-cover h-auto'} src={agentInfo?.displayIconSmall ?? ""} />
+            </span>
             <span className="flex-1 truncate">
         <span className={cn('font-medium', isActive && 'text-blue-300')}>
           {player.gameName}
@@ -40,11 +46,15 @@ function LeaderboardRow({ player, rank, highlightPlayer }: LeaderboardRowProps) 
 
             <span
                 className={cn(
-                    'w-20 shrink-0 text-right font-mono',
+                    'w-20 font-mono grid grid-cols-[3ch_1ch_3ch_1ch_3ch] items-center text-center whitespace-nowrap',
                     isActive ? 'text-blue-300' : 'text-muted-foreground',
                 )}
             >
-        {player.stats.kills} / {player.stats.deaths} / {player.stats.assists}
+                <span>{player.stats.kills}</span>
+                <span>/</span>
+                <span>{player.stats.deaths}</span>
+                <span>/</span>
+                <span>{player.stats.assists}</span>
       </span>
         </div>
     );
@@ -66,9 +76,14 @@ function Leaderboard({
             <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground">
                 <span className="w-5 shrink-0 text-center">#</span>
                 <span className="flex-1">Player</span>
-                <span className="w-20 shrink-0 text-right font-mono">
-          K / D / A
-        </span>
+                <span
+                    className="w-20 shrink-0 font-mono grid grid-cols-[3ch_1ch_3ch_1ch_3ch] items-center text-center whitespace-nowrap">
+                    <span>K</span>
+                    <span>/</span>
+                    <span>D</span>
+                    <span>/</span>
+                    <span>A</span>
+                </span>
             </div>
 
             {ranked.map((player, index) => (

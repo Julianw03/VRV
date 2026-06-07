@@ -6,15 +6,14 @@ import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { RecomputingMapMappingBehavior } from '@/core/data/behaviors/viewMapping/RecomputingMapMappingBehavior';
 import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataViewable';
+import { MapAssetDTO } from '#/dto/assets/MapAssetDTO';
 
 
 export type MapId = string;
 
-export type MapAsset = Omit<MapEntry, 'uuid'>;
-
 @Injectable()
-export class MapAssetResolverManager implements KeyDataViewable<MapId, MapAsset>, OnModuleInit {
-    protected readonly manager: IMapDataManager<MapId, MapEntry, MapAsset>;
+export class MapAssetResolverManager implements KeyDataViewable<MapId, MapAssetDTO>, OnModuleInit {
+    protected readonly manager: IMapDataManager<MapId, MapEntry, MapAssetDTO>;
     protected readonly logger = new Logger(this.constructor.name);
 
     constructor(
@@ -35,7 +34,7 @@ export class MapAssetResolverManager implements KeyDataViewable<MapId, MapAsset>
     private overrideProxyResourcesFor(entry: MapEntry) {
         for (const [key, value] of Object.entries(entry)) {
             if (typeof value === 'string' && value.startsWith('http')) {
-                entry[key as keyof MapAsset] = this.proxyAssetUrl(value);
+                entry[key as keyof MapAssetDTO] = this.proxyAssetUrl(value);
             }
         }
         return entry;
@@ -58,15 +57,15 @@ export class MapAssetResolverManager implements KeyDataViewable<MapId, MapAsset>
 
     protected static map(
         state: MapEntry,
-    ): MapAsset {
+    ): MapAssetDTO {
         return state;
     }
 
-    getKeyView(key: MapId): MapAsset | null {
+    getKeyView(key: MapId): MapAssetDTO | null {
         return this.manager.getKeyView(key);
     }
 
-    getView(): Record<MapId, MapAsset> | null {
+    getView(): Record<MapId, MapAssetDTO> | null {
         return this.manager.getView();
     }
 }

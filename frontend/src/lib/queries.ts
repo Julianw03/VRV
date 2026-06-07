@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ConfigOverrides, MapAsset, MatchStatsResult } from '@/lib/api';
+import type { ConfigOverrides, MatchStatsResult } from '@/lib/api';
 import { api } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 import type { ProductSession } from '#/dto/ProductSession.ts';
 import { DownloadState, type DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
+import type { MapAssetDTO } from '#/dto/assets/MapAssetDTO.ts';
+import type { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO.ts';
 
 // ---- Query keys ----
 
@@ -19,6 +21,7 @@ export const queryKeys = {
     matchStats: (matchId: string) => ['matchStats', matchId] as const,
     matchMetadata: (matchId: string) => ['matchMetadata', matchId] as const,
     mapRegistry: ['mapRegistry'] as const,
+    agentRegistry: ['agentRegistry'] as const,
     productSessionRegistry: ['productSessionRegistry'] as const,
     effectiveConfig: ['effectiveConfig'] as const,
     configOverrides: ['configOverrides'] as const,
@@ -299,12 +302,39 @@ export function useMapRegistry() {
     const setMapRegistry = useAppStore((s) => s.setMapRegistry);
     const existing = useAppStore((s) => s.mapRegistry);
 
-    useQuery<Record<string, MapAsset> | null>({
+    useQuery<Record<string, MapAssetDTO> | null>({
         queryKey: queryKeys.mapRegistry,
         queryFn: async () => {
             try {
                 const raw = await api.assets.getAllMaps();
                 setMapRegistry(raw);
+                return raw;
+            } catch (e) {
+                if (e instanceof Error && e.message.startsWith('HTTP 404')) {
+                    return null;
+                }
+                throw e;
+            }
+        },
+        enabled: existing === null,
+        refetchInterval: (query) => query.state.data === null ? 3000 : false,
+        staleTime: Infinity,
+        retry: false,
+    });
+
+    return existing;
+}
+
+export function useAgentRegistry() {
+    const setAgentRegistry = useAppStore((s) => s.setAgentRegistry);
+    const existing = useAppStore((s) => s.agentRegistry);
+
+    useQuery<Record<string, AgentAssetDTO> | null>({
+        queryKey: queryKeys.agentRegistry,
+        queryFn: async () => {
+            try {
+                const raw = await api.assets.getAllAgents();
+                setAgentRegistry(raw);
                 return raw;
             } catch (e) {
                 if (e instanceof Error && e.message.startsWith('HTTP 404')) {

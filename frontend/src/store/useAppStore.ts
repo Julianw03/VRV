@@ -1,9 +1,11 @@
 import { create } from 'zustand';
-import { InjectStates, type InjectStatus, type MapAsset, type MatchStatsResult } from '@/lib/api';
+import { InjectStates, type InjectStatus, type MatchStatsResult } from '@/lib/api';
 import type { ProductSession } from '#/dto/ProductSession.ts';
 import type { MinimalVersionInfo } from '#/dto/MinimalVersionInfo.ts';
 import { type DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
 import type { PlayerAliasDTO } from '#/dto/PlayerAliasDTO.ts';
+import type { MapAssetDTO } from '#/dto/assets/MapAssetDTO.ts';
+import type { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO.ts';
 
 export type EventType =
     | 'StateUpdated'
@@ -52,8 +54,8 @@ interface AppState {
 
     matchStatsCache: Record<string, MatchStatsResult> | null;
 
-    // Map asset registry keyed by mapUrl (e.g. "/Game/Maps/Ascent/Ascent").
-    mapRegistry: Record<string, MapAsset> | null;
+    mapRegistry: Record<string, MapAssetDTO> | null;
+    agentRegistry: Record<string, AgentAssetDTO> | null;
     sessionRegistry: Record<string, ProductSession> | null;
 
     setWsConnected: (connected: boolean) => void;
@@ -69,7 +71,8 @@ interface AppState {
     setMatchStatsCache: (cache: Record<string, MatchStatsResult> | null) => void;
     setMatchStat: (matchId: string, result: MatchStatsResult | null) => void;
 
-    setMapRegistry: (registry: Record<string, MapAsset>) => void;
+    setMapRegistry: (registry: Record<string, MapAssetDTO>) => void;
+    setAgentRegistry: (agentRegistry: Record<string, AgentAssetDTO>) => void;
     setSessionRegistry: (registry: Record<string, ProductSession>) => void;
     setCurrentShippingVersion: (version: string | null) => void;
 
@@ -129,8 +132,11 @@ export const useAppStore = create<AppState>((set) => {
             return { matchStatsCache: { ...(s.matchStatsCache ?? {}), [matchId]: result } };
         });
 
-    const setMapRegistry = (registry: Record<string, MapAsset>) =>
+    const setMapRegistry = (registry: Record<string, MapAssetDTO>) =>
         set({ mapRegistry: registry });
+
+    const setAgentRegistry = (registry: Record<string, AgentAssetDTO>) =>
+        set({ agentRegistry: registry });
 
     const setSessionRegistry = (registry: Record<string, ProductSession>) =>
         set({ sessionRegistry: registry });
@@ -232,6 +238,7 @@ export const useAppStore = create<AppState>((set) => {
         downloadStates: null,
         matchStatsCache: null,
         mapRegistry: null,
+        agentRegistry: null,
         sessionRegistry: null,
         currentInjectState: {
             state: InjectStates.IDLE,
@@ -247,6 +254,7 @@ export const useAppStore = create<AppState>((set) => {
         setMatchStatsCache,
         setMatchStat,
         setMapRegistry,
+        setAgentRegistry,
         setSessionRegistry,
         setCurrentShippingVersion,
         handleWSEvent,

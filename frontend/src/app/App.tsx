@@ -6,12 +6,13 @@ import { SavedReplaysPage } from '@/pages/SavedReplaysPage';
 import { InjectorPage } from '@/pages/InjectorPage';
 import { ConfigPage } from '@/pages/ConfigPage';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { useMapRegistry } from '@/lib/queries';
+import { useAgentRegistry, useMapRegistry } from '@/lib/queries';
 import { RequireSessionGuard } from '@/components/RequireSessionGuard.tsx';
 
 function App() {
     useWebSocket();
     useMapRegistry();
+    useAgentRegistry();
 
     return (
         <HashRouter>

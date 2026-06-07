@@ -22,6 +22,30 @@ export interface MapEntry {
     mapUrl: string,
 }
 
+export interface AgentEntry {
+    uuid: UUID,
+    displayName: string,
+    description: string | null,
+    developerName: string,
+    releaseDate: string,
+    characterTags: string[] | null,
+    displayIcon: ExternalURL | null,
+    displayIconSmall: ExternalURL | null,
+    bustPortrait: ExternalURL | null,
+    fullPortrait: ExternalURL | null,
+    fullPortraitV2: ExternalURL | null,
+    killfeedPortrait: ExternalURL | null,
+    minimalPortrait: ExternalURL | null,
+    homeScreenPromoTileImage: ExternalURL | null,
+    background: ExternalURL | null
+    backgroundGradientColors: string[] | null,
+    assetPath: string,
+    isFullPortraitRightFacing: boolean,
+    isPlayableCharacter: boolean,
+    isAvailableForTest: boolean,
+    isBaseContent: boolean,
+}
+
 export interface VersionInfo {
     manifestId: string,
     branch: string,
@@ -70,5 +94,9 @@ export class ValorantAssetAPI {
 
     public async getVersionInfo(): Promise<VersionInfo> {
         return this.fetchAndParse<VersionInfo>('/v1/version');
+    }
+
+    public async getAgentList(): Promise<AgentEntry[]> {
+        return this.fetchAndParse<AgentEntry[]>('/v1/agents');
     }
 }

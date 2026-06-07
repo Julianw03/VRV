@@ -12,7 +12,7 @@ import { ValorantGameLoopModule } from '@/modules/Valorant/ValorantGameLoopModul
 import { RiotValorantAPIModule } from '@/integrations/riot/RiotValorantAPIModule';
 import { ValorantAssetAPIModule } from '@/integrations/NotOfficer/ValorantAssetAPIModule';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { MapAssetResolverModule } from '@/modules/AssetResolvingModule/MapAssetResolverModule';
+import { MapAssetResolverModule } from '@/modules/AssetResolving/Maps/MapAssetResolverModule';
 import { StaticAssetProxyModule } from '@/modules/AssetProxyModule/StaticAssetProxyModule';
 import { ValorantVersionInfoModule } from '@/modules/Valorant/ValorantVersionInfo/ValorantVersionInfoModule';
 import { appConfig } from '@/config/configLoader';
@@ -20,6 +20,7 @@ import { ConfigurationModule } from '@/config/ConfigurationModule';
 import { getPackageAwarePath } from '@/utils/PackagedPath';
 import { PuuidToPlayerAliasModule } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasModule';
 import { ShutdownModule } from '@/modules/ShutdownModule/ShutdownModule';
+import { AgentAssetResolverModule } from '@/modules/AssetResolving/Agents/AgentAssetResolverModule';
 
 export const APP = Symbol('APP');
 
@@ -45,6 +46,7 @@ export const APP = Symbol('APP');
         RiotValorantAPIModule,
         ValorantAssetAPIModule,
         MapAssetResolverModule,
+        AgentAssetResolverModule,
         StaticAssetProxyModule,
         ValorantVersionInfoModule,
         ShutdownModule,
