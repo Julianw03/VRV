@@ -10,7 +10,7 @@ import { ShutdownManager } from '@/modules/ShutdownModule/ShutdownManager';
 
 async function bootstrap() {
     const isDev = process.env.NODE_ENV === 'development';
-    const logLevel = isDev ? ['log', 'error', 'warn', 'debug'] : ['log', 'error', 'warn'];
+    const logLevel = isDev ? ['log', 'error', 'warn', 'debug', 'verbose'] : ['log', 'error', 'warn'];
     console.log('Using log level:', logLevel);
 
     const app = await NestFactory.create(AppModule, {

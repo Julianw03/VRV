@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { RiotClientServiceImpl } from './RiotClientServiceImpl';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { LockfileParameterAcquisitionStrategy } from '@/core/riotclient/connection/LockfileParameterAcquisitionStrategy';
+import {
+    LockfileParameterAcquisitionStrategy,
+} from '@/core/riotclient/connection/LockfileParameterAcquisitionStrategy';
 import {
     RIOT_CLIENT_PARAMETER_ACQUISITION_STRATEGY,
     RIOT_CLIENT_SERVICE,

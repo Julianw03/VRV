@@ -5,7 +5,7 @@ export function formatBytes(bytes: number): string {
 }
 
 export function formatDate(millis: number): string {
-    return new Date(millis).toLocaleString('en-US', {
+    return new Date(millis).toLocaleString(undefined, {
         month: 'short',
         day: 'numeric',
         year: 'numeric',

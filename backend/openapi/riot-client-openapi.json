@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Riot Client API",
-    "version": "130.0.6.4449",
-    "description": "Created with SDK - Version 26.3.5.0"
+    "version": "133.0.7.4621",
+    "description": "Created with SDK - Version 26.6.0.0"
   },
   "servers": [
     {
@@ -211,6 +211,70 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ActivityGatewayPluginCallerId_MockCallerId"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/aes/v1/status/{provider}": {
+      "delete": {
+        "tags": [
+          "Plugin aes"
+        ],
+        "description": "Reset the AES provider state. Implementation details vary by provider. ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "schema": {
+              "$ref": "#/components/schemas/AesAESProvider"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AesAESStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Plugin aes"
+        ],
+        "description": "Return the AES authorization status for the given provider ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "schema": {
+              "$ref": "#/components/schemas/AesAESProvider"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AesAESStatusResponse"
+                }
               }
             }
           }
@@ -2898,7 +2962,7 @@
         "tags": [
           "Plugin eula"
         ],
-        "description": "Resets the current product context. ",
+        "description": "Clears the legacy product context. This endpoint is retained for compatibility and no longer affects EULA locale resolution. \n [Help] Endpoint deprecated April 2026; EULA locale is now driven by '/localization/v1/hybrid-locale'. This endpoint is retained only for legacy compatibility and no longer affects EULA locale resolution.",
         "parameters": [],
         "responses": {
           "401": {
@@ -2907,13 +2971,14 @@
           "2XX": {
             "description": "Returns nothing"
           }
-        }
+        },
+        "deprecated": true
       },
       "get": {
         "tags": [
           "Plugin eula"
         ],
-        "description": "Gets the current product context. ",
+        "description": "Gets the legacy product context. This endpoint is retained for compatibility and no longer affects EULA locale resolution. \n [Help] Endpoint deprecated April 2026; EULA locale is now driven by '/localization/v1/hybrid-locale'. This endpoint is retained only for legacy compatibility and no longer affects EULA locale resolution.",
         "parameters": [],
         "responses": {
           "401": {
@@ -2929,13 +2994,14 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       },
       "put": {
         "tags": [
           "Plugin eula"
         ],
-        "description": "Set the current product context. ",
+        "description": "Updates the legacy product context. This endpoint is retained for compatibility and no longer affects EULA locale resolution. \n [Help] Endpoint deprecated April 2026; EULA locale is now driven by '/localization/v1/hybrid-locale'. This endpoint is retained only for legacy compatibility and no longer affects EULA locale resolution.",
         "parameters": [],
         "responses": {
           "401": {
@@ -2953,7 +3019,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/external-message-handler/v1/patch-request": {
@@ -3916,6 +3983,32 @@
         }
       }
     },
+    "/mailbox/v1/mail/{mailId}": {
+      "delete": {
+        "tags": [
+          "Plugin mailbox"
+        ],
+        "description": "Delete a mailbox message for the signed-in player. \n [Help] \n**Description**\n\nDeletes the specified mailbox message for the signed-in player.\n\nDelete success is communicated only through this DELETE response. This endpoint does not publish mailbox\nresource notifications.\n\nBy default, transient failures (5xx and 429) are retried using the mailbox HTTP retry options.\nSpecific status codes can be excluded from retries via the `mailbox.http_retry.non_retryable_http_codes` config.\n\nService responses are interpreted as follows:\n- any 2xx: deleted successfully\n- 404: treated as success because the mail is already deleted upstream\n- any other failure: retried per the configured HTTP retry options, unless excluded by config\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mailId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
     "/mobile-push/v1/filter/{application}/{filterId}": {
       "delete": {
         "tags": [
@@ -3983,6 +4076,69 @@
                 "schema": {
                   "type": "string"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/msdk-account/v1/authorization": {
+      "delete": {
+        "tags": [
+          "Plugin msdk-account"
+        ],
+        "description": "Delete the current MSDK authorization session. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Plugin msdk-account"
+        ],
+        "description": "Gets the current MSDK authorization status. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsdkAccountMSDKAuthorizationResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plugin msdk-account"
+        ],
+        "description": "Start an authorization request using MSDK (WeGame) credentials. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MsdkAccountMSDKAuthorizationParameters"
               }
             }
           }
@@ -6189,6 +6345,14 @@
               "type": "string"
             },
             "required": true
+          },
+          {
+            "in": "query",
+            "name": "clickWallMs",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
           }
         ],
         "responses": {
@@ -8998,6 +9162,69 @@
         }
       }
     },
+    "/voice-chat/v1/authentication": {
+      "delete": {
+        "tags": [
+          "Plugin voice-chat"
+        ],
+        "description": "Leave active voice sessions and log the local player out from initialized voice providers ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Plugin voice-chat"
+        ],
+        "description": "Get whether the local player is currently authenticated with a voice provider ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceChatGetAuthenticationResource"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plugin voice-chat"
+        ],
+        "description": "Authenticate the local player before joining a voice session.WARNING: Vivox bills the company according to the peak number of CCUs in a month.Make sure to contact the Social Infra team before using this endpoint for early authentication. \n [Help] `logoutAfterAllSessionsLeft` controls whether the player is automatically logged out from voice after leaving the final active voice session.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceChatPostAuthenticationResource"
+              }
+            }
+          }
+        }
+      }
+    },
     "/voice-chat/v1/block-list/users": {
       "delete": {
         "tags": [
@@ -10050,39 +10277,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AesAESProviderConfig"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/aes/v1/status/{provider}": {
-      "get": {
-        "tags": [
-          "Plugin aes"
-        ],
-        "description": "Return the AES authorization status for the given provider ",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "provider",
-            "schema": {
-              "$ref": "#/components/schemas/AesAESProvider"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "2XX": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AesAESStatusResponse"
                 }
               }
             }
@@ -12110,6 +12304,53 @@
         }
       }
     },
+    "/data-store/v1/internal/region-changed": {
+      "get": {
+        "tags": [
+          "Plugin data-store"
+        ],
+        "description": "Returns whether the authoritative region has changed during this session. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plugin data-store"
+        ],
+        "description": "Mirrors Localization's session-scoped League locale override state into DataStore. ",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "regionChanged",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
     "/data-store/v1/paths": {
       "get": {
         "tags": [
@@ -12578,6 +12819,33 @@
         }
       }
     },
+    "/first-party-fulfillment/v1/last-fulfilled-items": {
+      "get": {
+        "tags": [
+          "Plugin first-party-fulfillment"
+        ],
+        "description": "Get the list of items fulfilled by the latest fulfillment attempt. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FirstPartyFulfillmentFirstPartyFulfillmentItemFulfillmentSuccessInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/friends-forever/v1/platform-links": {
       "get": {
         "tags": [
@@ -12627,6 +12895,30 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PlatformLinksListV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/friends-forever/v1/ready": {
+      "get": {
+        "tags": [
+          "Plugin friends-forever"
+        ],
+        "description": " ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
                 }
               }
             }
@@ -12965,6 +13257,33 @@
         }
       }
     },
+    "/integration-test/v1/hang/{durationMs}": {
+      "get": {
+        "tags": [
+          "Plugin integration-test"
+        ],
+        "description": "[FOR TESTING ONLY] Intentionally blocks a dispatcher long enough to trigger watchdog capture. ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "durationMs",
+            "schema": {
+              "type": "number",
+              "format": "int32"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
     "/integration-test/v1/observed-mode-manager-states": {
       "get": {
         "tags": [
@@ -13196,6 +13515,126 @@
                     "$ref": "#/components/schemas/LaunchRestrictionLaunchRestrictions"
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/localization/v1/hybrid-locale": {
+      "get": {
+        "tags": [
+          "Plugin localization"
+        ],
+        "description": "Returns the internal effective locale state. In standalone, this aliases /localization/v1/locale. In multitenant, this resolves product-locale when set, otherwise locale, otherwise defaults. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalizationLocalizationLocaleV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/localization/v1/locale": {
+      "get": {
+        "tags": [
+          "Plugin localization"
+        ],
+        "description": "Returns the authoritative locale state. In standalone, this is the single locale state used across the SDK. In multitenant, this represents the Riot Client locale state. \n [Help] \n## Context\nIn standalone, `/localization/v1/locale` is the public locale resource for the SDK.\n\nIn multitenant, this endpoint represents the Riot Client locale state. Product-specific or effective-locale behavior is exposed through `/localization/v1/product-locale` and `/localization/v1/hybrid-locale`, so consumers do not need to branch on standalone versus multitenant behavior.\n\n### Legacy compatibility\nLegacy endpoints such as `/riotclient/region-locale` and `/product-integration/v1/locale` adapt to localization-owned resources. New consumers that need the public locale state should read `/localization/v1/locale` directly.\n",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalizationLocalizationLocaleV1"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Plugin localization"
+        ],
+        "description": "Updates the authoritative locale state. In standalone, this updates the single locale state used across the SDK. In multitenant, this updates the Riot Client locale state. \n [Help] \n## Context\nIn standalone, this updates the one authoritative locale state for the SDK. The internal product-locale and hybrid-locale resources alias the same underlying state, and legacy compatibility endpoints adapt from this state.\n\nIn multitenant, this updates the Riot Client locale state. Backwards compatibility with legacy endpoints is maintained, but new consumers should read and write through this resource directly.\n\n### Validation\nThe request locale is normalized to standard casing and validated against the configured region data before the state is applied.\n\n## Arguments\n- locale: locale configuration to set. `locale` is required and `region` is optional.\n",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalizationLocalizationLocaleV1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/localization/v1/product-locale": {
+      "get": {
+        "tags": [
+          "Plugin localization"
+        ],
+        "description": "Returns the internal product locale state. In standalone, this aliases /localization/v1/locale. In multitenant, this exposes the product-specific locale state, including configured startup fallback behavior when no explicit product locale has been written. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocalizationLocalizationLocaleV1"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Plugin localization"
+        ],
+        "description": "Internal update of the product locale state using already-validated inputs. In standalone, this aliases /localization/v1/locale. In multitenant, this updates the dedicated product locale state. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalizationLocalizationLocaleV1"
               }
             }
           }
@@ -14531,6 +14970,54 @@
         }
       }
     },
+    "/platform-social/v1/crossplatform-interactions": {
+      "get": {
+        "tags": [
+          "Plugin platform-social"
+        ],
+        "description": "Returns if the current player has permissions for crossplatform interactions, why that is the case. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformSocialPlatformSocialCrossPlatformInteractionPermissionDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plugin platform-social"
+        ],
+        "description": "Set whether 'crossplatform-interactions' is allowed for the player. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformSocialPlatformSocialCrossPlatformInteractionPermissionDetails"
+              }
+            }
+          }
+        }
+      }
+    },
     "/platform-social/v1/crossplay-permission": {
       "get": {
         "tags": [
@@ -14791,6 +15278,61 @@
                 "schema": {
                   "$ref": "#/components/schemas/PlatformUiTextToSpeech"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/platform-ui/v1/riotclient-bridge": {
+      "get": {
+        "tags": [
+          "Plugin platform-ui"
+        ],
+        "description": "For internal use only. Subscribe to receive asynchronous subscription notifications from the riotclient bridge ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnyValue"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plugin platform-ui"
+        ],
+        "description": "For internal use only. Route requests and subscriptions through the WebView SDK proxy messaging interface ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnyValue"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnyValue"
               }
             }
           }
@@ -18619,30 +19161,6 @@
         }
       }
     },
-    "/riot-client-lifecycle/v1/psl-enabled": {
-      "get": {
-        "tags": [
-          "Plugin riot-client-lifecycle"
-        ],
-        "description": "Returns whether PSL has been enabled for this session ",
-        "parameters": [],
-        "responses": {
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "2XX": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/riot-friends/v1/friends": {
       "get": {
         "tags": [
@@ -21884,7 +22402,7 @@
         "tags": [
           "Plugin social"
         ],
-        "description": "For internal use only. Gets the last RMS Discord activity invite message that was handled successfully. ",
+        "description": "For internal use only. Gets Discord activity invite debug state. ",
         "parameters": [],
         "responses": {
           "401": {
@@ -21895,7 +22413,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SocialDiscordActivityRMSUpdate"
+                  "$ref": "#/components/schemas/SocialDiscordActivityInviteRMSDebugState"
                 }
               }
             }
@@ -22049,6 +22567,78 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SocialFriendListV1"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v1/preferences": {
+      "get": {
+        "tags": [
+          "Plugin social"
+        ],
+        "description": "Get social player preferences. \n [Help] **Response:** The social preferences for the player\n\n```\n{\n   \"appearOffline\":     true|false,\n}\n```\nNote: At this time the subscription only fires when the value is initially retrieved or locally updated.",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialSocialPreferencesV1"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plugin social"
+        ],
+        "description": "Update a player's social preferences. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialSocialPreferencesParametersV1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/social/v1/presences/multigame": {
+      "get": {
+        "tags": [
+          "Plugin social"
+        ],
+        "description": "Multi-game self-presences from other logged-in products. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialMultigamePresences"
                 }
               }
             }
@@ -22993,7 +23583,7 @@
         "tags": [
           "Plugin voice-chat"
         ],
-        "description": "Get the status of the voice-chat plugin to know whether or not to expect if the feature is usable. \n [Help] \n**Description**\nGet the status of the voice-chat plugin to know whether or not to expect if the feature is usable. Game teams are encouraged to subscribe\nto this endpoint so that the game can behave correctly depending on what the current state of the plugin is. For example, if the status of\nthe plugin is `permissionDenied`, game teams should not attempt to join voice sessions since the player does not have permissions to do so,\npossibly due to behavioural restrictions or parental control settings.\n\n** Returns **\n\nA PluginStatus value representing the current status of the plugin.\n* `PluginStatus` values:\n    * `unknown`: The status of the plugin is currently unknown. This is the default value while the plugin is initializing and its status has yet to be determined.\n    * `awaitingAuth`: The player has not signed in, so the plugin does not have the information required to join a voice session.\n    * `permissionUnknown`: The player has signed in, but the plugin is unable to look up whether or not the player has permission to use voice chat.\n         Attempting to join a voice session will not work until the permission query succeeds.\n    * `permissionDenied`: The player has signed in, but the player does not have permission to use voice chat. Attempting to join a voice session will always\n         return an error and existing sessions will be left.\n    * `networkUnavailable`: The player has signed in, but network connection is not available. Attempting to join a voice session will return an error\n    * `ready`: Voice chat is usable and voice sessions can be joined.\n",
+        "description": "Get the status of the voice-chat plugin to know whether or not to expect if the feature is usable. \n [Help] \n**Description**\nGet the status of the voice-chat plugin to know whether or not to expect if the feature is usable. Game teams are encouraged to subscribe\nto this endpoint so that the game can behave correctly depending on what the current state of the plugin is. For example, if the status of\nthe plugin is `permissionDenied`, game teams should not attempt to join voice sessions since the player does not have permissions to do so,\npossibly due to behavioural restrictions or parental control settings.\n\n** Returns **\n\nA PluginStatus value representing the current status of the plugin.\n* `PluginStatus` values:\n    * `unknown`: The status of the plugin is currently unknown. This is the default value while the plugin is initializing and its status has yet to be determined.\n    * `awaitingAuth`: The player has not signed in, so the plugin does not have the information required to join a voice session.\n    * `permissionUnknown`: The player has signed in, but the plugin is unable to look up whether or not the player has permission to use voice chat.\n         Attempting to join a voice session will not work until the permission query succeeds.\n    * `permissionDenied`: The player has signed in, but the player does not have permission to use voice chat. Attempting to join a voice session will always\n         return an error and existing sessions will be left.\n    * `networkUnavailable`: The player has signed in, but network connection is not available. Attempting to join a voice session will return an error\n    * `noProviders`: No voice providers available. Provider libraries are missing or not loadable on this build/platform.\n         Attempting to join a voice session will return an error.\n    * `ready`: Voice chat is usable and voice sessions can be joined.\n",
         "parameters": [],
         "responses": {
           "401": {
@@ -23826,6 +24416,168 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/voice-chat/v5/sessions/{productName}/{sessionId}/participants/{participantId}/report": {
+      "get": {
+        "tags": [
+          "Plugin voice-chat"
+        ],
+        "description": "For subscriptions only. Direct GET returns an empty resource. Sends the final status of report-single requests via notifications. ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productName",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "sessionId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "participantId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceChatParticipantReportResultResource"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plugin voice-chat"
+        ],
+        "description": "Reports a player for voice infringement asynchronously \n [Help] This endpoint returns 202 once the report request is accepted for asynchronous processing by the SDK.\nSubscribe to GET /voice-chat/v5/sessions/{productName}/{sessionId}/participants/{participantId}/report to receive the final completion status.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productName",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "sessionId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "participantId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
+    "/voice-chat/v5/sessions/{productName}/{sessionId}/participants/report": {
+      "get": {
+        "tags": [
+          "Plugin voice-chat"
+        ],
+        "description": "For subscriptions only. Direct GET returns an empty resource. Sends the final status of report-all requests via notifications. ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productName",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "sessionId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceChatParticipantReportResultResource"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Plugin voice-chat"
+        ],
+        "description": "Reports all players for voice infringement asynchronously \n [Help] This endpoint returns 202 once the report request is accepted for asynchronous processing by the SDK.\nSubscribe to GET /voice-chat/v5/sessions/{productName}/{sessionId}/participants/report to receive the final completion status.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productName",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "sessionId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
           }
         }
       }
@@ -25121,6 +25873,23 @@
         }
       }
     },
+    "/friends-forever/v1/platform-links/hydrate": {
+      "post": {
+        "tags": [
+          "Plugin friends-forever"
+        ],
+        "description": "Request hydration of the platform-links cache. Triggers a buffered service fetch; the resulting data is delivered through the existing platform-links resource notifications. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        }
+      }
+    },
     "/ga-warning/v1/debug/simulate-warning/{category}": {
       "post": {
         "tags": [
@@ -25160,39 +25929,6 @@
           },
           "2XX": {
             "description": "Returns nothing"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/game-activity/v1/smarturl/resolve": {
-      "post": {
-        "tags": [
-          "Plugin game-activity"
-        ],
-        "description": "Resolve a Smart URL into a product and patchline ",
-        "parameters": [],
-        "responses": {
-          "401": {
-            "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "2XX": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResolvedJoinCodeV1"
-                }
-              }
-            }
           }
         },
         "requestBody": {
@@ -25581,7 +26317,7 @@
         }
       }
     },
-    "/mailbox/v1/mail/{productId}": {
+    "/mailbox/v1/product/{productId}": {
       "post": {
         "tags": [
           "Plugin mailbox"
@@ -25870,6 +26606,38 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/NintendoAccountGetNetworkServiceAccountParameters"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/patch-proxy/v1/launch-active": {
+      "post": {
+        "tags": [
+          "Plugin patch-proxy"
+        ],
+        "description": "Internal: set by product-launcher around its pre-launch refresh. Concurrent refreshes return cached status while set. ",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "active",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnyValue"
+                }
               }
             }
           }
@@ -27507,7 +28275,7 @@
         "tags": [
           "Plugin player-reporting"
         ],
-        "description": " \n [Help] \nUsed to submit a player report when no signed token is available\n**Data**\n* `offenderId`: The id of the offender. For players this is their puuid.\n* `categories`: List of category strings that player is reporting another player for. Different products use different categories.\n* `location`: The location where the offending behavior occurred. Example: `in-game`.\n* `comment`: Player written comment associated with this report.\n* `conversationContext`: (OPTIONAL) The ID and type of conversation from where the report was filed\n* `unstructuredContext`: (OPTIONAL) An additional payload where game teams can pass in custom payload to CPD for analysis\n* `incidentTimestampMillis`: (OPTIONAL) The timestamp of the reported incident (e.g., timestamp of the chat message)\n",
+        "description": " \n [Help] \nUsed to submit a player report when no signed token is available\n**Data**\n* `offenderId`: The id of the offender. For players this is their puuid.\n* `categories`: List of category strings that player is reporting another player for. Different products use different categories.\n* `location`: The location where the offending behavior occurred. Example: `in-game`.\n* `comment`: Player written comment associated with this report.\n* `region`: (OPTIONAL) If provided, this region is used for the unsigned report. If omitted, player affinity is used.\n* `conversationContext`: (OPTIONAL) The ID and type of conversation from where the report was filed\n* `unstructuredContext`: (OPTIONAL) An additional payload where game teams can pass in custom payload to CPD for analysis\n* `incidentTimestampMillis`: (OPTIONAL) The timestamp of the reported incident (e.g., timestamp of the chat message)\n",
         "parameters": [],
         "responses": {
           "401": {
@@ -27598,6 +28366,32 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PlayerSessionLifecycleRiotIdentityLoginRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/player-session-lifecycle/v1/session/confirm": {
+      "post": {
+        "tags": [
+          "Plugin player-session-lifecycle"
+        ],
+        "description": "Provide player confirmation for the given login state. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerSessionLifecycleConfirmLoginStateRequest"
               }
             }
           }
@@ -28057,7 +28851,7 @@
         "tags": [
           "Plugin rc-info-radiator"
         ],
-        "description": "Mark the end of the time phase sample and send an event to Analytics Platform conforming to the `riotclient__TimeSample__v4` schema. ",
+        "description": "Mark the end of the time phase sample and send an event to Analytics Platform conforming to the `riotclient__TimeSample__v10` schema. ",
         "parameters": [
           {
             "in": "path",
@@ -28292,6 +29086,23 @@
                 "$ref": "#/components/schemas/AnyValue"
               }
             }
+          }
+        }
+      }
+    },
+    "/riot-messaging-service/v1/simulate-out-of-sync": {
+      "post": {
+        "tags": [
+          "Plugin riot-messaging-service"
+        ],
+        "description": "Simulate an out-of-sync notification. For debug purposes only. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
           }
         }
       }
@@ -28930,6 +29741,39 @@
         }
       }
     },
+    "/rso-auth/v1/authorization/key-exchange": {
+      "post": {
+        "tags": [
+          "Plugin rso-auth"
+        ],
+        "description": "Creates an authorization from an authorization key. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RsoAuthAuthorizationResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RsoAuthAuthorizationKeyExchangeRequest"
+              }
+            }
+          }
+        }
+      }
+    },
     "/rso-auth/v1/authorization/refresh": {
       "post": {
         "tags": [
@@ -29328,6 +30172,39 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticateKeypairInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rso-authenticator/v1/authentication/msdk": {
+      "post": {
+        "tags": [
+          "Plugin rso-authenticator"
+        ],
+        "description": "Authenticate a player with MSDK (WeGame) credentials. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticationResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticateMSDKInput"
               }
             }
           }
@@ -30149,6 +31026,48 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticateKeypairInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rso-authenticator/v2/authentication/{recipient}/msdk": {
+      "post": {
+        "tags": [
+          "Plugin rso-authenticator"
+        ],
+        "description": "Authenticate a player with MSDK (WeGame) credentials. ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recipient",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticationResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RsoAuthenticatorV1AuthenticateMSDKInput"
               }
             }
           }
@@ -31869,7 +32788,7 @@
         "tags": [
           "Plugin voice-chat"
         ],
-        "description": "Reports a player for voice infringement ",
+        "description": "Reports a player for voice infringement \n [Help] This endpoint is deprecated. Use /voice-chat/v5/sessions/{productName}/{sessionId}/participants/{participantId}/report",
         "parameters": [
           {
             "in": "path",
@@ -31903,7 +32822,8 @@
           "2XX": {
             "description": "Returns nothing"
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/voice-chat/v4/sessions/{productName}/{sessionId}/participants/report": {
@@ -31911,7 +32831,7 @@
         "tags": [
           "Plugin voice-chat"
         ],
-        "description": "Reports all players for voice infringement ",
+        "description": "Reports all players for voice infringement \n [Help] This endpoint is deprecated. Use /voice-chat/v5/sessions/{productName}/{sessionId}/participants/report",
         "parameters": [
           {
             "in": "path",
@@ -31937,7 +32857,8 @@
           "2XX": {
             "description": "Returns nothing"
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/xbox-account/v1/authorization": {
@@ -32443,6 +33364,32 @@
                 "schema": {
                   "type": "boolean"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/localization/v1/locale-pre-validated": {
+      "put": {
+        "tags": [
+          "Plugin localization"
+        ],
+        "description": "Internal ingestion path for already-validated locale writes. ",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocalizationLocalizationLocaleV1"
               }
             }
           }
@@ -33110,7 +34057,16 @@
           "Plugin riotclient"
         ],
         "description": "Ux notification that it has completed loading the main window. ",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "phases",
+            "description": "Optional JS-side startup phases to merge into the StartupPerf ui_ready event.",
+            "schema": {
+              "$ref": "#/components/schemas/AnyValue"
+            }
+          }
+        ],
         "responses": {
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -34853,6 +35809,49 @@
         }
       }
     },
+    "/voice-chat/v4/sessions/{productName}/participants/{participantId}": {
+      "put": {
+        "tags": [
+          "Plugin voice-chat"
+        ],
+        "description": "Update local participant details across all sessions ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productName",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "path",
+            "name": "participantId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Returns nothing"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceChatUpdateParticipantResource"
+              }
+            }
+          }
+        }
+      }
+    },
     "/voice-chat/v4/sessions/transcription-language/{languageCode}": {
       "put": {
         "tags": [
@@ -34911,6 +35910,9 @@
           "activityId": {
             "type": "string"
           },
+          "discordSecret": {
+            "type": "string"
+          },
           "gameMode": {
             "type": "string"
           },
@@ -34922,6 +35924,12 @@
             "items": {
               "$ref": "#/components/schemas/AGSActivityInviteV1"
             }
+          },
+          "isMember": {
+            "type": "boolean"
+          },
+          "joinCode": {
+            "$ref": "#/components/schemas/AGSJoinCodeV1"
           },
           "members": {
             "type": "array",
@@ -35100,6 +36108,15 @@
             "type": "string"
           }
         }
+      },
+      "ActivityGatewayFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "ActivityGatewayGapsMailboxUpdated": {
         "type": "object",
@@ -35477,6 +36494,9 @@
               "$ref": "#/components/schemas/ActivityInviteV1"
             }
           },
+          "isMember": {
+            "type": "boolean"
+          },
           "joinCode": {
             "$ref": "#/components/schemas/JoinCodeV1"
           },
@@ -35830,6 +36850,15 @@
           "code"
         ]
       },
+      "AesFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "AesUserInfo": {
         "type": "object",
         "properties": {
@@ -36010,6 +37039,15 @@
             "type": "boolean"
           }
         }
+      },
+      "AgeRestrictionFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "AgeRestrictionHomeBaseCountry": {
         "type": "object",
@@ -36302,6 +37340,15 @@
           "PASSIVE_DIPLAY"
         ]
       },
+      "AntiAddictionFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "AntiAddictionFriendUpdateList": {
         "type": "object",
         "properties": {
@@ -36534,6 +37581,17 @@
           }
         }
       },
+      "AntiAddictionPlatformSocialCrossPlatformInteractionPermissionDetails": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "$ref": "#/components/schemas/AntiAddictionPlatformSocialInteractionPermission"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "AntiAddictionPlatformSocialCrossPlayPermission": {
         "type": "string",
         "enum": [
@@ -36551,6 +37609,13 @@
             "type": "string"
           }
         }
+      },
+      "AntiAddictionPlatformSocialInteractionPermission": {
+        "type": "string",
+        "enum": [
+          "Allowed",
+          "NotAllowed"
+        ]
       },
       "AntiAddictionPlatformSocialMultiplayerPermission": {
         "type": "string",
@@ -36897,6 +37962,15 @@
           }
         }
       },
+      "AppCommandFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "AppCommandLaunchRequest": {
         "type": "object",
         "properties": {
@@ -37112,6 +38186,15 @@
           "code_exchange"
         ]
       },
+      "AppleAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "AppleAccountPluginConfigResponse": {
         "type": "object",
         "properties": {
@@ -37132,6 +38215,9 @@
       "AppleAccountV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -37151,6 +38237,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -37259,14 +38348,20 @@
           "SSOAuth"
         ]
       },
-      "Authorization": {
+      "BatchPermissionsConfig": {
         "type": "object",
         "properties": {
-          "currentPlatformId": {
-            "type": "string"
+          "products": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
-          "subject": {
-            "type": "string"
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -38574,6 +39669,15 @@
           }
         }
       },
+      "ChatFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "ChatFriendGroup": {
         "type": "object",
         "properties": {
@@ -39741,6 +40845,17 @@
           }
         }
       },
+      "ChatPlatformSocialCrossPlatformInteractionPermissionDetails": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "$ref": "#/components/schemas/ChatPlatformSocialInteractionPermission"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "ChatPlatformSocialCrossPlayPermission": {
         "type": "string",
         "enum": [
@@ -39758,6 +40873,13 @@
             "type": "string"
           }
         }
+      },
+      "ChatPlatformSocialInteractionPermission": {
+        "type": "string",
+        "enum": [
+          "Allowed",
+          "NotAllowed"
+        ]
       },
       "ChatPlatformSocialMultiplayerPermission": {
         "type": "string",
@@ -40581,6 +41703,10 @@
       "ChatXmppConnectionState": {
         "type": "object",
         "properties": {
+          "connectionAttemptId": {
+            "type": "number",
+            "format": "int64"
+          },
           "socketCode": {
             "$ref": "#/components/schemas/ChatSocketClosedCode"
           },
@@ -40940,6 +42066,25 @@
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "ChatboxBufferedDiscordActivityInviteRMSUpdate": {
+        "type": "object",
+        "properties": {
+          "invite": {
+            "$ref": "#/components/schemas/ChatboxDiscordActivityRMSUpdate"
+          },
+          "lastAttemptedPartyGeneration": {
+            "type": "number",
+            "format": "int64"
+          },
+          "retryCount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "toRemove": {
+            "type": "boolean"
           }
         }
       },
@@ -41333,6 +42478,28 @@
           }
         }
       },
+      "ChatboxDiscordActivityInviteRMSDebugState": {
+        "type": "object",
+        "properties": {
+          "bufferedDiscordActivityInviteRMSUpdates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatboxBufferedDiscordActivityInviteRMSUpdate"
+            }
+          },
+          "currentDiscordPartyGeneration": {
+            "type": "number",
+            "format": "int64"
+          },
+          "currentDiscordPresenceUpdateGeneration": {
+            "type": "number",
+            "format": "int64"
+          },
+          "lastHandledDiscordActivityInviteRMSUpdate": {
+            "$ref": "#/components/schemas/ChatboxDiscordActivityRMSUpdate"
+          }
+        }
+      },
       "ChatboxDiscordActivityRMSUpdate": {
         "type": "object",
         "properties": {
@@ -41462,6 +42629,15 @@
           "not_signed_up",
           "logout",
           "latest_system_software_exist"
+        ]
+      },
+      "ChatboxFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "ChatboxFriend": {
@@ -41884,6 +43060,9 @@
           },
           "crossPlayPermissions": {
             "$ref": "#/components/schemas/ChatboxCrossPlayPermissions"
+          },
+          "detailedState": {
+            "type": "string"
           },
           "discordInfo": {
             "$ref": "#/components/schemas/ChatboxDiscordInfoV4"
@@ -42492,6 +43671,17 @@
           }
         }
       },
+      "ChatboxMultigamePresences": {
+        "type": "object",
+        "properties": {
+          "presences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatboxPresenceSessionV1"
+            }
+          }
+        }
+      },
       "ChatboxOnlinePlatform": {
         "type": "string",
         "enum": [
@@ -42683,6 +43873,17 @@
           }
         }
       },
+      "ChatboxPlatformSocialCrossPlatformInteractionPermissionDetails": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "$ref": "#/components/schemas/ChatboxPlatformSocialInteractionPermission"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "ChatboxPlatformSocialCrossPlayPermission": {
         "type": "string",
         "enum": [
@@ -42700,6 +43901,13 @@
             "type": "string"
           }
         }
+      },
+      "ChatboxPlatformSocialInteractionPermission": {
+        "type": "string",
+        "enum": [
+          "Allowed",
+          "NotAllowed"
+        ]
       },
       "ChatboxPlatformSocialMultiplayerPermission": {
         "type": "string",
@@ -42968,6 +44176,9 @@
           "crossPlayPermissions": {
             "$ref": "#/components/schemas/ChatboxCrossPlayPermissions"
           },
+          "detailedState": {
+            "type": "string"
+          },
           "discordUserData": {
             "$ref": "#/components/schemas/ChatboxDiscordUserDataV1"
           },
@@ -43210,6 +44421,30 @@
             "type": "boolean"
           },
           "linked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ChatboxSocialPlayerPreferencesResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ChatboxSocialPreferencesV1"
+          }
+        }
+      },
+      "ChatboxSocialPreferencesParametersV1": {
+        "type": "object",
+        "properties": {
+          "appearOffline": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ChatboxSocialPreferencesV1": {
+        "type": "object",
+        "properties": {
+          "appearOffline": {
             "type": "boolean"
           }
         }
@@ -43624,6 +44859,23 @@
           }
         }
       },
+      "ClientConfigDepInjectorAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "ClientConfigDepInjectorAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -43772,6 +45024,7 @@
       "ClientConfigDepInjectorAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -43940,6 +45193,15 @@
             "type": "string"
           }
         }
+      },
+      "ClientConfigDepInjectorFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "ClientConfigDepInjectorGameCenterAuthCredentials": {
         "type": "object",
@@ -44876,6 +46138,15 @@
           }
         }
       },
+      "ClientConfigFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "ClientConfigRiotClientAuthAlias": {
         "type": "object",
         "properties": {
@@ -45097,6 +46368,15 @@
           }
         }
       },
+      "ClientFeatureFlagsFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "ClientProductType": {
         "type": "string",
         "enum": [
@@ -45169,6 +46449,26 @@
           "validatorExecutionTimeUs": {
             "type": "number",
             "format": "int64"
+          }
+        }
+      },
+      "CommerceFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
+      "CommerceLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
           }
         }
       },
@@ -45845,6 +47145,24 @@
           }
         }
       },
+      "CookieJarFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
+      "CrashWatchdogFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "CreateShortcutsRequest": {
         "type": "object",
         "properties": {
@@ -45909,6 +47227,15 @@
             "$ref": "#/components/schemas/DeleteAccountDeleteAccountFlowStatus"
           }
         }
+      },
+      "DeleteAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "DeleteActivityInviteRequestsRequestV1": {
         "type": "object",
@@ -46032,6 +47359,15 @@
           "cancelled",
           "error",
           "code"
+        ]
+      },
+      "DiscordAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "DiscordActivityActionType": {
@@ -46280,6 +47616,23 @@
           }
         }
       },
+      "EntitlementsAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "EntitlementsAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -46428,6 +47781,7 @@
       "EntitlementsAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -46579,6 +47933,15 @@
             "type": "string"
           }
         }
+      },
+      "EntitlementsFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "EntitlementsGameCenterAuthCredentials": {
         "type": "object",
@@ -46755,6 +48118,17 @@
           },
           "sessionState": {
             "$ref": "#/components/schemas/EntitlementsSessionResponse"
+          }
+        }
+      },
+      "EntitlementsLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
           }
         }
       },
@@ -47660,6 +49034,15 @@
           }
         }
       },
+      "EulaFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "EulaFinalState": {
         "type": "string",
         "enum": [
@@ -47676,6 +49059,17 @@
         "type": "object",
         "properties": {
           "token": {
+            "type": "string"
+          }
+        }
+      },
+      "EulaLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
             "type": "string"
           }
         }
@@ -48928,6 +50322,15 @@
           "classic_login"
         ]
       },
+      "FacebookAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "FacebookAccountPluginConfigResponse": {
         "type": "object",
         "properties": {
@@ -48948,6 +50351,9 @@
       "FacebookAccountV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -48967,6 +50373,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -49039,6 +50448,15 @@
             }
           }
         }
+      },
+      "FirstPartyFulfillmentFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "FirstPartyFulfillmentFirstPartyFulfillmentConsoleEntitlementsCachingFailure": {
         "type": "object",
@@ -49310,6 +50728,15 @@
           }
         }
       },
+      "FriendsForeverFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "FriendsForeverPluginCallerId_MockCallerId": {
         "type": "object",
         "properties": {
@@ -49444,6 +50871,23 @@
         "properties": {
           "key": {
             "type": "string"
+          }
+        }
+      },
+      "GaRestrictionAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
           }
         }
       },
@@ -49595,6 +51039,7 @@
       "GaRestrictionAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -49766,6 +51211,15 @@
             "type": "string"
           }
         }
+      },
+      "GaRestrictionFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "GaRestrictionGameCenterAuthCredentials": {
         "type": "object",
@@ -51246,6 +52700,23 @@
           }
         }
       },
+      "GaWarningAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "GaWarningAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -51394,6 +52865,7 @@
       "GaWarningAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -51545,6 +53017,15 @@
             "type": "string"
           }
         }
+      },
+      "GaWarningFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "GaWarningGameCenterAuthCredentials": {
         "type": "object",
@@ -52736,6 +54217,23 @@
           }
         }
       },
+      "GameSessionAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "GameSessionAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -52884,6 +54382,7 @@
       "GameSessionAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -53112,6 +54611,15 @@
             "type": "string"
           }
         }
+      },
+      "GameSessionFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "GameSessionGameCenterAuthCredentials": {
         "type": "object",
@@ -54219,6 +55727,15 @@
           }
         }
       },
+      "GamecenterAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "GamecenterAccountGameCenterAuthorizationError": {
         "type": "string",
         "enum": [
@@ -54288,6 +55805,15 @@
             "type": "string"
           }
         }
+      },
+      "GoogleAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "GoogleAccountGoogleAuthorizationError": {
         "type": "string",
@@ -54397,6 +55923,9 @@
       "GoogleAccountV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -54416,6 +55945,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -54524,6 +56056,15 @@
             "type": "string"
           }
         }
+      },
+      "InfoRadiatorFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "InfoRadiatorPatchlineMetadata": {
         "type": "object",
@@ -54708,6 +56249,15 @@
         "enum": [
           "TransitionToBackground",
           "Resume"
+        ]
+      },
+      "IntegrationTestFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "IntegrationTestMode": {
@@ -54902,17 +56452,17 @@
       "JoinCodesSharedRMSUpdate": {
         "type": "object",
         "properties": {
-          "expiresAt": {
-            "type": "string"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
           "joinCode": {
             "type": "string"
           },
           "smartUrl": {
             "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },
@@ -54951,6 +56501,15 @@
           "Processing",
           "Succeeded",
           "Failed"
+        ]
+      },
+      "JwtAuthenticatorFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "JwtAuthenticatorHeaders": {
@@ -55016,6 +56575,15 @@
           "disabled",
           "on_failure",
           "always"
+        ]
+      },
+      "KeypairAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "KeypairAccountKeyPairAttestationStatusType": {
@@ -55131,6 +56699,15 @@
           }
         }
       },
+      "KrAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "KrAccountKrAccountApiSession": {
         "type": "object",
         "properties": {
@@ -55163,6 +56740,15 @@
             "type": "string"
           }
         }
+      },
+      "LaunchRestrictionFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "LaunchRestrictionLaunchRestrictions": {
         "type": "object",
@@ -55332,6 +56918,26 @@
           }
         }
       },
+      "LocalizationFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
+      "LocalizationLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          }
+        }
+      },
       "LockedFileInfo": {
         "type": "object",
         "properties": {
@@ -55370,15 +56976,6 @@
           }
         }
       },
-      "LoginStatusPhase": {
-        "type": "string",
-        "enum": [
-          "unknown",
-          "pending",
-          "not_logged_in",
-          "logged_in"
-        ]
-      },
       "LolInfo": {
         "type": "object",
         "properties": {
@@ -55401,10 +56998,30 @@
           }
         }
       },
+      "LoyaltyV2FieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "LoyaltyV2HomeBaseCountry": {
         "type": "object",
         "properties": {
           "homeBaseCountry": {
+            "type": "string"
+          }
+        }
+      },
+      "LoyaltyV2LocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
             "type": "string"
           }
         }
@@ -55567,6 +57184,15 @@
             "type": "string"
           }
         }
+      },
+      "MailboxFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "MailboxGapsMailboxUpdated": {
         "type": "object",
@@ -56052,6 +57678,15 @@
           "player"
         ]
       },
+      "MobileProductRegistryFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "MobileProductRegistryGameVersion": {
         "type": "object",
         "properties": {
@@ -56103,6 +57738,26 @@
             "type": "string"
           },
           "version": {
+            "type": "string"
+          }
+        }
+      },
+      "MobilePushFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
+      "MobilePushLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
             "type": "string"
           }
         }
@@ -56179,6 +57834,15 @@
           "Resume"
         ]
       },
+      "ModeManagerFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "ModeManagerMode": {
         "type": "string",
         "enum": [
@@ -56193,6 +57857,93 @@
         "properties": {
           "mode": {
             "$ref": "#/components/schemas/ModeManagerDesiredMode"
+          }
+        }
+      },
+      "MsdkAccountAccountPluginTelemetryEvent": {
+        "type": "object",
+        "properties": {
+          "durationMs": {
+            "type": "number",
+            "format": "int32"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "responseType": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string"
+          }
+        }
+      },
+      "MsdkAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
+      "MsdkAccountMSDKAuthorizationError": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "plugin_disabled",
+          "already_in_progress",
+          "wegame_sdk_init_failed",
+          "auto_login_failed",
+          "account_info_error",
+          "token_expired"
+        ]
+      },
+      "MsdkAccountMSDKAuthorizationParameters": {
+        "type": "object",
+        "properties": {
+          "weGameId": {
+            "type": "number",
+            "format": "int32"
+          }
+        }
+      },
+      "MsdkAccountMSDKAuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "credentials": {
+            "$ref": "#/components/schemas/MsdkAccountMSDKCredentials"
+          },
+          "error": {
+            "$ref": "#/components/schemas/MsdkAccountMSDKAuthorizationError"
+          },
+          "type": {
+            "$ref": "#/components/schemas/MsdkAccountMSDKAuthorizationResponseType"
+          }
+        }
+      },
+      "MsdkAccountMSDKAuthorizationResponseType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "error",
+          "authorized"
+        ]
+      },
+      "MsdkAccountMSDKCredentials": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string"
+          },
+          "ext": {
+            "type": "string"
+          },
+          "openId": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
           }
         }
       },
@@ -56230,6 +57981,15 @@
           "ConnectionCheckDisabled",
           "Connected",
           "Disconnected"
+        ]
+      },
+      "NetworkConnectivityFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "NetworkConnectivityPluginCallerId_MockCallerId": {
@@ -56318,6 +58078,15 @@
           "user_canceled_login"
         ]
       },
+      "NintendoAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "NintendoAccountGetNetworkServiceAccountParameters": {
         "type": "object",
         "properties": {
@@ -56388,6 +58157,9 @@
       "NintendoAccountV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -56407,6 +58179,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -56530,6 +58305,15 @@
           }
         }
       },
+      "OktaAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "OktaAccountOktaAuthorizationError": {
         "type": "string",
         "enum": [
@@ -56597,6 +58381,9 @@
       "OktaAccountV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -56616,6 +58403,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -56791,6 +58581,15 @@
           "AddressResolutionFailed",
           "FileLocked",
           "InvalidArgument"
+        ]
+      },
+      "PatchFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "PatchInstall": {
@@ -57362,6 +59161,9 @@
           },
           "installPath": {
             "type": "string"
+          },
+          "locale": {
+            "type": "string"
           }
         }
       },
@@ -57793,6 +59595,15 @@
           }
         }
       },
+      "PayMobileFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "PayMobileInitializePurchaseResponse": {
         "type": "object",
         "properties": {
@@ -58190,6 +60001,15 @@
           "ERROR"
         ]
       },
+      "PaymentsFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "PaymentsIdToken": {
         "type": "object",
         "properties": {
@@ -58229,6 +60049,17 @@
         "type": "object",
         "properties": {
           "purchaseStartUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentsLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
             "type": "string"
           }
         }
@@ -58454,6 +60285,23 @@
           }
         }
       },
+      "PermissionsAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "PermissionsAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -58602,6 +60450,7 @@
       "PermissionsAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -58834,6 +60683,15 @@
             "type": "string"
           }
         }
+      },
+      "PermissionsFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "PermissionsFriendUpdateList": {
         "type": "object",
@@ -59814,6 +61672,17 @@
           }
         }
       },
+      "PermissionsPlatformSocialCrossPlatformInteractionPermissionDetails": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "$ref": "#/components/schemas/PermissionsPlatformSocialInteractionPermission"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "PermissionsPlatformSocialCrossPlayPermission": {
         "type": "string",
         "enum": [
@@ -59831,6 +61700,13 @@
             "type": "string"
           }
         }
+      },
+      "PermissionsPlatformSocialInteractionPermission": {
+        "type": "string",
+        "enum": [
+          "Allowed",
+          "NotAllowed"
+        ]
       },
       "PermissionsPlatformSocialMultiplayerPermission": {
         "type": "string",
@@ -60563,6 +62439,15 @@
           "authorized"
         ]
       },
+      "PlatformLoginFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "PlatformLoginLoginPersistenceConfig": {
         "type": "object",
         "properties": {
@@ -60770,6 +62655,15 @@
           }
         }
       },
+      "PlatformNotificationsFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "PlatformSocialAuthorization": {
         "type": "object",
         "properties": {
@@ -60839,6 +62733,15 @@
             }
           }
         }
+      },
+      "PlatformSocialFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "PlatformSocialLookupV1ConsoleIdsForPuuidsRequest": {
         "type": "object",
@@ -61281,6 +63184,17 @@
           }
         }
       },
+      "PlatformSocialPlatformSocialCrossPlatformInteractionPermissionDetails": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "$ref": "#/components/schemas/PlatformSocialPlatformSocialInteractionPermission"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "PlatformSocialPlatformSocialCrossPlayPermission": {
         "type": "string",
         "enum": [
@@ -61298,6 +63212,13 @@
             "type": "string"
           }
         }
+      },
+      "PlatformSocialPlatformSocialInteractionPermission": {
+        "type": "string",
+        "enum": [
+          "Allowed",
+          "NotAllowed"
+        ]
       },
       "PlatformSocialPlatformSocialMockApiState": {
         "type": "string",
@@ -61959,6 +63880,23 @@
           }
         }
       },
+      "PlatformUiAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "PlatformUiAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -62107,6 +64045,7 @@
       "PlatformUiAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -62358,6 +64297,14 @@
         "properties": {
           "handoff": {
             "$ref": "#/components/schemas/PlatformUiConfirmAgeHandoff"
+          }
+        }
+      },
+      "PlatformUiConfirmLoginStateRequest": {
+        "type": "object",
+        "properties": {
+          "loginState": {
+            "$ref": "#/components/schemas/PlatformUiPlayerSessionStateType"
           }
         }
       },
@@ -62704,6 +64651,15 @@
           "error",
           "id_token",
           "classic_login"
+        ]
+      },
+      "PlatformUiFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "PlatformUiGameCenterAuthCredentials": {
@@ -63475,7 +65431,10 @@
           "okta",
           "qrcode",
           "keypair",
-          "rso"
+          "rso",
+          "authorization_key",
+          "login_token",
+          "msdk"
         ]
       },
       "PlatformUiLoginToken": {
@@ -64673,6 +66632,7 @@
           "PendingClientConfigData",
           "Initializing",
           "PendingClientId",
+          "MigrateAuthorization",
           "PendingPersistenceInitialization",
           "RestoreAuthorization",
           "PendingCreateAuthorization",
@@ -64689,6 +66649,7 @@
           "PendingAuthentication",
           "ReauthenticationRequired",
           "KeyPairError",
+          "PendingDisambiguation",
           "PendingKRIdVerification",
           "PendingSignup",
           "SignupAgeRestricted",
@@ -64698,6 +66659,7 @@
           "MultifactorChallengeDenied",
           "PendingAgeVerification",
           "LoginTokenExchange",
+          "PendingUsernameChangedConfirmation",
           "RefreshAuthorization",
           "PendingForget",
           "PendingConsent",
@@ -65182,6 +67144,15 @@
             "type": "string"
           }
         }
+      },
+      "PlatformUiRequireRecoverableAccountReason": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "GameDriven",
+          "PostPayment",
+          "AccountAge"
+        ]
       },
       "PlatformUiResponseType": {
         "type": "string",
@@ -65725,6 +67696,9 @@
       "PlatformUiV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -65745,14 +67719,28 @@
           },
           "status": {
             "type": "string"
+          },
+          "wegameMsdkGameId": {
+            "type": "string"
           }
         }
+      },
+      "PlatformUiV1ConsentMarketingStatus": {
+        "type": "string",
+        "enum": [
+          "CONSENTED",
+          "REVOKED",
+          "IGNORE"
+        ]
       },
       "PlatformUiV1Profile": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string"
+          },
+          "consentMarketingStatus": {
+            "$ref": "#/components/schemas/PlatformUiV1ConsentMarketingStatus"
           },
           "dateOfBirth": {
             "type": "string"
@@ -65784,7 +67772,8 @@
           "governmentId",
           "governmentIdIssueDate",
           "dateOfBirth",
-          "eulaAgreement"
+          "eulaAgreement",
+          "marketingConsent"
         ]
       },
       "PlatformUiV1ProfileVerificationError": {
@@ -66451,6 +68440,23 @@
           }
         }
       },
+      "PlayerAccountAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "PlayerAccountAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -66599,6 +68605,7 @@
       "PlayerAccountAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -66771,6 +68778,15 @@
             "type": "boolean"
           }
         }
+      },
+      "PlayerAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "PlayerAccountGameCenterAuthCredentials": {
         "type": "object",
@@ -68332,6 +70348,9 @@
       "PlayerAccountV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -68351,6 +70370,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -68431,6 +70453,9 @@
         "properties": {
           "address": {
             "type": "string"
+          },
+          "consentMarketingStatus": {
+            "$ref": "#/components/schemas/PlayerAccountvngV1ConsentMarketingStatus"
           },
           "dateOfBirth": {
             "type": "string"
@@ -68535,6 +70560,14 @@
           "PhoneVerification"
         ]
       },
+      "PlayerAccountvngV1ConsentMarketingStatus": {
+        "type": "string",
+        "enum": [
+          "CONSENTED",
+          "REVOKED",
+          "IGNORE"
+        ]
+      },
       "PlayerAccountvngV1ProfileField": {
         "type": "string",
         "enum": [
@@ -68545,7 +70578,8 @@
           "governmentId",
           "governmentIdIssueDate",
           "dateOfBirth",
-          "eulaAgreement"
+          "eulaAgreement",
+          "marketingConsent"
         ]
       },
       "PlayerAccountvngV1ProfileVerificationError": {
@@ -68702,6 +70736,15 @@
         "enum": [
           "localCache",
           "serverAuthoritative"
+        ]
+      },
+      "PlayerAffinityFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "PlayerAffinityIdClaims": {
@@ -68970,6 +71013,15 @@
           }
         }
       },
+      "PlayerBehaviorTokenFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "PlayerBehaviorTokenPbTokenUpdatedNotification": {
         "type": "object",
         "properties": {
@@ -69072,6 +71124,15 @@
             "type": "string"
           }
         }
+      },
+      "PlayerPreferencesFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "PlayerPreferencesIdClaims": {
         "type": "object",
@@ -69468,6 +71529,23 @@
           }
         }
       },
+      "PlayerReportingAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "PlayerReportingAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -69616,6 +71694,7 @@
       "PlayerReportingAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -69767,6 +71846,15 @@
             "type": "string"
           }
         }
+      },
+      "PlayerReportingFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "PlayerReportingGameCenterAuthCredentials": {
         "type": "object",
@@ -69951,6 +72039,17 @@
           },
           "sessionState": {
             "$ref": "#/components/schemas/PlayerReportingSessionResponse"
+          }
+        }
+      },
+      "PlayerReportingLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
           }
         }
       },
@@ -70915,6 +73014,9 @@
           "offenderId": {
             "type": "string"
           },
+          "region": {
+            "type": "string"
+          },
           "unstructuredContext": {
             "type": "object",
             "additionalProperties": {
@@ -71003,6 +73105,28 @@
           "FAILED"
         ]
       },
+      "PlayerSessionLifecycleAmbiguousAuthResponseDetails": {
+        "type": "object",
+        "properties": {
+          "current_username": {
+            "type": "string"
+          },
+          "matched_shards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PlayerSessionLifecycleAmbiguousUsernameResponseDetails": {
+        "type": "object",
+        "properties": {
+          "current_username": {
+            "type": "string"
+          }
+        }
+      },
       "PlayerSessionLifecycleAppleAuthorizationError": {
         "type": "string",
         "enum": [
@@ -71086,32 +73210,6 @@
           "GuestAccount"
         ]
       },
-      "PlayerSessionLifecycleAuthMethodConfig": {
-        "type": "object",
-        "properties": {
-          "clientId": {
-            "type": "string"
-          },
-          "isSignupDisabled": {
-            "type": "boolean"
-          },
-          "method": {
-            "type": "string"
-          },
-          "mode": {
-            "type": "string"
-          },
-          "scopes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "status": {
-            "type": "string"
-          }
-        }
-      },
       "PlayerSessionLifecycleAuthResponseDetails": {
         "type": "object",
         "properties": {
@@ -71179,6 +73277,12 @@
       "PlayerSessionLifecycleAuthenticationResponse": {
         "type": "object",
         "properties": {
+          "ambiguous_auth": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleAmbiguousAuthResponseDetails"
+          },
+          "ambiguous_username": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleAmbiguousUsernameResponseDetails"
+          },
           "auth": {
             "$ref": "#/components/schemas/PlayerSessionLifecycleAuthResponseDetails"
           },
@@ -71249,6 +73353,23 @@
           "refresh_failure",
           "unknown"
         ]
+      },
+      "PlayerSessionLifecycleAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
       },
       "PlayerSessionLifecycleAuthorizationRequest": {
         "type": "object",
@@ -71470,6 +73591,14 @@
           }
         }
       },
+      "PlayerSessionLifecycleConfirmLoginStateRequest": {
+        "type": "object",
+        "properties": {
+          "loginState": {
+            "$ref": "#/components/schemas/PlayerSessionLifecyclePlayerSessionStateType"
+          }
+        }
+      },
       "PlayerSessionLifecycleConnectivity": {
         "type": "object",
         "properties": {
@@ -71648,6 +73777,15 @@
           "error",
           "id_token",
           "classic_login"
+        ]
+      },
+      "PlayerSessionLifecycleFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "PlayerSessionLifecycleGameCenterAuthorizationError": {
@@ -72268,7 +74406,10 @@
           "okta",
           "qrcode",
           "keypair",
-          "rso"
+          "rso",
+          "authorization_key",
+          "login_token",
+          "msdk"
         ]
       },
       "PlayerSessionLifecycleLoginToken": {
@@ -72314,6 +74455,66 @@
           },
           "remember": {
             "type": "boolean"
+          }
+        }
+      },
+      "PlayerSessionLifecycleMSDKAccountMSDKAuthorizationError": {
+        "type": "string",
+        "enum": [
+          "unknown",
+          "plugin_disabled",
+          "already_in_progress",
+          "wegame_sdk_init_failed",
+          "auto_login_failed",
+          "account_info_error",
+          "token_expired"
+        ]
+      },
+      "PlayerSessionLifecycleMSDKAccountMSDKAuthorizationParameters": {
+        "type": "object",
+        "properties": {
+          "weGameId": {
+            "type": "number",
+            "format": "int32"
+          }
+        }
+      },
+      "PlayerSessionLifecycleMSDKAccountMSDKAuthorizationResponse": {
+        "type": "object",
+        "properties": {
+          "credentials": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleMSDKAccountMSDKCredentials"
+          },
+          "error": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleMSDKAccountMSDKAuthorizationError"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleMSDKAccountMSDKAuthorizationResponseType"
+          }
+        }
+      },
+      "PlayerSessionLifecycleMSDKAccountMSDKAuthorizationResponseType": {
+        "type": "string",
+        "enum": [
+          "none",
+          "error",
+          "authorized"
+        ]
+      },
+      "PlayerSessionLifecycleMSDKAccountMSDKCredentials": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string"
+          },
+          "ext": {
+            "type": "string"
+          },
+          "openId": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
           }
         }
       },
@@ -72914,6 +75115,7 @@
           "PendingClientConfigData",
           "Initializing",
           "PendingClientId",
+          "MigrateAuthorization",
           "PendingPersistenceInitialization",
           "RestoreAuthorization",
           "PendingCreateAuthorization",
@@ -72930,6 +75132,7 @@
           "PendingAuthentication",
           "ReauthenticationRequired",
           "KeyPairError",
+          "PendingDisambiguation",
           "PendingKRIdVerification",
           "PendingSignup",
           "SignupAgeRestricted",
@@ -72939,6 +75142,7 @@
           "MultifactorChallengeDenied",
           "PendingAgeVerification",
           "LoginTokenExchange",
+          "PendingUsernameChangedConfirmation",
           "RefreshAuthorization",
           "PendingForget",
           "PendingConsent",
@@ -73138,7 +75342,7 @@
           "methods": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PlayerSessionLifecycleAuthMethodConfig"
+              "$ref": "#/components/schemas/PlayerSessionLifecycleV1AuthMethodConfig"
             }
           },
           "service_url": {
@@ -73438,12 +75642,23 @@
           "NO_ERROR"
         ]
       },
+      "PlayerSessionLifecycleRequireRecoverableAccountReason": {
+        "type": "string",
+        "enum": [
+          "Unknown",
+          "GameDriven",
+          "PostPayment",
+          "AccountAge"
+        ]
+      },
       "PlayerSessionLifecycleResponseType": {
         "type": "string",
         "enum": [
           "auth",
+          "ambiguous_auth",
           "healup",
           "kr-id-verification",
+          "ambiguous_username",
           "signup",
           "multifactor",
           "gamepass",
@@ -73884,6 +76099,38 @@
           }
         }
       },
+      "PlayerSessionLifecycleV1AuthMethodConfig": {
+        "type": "object",
+        "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
+          "clientId": {
+            "type": "string"
+          },
+          "isSignupDisabled": {
+            "type": "boolean"
+          },
+          "method": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
+            "type": "string"
+          }
+        }
+      },
       "PlayerSessionLifecycleV1AuthenticateCodeInput": {
         "type": "object",
         "properties": {
@@ -73935,6 +76182,20 @@
           }
         }
       },
+      "PlayerSessionLifecycleV1AuthenticateMSDKInput": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "msdk": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleV1MSDKInput"
+          },
+          "remember": {
+            "type": "boolean"
+          }
+        }
+      },
       "PlayerSessionLifecycleV1AuthenticateOpenIdConnectInput": {
         "type": "object",
         "properties": {
@@ -73970,6 +76231,14 @@
           "hcaptcha"
         ]
       },
+      "PlayerSessionLifecycleV1ConsentMarketingStatus": {
+        "type": "string",
+        "enum": [
+          "CONSENTED",
+          "REVOKED",
+          "IGNORE"
+        ]
+      },
       "PlayerSessionLifecycleV1FacebookInput": {
         "type": "object",
         "properties": {
@@ -74003,6 +76272,30 @@
           }
         }
       },
+      "PlayerSessionLifecycleV1MSDKInput": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "number",
+            "format": "int32"
+          },
+          "ext": {
+            "type": "string"
+          },
+          "open_id": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
       "PlayerSessionLifecycleV1OpenIdConnectInput": {
         "type": "object",
         "properties": {
@@ -74019,6 +76312,9 @@
         "properties": {
           "address": {
             "type": "string"
+          },
+          "consentMarketingStatus": {
+            "$ref": "#/components/schemas/PlayerSessionLifecycleV1ConsentMarketingStatus"
           },
           "dateOfBirth": {
             "type": "string"
@@ -74050,7 +76346,8 @@
           "governmentId",
           "governmentIdIssueDate",
           "dateOfBirth",
-          "eulaAgreement"
+          "eulaAgreement",
+          "marketingConsent"
         ]
       },
       "PlayerSessionLifecycleV1ProfileVerificationError": {
@@ -74383,8 +76680,14 @@
           "actionRequired": {
             "type": "boolean"
           },
+          "loginCountry": {
+            "type": "string"
+          },
           "loginState": {
             "type": "string"
+          },
+          "userInfo": {
+            "$ref": "#/components/schemas/AnyValue"
           }
         }
       },
@@ -74467,6 +76770,15 @@
           "latest_system_software_exist"
         ]
       },
+      "PlaystationAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "PlaystationAccountOnlinePlatform": {
         "type": "string",
         "enum": [
@@ -74540,6 +76852,9 @@
       "PlaystationAccountV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -74559,6 +76874,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -75138,6 +77456,15 @@
           }
         }
       },
+      "PresencesFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "PresencesFriendUpdateList": {
         "type": "object",
         "properties": {
@@ -75380,6 +77707,17 @@
           }
         }
       },
+      "PresencesPlatformSocialCrossPlatformInteractionPermissionDetails": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "$ref": "#/components/schemas/PresencesPlatformSocialInteractionPermission"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "PresencesPlatformSocialCrossPlayPermission": {
         "type": "string",
         "enum": [
@@ -75397,6 +77735,13 @@
             "type": "string"
           }
         }
+      },
+      "PresencesPlatformSocialInteractionPermission": {
+        "type": "string",
+        "enum": [
+          "Allowed",
+          "NotAllowed"
+        ]
       },
       "PresencesPlatformSocialMultiplayerPermission": {
         "type": "string",
@@ -75848,6 +78193,15 @@
           }
         }
       },
+      "PrivacyFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "PrivacyPrivacySettings": {
         "type": "object",
         "properties": {
@@ -75868,6 +78222,15 @@
           "Unrequested",
           "Requesting",
           "Completed"
+        ]
+      },
+      "PrivateSettingsFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "PrivateSettingsIOSKeychainConfiguration": {
@@ -76056,6 +78419,15 @@
           }
         }
       },
+      "ProductIntegrationDepsFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "ProductIntegrationDepsRepairCode": {
         "type": "string",
         "enum": [
@@ -76080,6 +78452,15 @@
             "type": "string"
           }
         }
+      },
+      "ProductIntegrationFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "ProductIntegrationHeartbeatFile": {
         "type": "object",
@@ -76113,6 +78494,17 @@
         "type": "object",
         "properties": {
           "locale": {
+            "type": "string"
+          }
+        }
+      },
+      "ProductIntegrationLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
             "type": "string"
           }
         }
@@ -76580,6 +78972,20 @@
           }
         }
       },
+      "ProductLauncherRefreshRequestOptions": {
+        "type": "object",
+        "properties": {
+          "quickValidation": {
+            "type": "boolean"
+          },
+          "force": {
+            "type": "boolean"
+          },
+          "forLaunch": {
+            "type": "boolean"
+          }
+        }
+      },
       "ProductLauncherRogueProcessResult": {
         "type": "string",
         "enum": [
@@ -76709,6 +79115,15 @@
             "type": "string"
           }
         }
+      },
+      "ProductLocalizationFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "ProductLocalizationPatchlineMetadata": {
         "type": "object",
@@ -76984,6 +79399,23 @@
           }
         }
       },
+      "ProductMetadataAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "ProductMetadataAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -77132,6 +79564,7 @@
       "ProductMetadataAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -77453,6 +79886,15 @@
             }
           }
         }
+      },
+      "ProductMetadataFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "ProductMetadataGameCenterAuthCredentials": {
         "type": "object",
@@ -80012,6 +82454,40 @@
           }
         }
       },
+      "RcInfoRadiatorTracingLogContext": {
+        "type": "object",
+        "properties": {
+          "commonFields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RcInfoRadiatorTracingSamplingContext": {
+        "type": "object",
+        "properties": {
+          "shouldSampleLog": {
+            "type": "boolean"
+          },
+          "shouldSampleTrace": {
+            "type": "boolean"
+          },
+          "diceRoll": {
+            "type": "number",
+            "format": "int64"
+          },
+          "logSampleRate": {
+            "type": "number",
+            "format": "int64"
+          },
+          "traceSampleRate": {
+            "type": "number",
+            "format": "int64"
+          }
+        }
+      },
       "ReferenceEchoRequest": {
         "type": "object",
         "properties": {
@@ -80028,10 +82504,25 @@
           }
         }
       },
+      "ReferenceFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "RefreshRequestOptions": {
         "type": "object",
         "properties": {
           "quickValidation": {
+            "type": "boolean"
+          },
+          "force": {
+            "type": "boolean"
+          },
+          "forLaunch": {
             "type": "boolean"
           }
         }
@@ -80378,6 +82869,15 @@
           }
         }
       },
+      "RiotClientAuthFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "RiotClientAuthIdClaims": {
         "type": "object",
         "properties": {
@@ -80612,6 +83112,15 @@
           }
         }
       },
+      "RiotFriendsFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "RiotFriendsFriendUpdateList": {
         "type": "object",
         "properties": {
@@ -80697,6 +83206,26 @@
           "needs_authentication",
           "authorized"
         ]
+      },
+      "RiotLoginFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
+      "RiotLoginLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          }
+        }
       },
       "RiotLoginLoginPersistenceConfig": {
         "type": "object",
@@ -80982,6 +83511,26 @@
           }
         }
       },
+      "RiotMessagingServiceFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
+      "RiotMessagingServiceLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          }
+        }
+      },
       "RiotMessagingServiceMessage": {
         "type": "object",
         "properties": {
@@ -81182,6 +83731,15 @@
             }
           }
         }
+      },
+      "RiotStatusFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "RiotStatusPatchlineMetadata": {
         "type": "object",
@@ -82526,6 +85084,9 @@
           },
           "restartRequired": {
             "type": "boolean"
+          },
+          "restartWaivedReason": {
+            "type": "string"
           }
         }
       },
@@ -83054,6 +85615,15 @@
           }
         }
       },
+      "RnetSanitizerFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "RnetSanitizerLocaleDataResource": {
         "type": "object",
         "properties": {
@@ -83062,6 +85632,17 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "RnetSanitizerLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
           }
         }
       },
@@ -83485,6 +86066,23 @@
           }
         }
       },
+      "RsoAuthAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "RsoAuthAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -83633,6 +86231,7 @@
       "RsoAuthAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -83784,6 +86383,24 @@
             "type": "string"
           }
         }
+      },
+      "RsoAuthDepInjectorFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
+      "RsoAuthFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "RsoAuthGameCenterAuthCredentials": {
         "type": "object",
@@ -83960,6 +86577,17 @@
           },
           "sessionState": {
             "$ref": "#/components/schemas/RsoAuthSessionResponse"
+          }
+        }
+      },
+      "RsoAuthLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
           }
         }
       },
@@ -84636,6 +87264,15 @@
           "SSOAuth"
         ]
       },
+      "RsoAuthenticatorFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "RsoAuthenticatorHttpCookie": {
         "type": "object",
         "properties": {
@@ -84713,6 +87350,7 @@
         "type": "string",
         "enum": [
           "QRCode",
+          "CreateLoginToken",
           "Unknown"
         ]
       },
@@ -84770,6 +87408,9 @@
       "RsoAuthenticatorRsoAuthAccessToken": {
         "type": "object",
         "properties": {
+          "clientId": {
+            "type": "string"
+          },
           "expiry": {
             "type": "number",
             "format": "int64"
@@ -84912,9 +87553,34 @@
           }
         }
       },
+      "RsoAuthenticatorV1AmbiguousAuthResponseDetails": {
+        "type": "object",
+        "properties": {
+          "current_username": {
+            "type": "string"
+          },
+          "matched_shards": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RsoAuthenticatorV1AmbiguousUsernameResponseDetails": {
+        "type": "object",
+        "properties": {
+          "current_username": {
+            "type": "string"
+          }
+        }
+      },
       "RsoAuthenticatorV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -84934,6 +87600,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -85005,6 +87674,20 @@
           },
           "language": {
             "type": "string"
+          },
+          "remember": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RsoAuthenticatorV1AuthenticateMSDKInput": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "msdk": {
+            "$ref": "#/components/schemas/RsoAuthenticatorV1MSDKInput"
           },
           "remember": {
             "type": "boolean"
@@ -85134,6 +87817,9 @@
           "mockPlatform": {
             "type": "string"
           },
+          "msdk": {
+            "$ref": "#/components/schemas/RsoAuthenticatorV1MSDKInput"
+          },
           "multifactor": {
             "$ref": "#/components/schemas/RsoAuthenticatorV1MultifactorInput"
           },
@@ -85175,6 +87861,12 @@
       "RsoAuthenticatorV1AuthenticationResponse": {
         "type": "object",
         "properties": {
+          "ambiguous_auth": {
+            "$ref": "#/components/schemas/RsoAuthenticatorV1AmbiguousAuthResponseDetails"
+          },
+          "ambiguous_username": {
+            "$ref": "#/components/schemas/RsoAuthenticatorV1AmbiguousUsernameResponseDetails"
+          },
           "auth": {
             "$ref": "#/components/schemas/RsoAuthenticatorV1AuthResponseDetails"
           },
@@ -85451,6 +88143,30 @@
           }
         }
       },
+      "RsoAuthenticatorV1MSDKInput": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "number",
+            "format": "int32"
+          },
+          "ext": {
+            "type": "string"
+          },
+          "open_id": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
       "RsoAuthenticatorV1MultifactorInput": {
         "type": "object",
         "properties": {
@@ -85563,8 +88279,10 @@
         "type": "string",
         "enum": [
           "auth",
+          "ambiguous_auth",
           "healup",
           "kr-id-verification",
+          "ambiguous_username",
           "signup",
           "multifactor",
           "gamepass",
@@ -85668,6 +88386,9 @@
           "password": {
             "type": "string"
           },
+          "third_party_opt_in": {
+            "type": "boolean"
+          },
           "tou_agree": {
             "type": "boolean"
           },
@@ -85696,6 +88417,9 @@
           },
           "password": {
             "type": "string"
+          },
+          "third_party_opt_in": {
+            "type": "boolean"
           },
           "tou_agree": {
             "type": "boolean"
@@ -86384,6 +89108,15 @@
           }
         }
       },
+      "RsoMobileUiFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "RsoMobileUiGameOutOfDateUIInitiate": {
         "type": "object",
         "properties": {
@@ -86413,6 +89146,17 @@
         "type": "object",
         "properties": {
           "url": {
+            "type": "string"
+          }
+        }
+      },
+      "RsoMobileUiLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
             "type": "string"
           }
         }
@@ -87673,6 +90417,15 @@
           }
         }
       },
+      "ScdFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "ScdProductSession": {
         "type": "object",
         "properties": {}
@@ -87751,6 +90504,15 @@
         "enum": [
           "approved",
           "declined"
+        ]
+      },
+      "SignificantChangeFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "SignificantChangeInitiateSignificantChangeRequest": {
@@ -88335,6 +91097,23 @@
           }
         }
       },
+      "SocialAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "SocialAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -88483,6 +91262,7 @@
       "SocialAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -88572,6 +91352,25 @@
           },
           "relationshipOnRiot": {
             "$ref": "#/components/schemas/SocialUserRelationship"
+          }
+        }
+      },
+      "SocialBufferedDiscordActivityInviteRMSUpdate": {
+        "type": "object",
+        "properties": {
+          "invite": {
+            "$ref": "#/components/schemas/SocialDiscordActivityRMSUpdate"
+          },
+          "lastAttemptedPartyGeneration": {
+            "type": "number",
+            "format": "int64"
+          },
+          "retryCount": {
+            "type": "number",
+            "format": "int32"
+          },
+          "toRemove": {
+            "type": "boolean"
           }
         }
       },
@@ -88741,6 +91540,28 @@
           }
         }
       },
+      "SocialDiscordActivityInviteRMSDebugState": {
+        "type": "object",
+        "properties": {
+          "bufferedDiscordActivityInviteRMSUpdates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialBufferedDiscordActivityInviteRMSUpdate"
+            }
+          },
+          "currentDiscordPartyGeneration": {
+            "type": "number",
+            "format": "int64"
+          },
+          "currentDiscordPresenceUpdateGeneration": {
+            "type": "number",
+            "format": "int64"
+          },
+          "lastHandledDiscordActivityInviteRMSUpdate": {
+            "$ref": "#/components/schemas/SocialDiscordActivityRMSUpdate"
+          }
+        }
+      },
       "SocialDiscordActivityRMSUpdate": {
         "type": "object",
         "properties": {
@@ -88891,6 +91712,15 @@
           "not_signed_up",
           "logout",
           "latest_system_software_exist"
+        ]
+      },
+      "SocialFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
         ]
       },
       "SocialFriend": {
@@ -89300,6 +92130,9 @@
           "crossPlayPermissions": {
             "$ref": "#/components/schemas/SocialCrossPlayPermissions"
           },
+          "detailedState": {
+            "type": "string"
+          },
           "discordInfo": {
             "$ref": "#/components/schemas/SocialDiscordInfoV4"
           },
@@ -89622,6 +92455,17 @@
           },
           "sessionState": {
             "$ref": "#/components/schemas/SocialSessionResponse"
+          }
+        }
+      },
+      "SocialLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
           }
         }
       },
@@ -90150,6 +92994,17 @@
           "push"
         ]
       },
+      "SocialMultigamePresences": {
+        "type": "object",
+        "properties": {
+          "presences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocialPresenceSessionV1"
+            }
+          }
+        }
+      },
       "SocialOnlinePlatform": {
         "type": "string",
         "enum": [
@@ -90603,6 +93458,9 @@
           },
           "crossPlayPermissions": {
             "$ref": "#/components/schemas/SocialCrossPlayPermissions"
+          },
+          "detailedState": {
+            "type": "string"
           },
           "discordUserData": {
             "$ref": "#/components/schemas/SocialDiscordUserDataV1"
@@ -91394,6 +94252,30 @@
           }
         }
       },
+      "SocialSocialPlayerPreferencesResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SocialSocialPreferencesV1"
+          }
+        }
+      },
+      "SocialSocialPreferencesParametersV1": {
+        "type": "object",
+        "properties": {
+          "appearOffline": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SocialSocialPreferencesV1": {
+        "type": "object",
+        "properties": {
+          "appearOffline": {
+            "type": "boolean"
+          }
+        }
+      },
       "SocialStatusMessage": {
         "type": "object",
         "properties": {
@@ -91585,6 +94467,9 @@
       "SocialV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -91604,6 +94489,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }
@@ -92266,6 +95154,23 @@
           }
         }
       },
+      "TencentLauncherAuthorizationKeyExchangeRequest": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persist_login": {
+            "type": "boolean"
+          }
+        }
+      },
       "TencentLauncherAuthorizationKeyRequest": {
         "type": "object",
         "properties": {
@@ -92414,6 +95319,7 @@
       "TencentLauncherAuthorizationResponseType": {
         "type": "string",
         "enum": [
+          "unknown_authorization_response",
           "needs_authentication",
           "needs_reauthentication",
           "authorized",
@@ -92565,6 +95471,15 @@
             "type": "string"
           }
         }
+      },
+      "TencentLauncherFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
       },
       "TencentLauncherGameCenterAuthCredentials": {
         "type": "object",
@@ -93600,6 +96515,15 @@
           }
         }
       },
+      "TracingFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "TracingPluginCallerId_MockCallerId": {
         "type": "object",
         "properties": {
@@ -93880,6 +96804,14 @@
           "not_installed"
         ]
       },
+      "VanguardLoginCountry": {
+        "type": "object",
+        "properties": {
+          "login_country": {
+            "type": "string"
+          }
+        }
+      },
       "VanguardPatchlineDependency": {
         "type": "object",
         "properties": {
@@ -93926,6 +96858,17 @@
           }
         }
       },
+      "VanguardPlayerSessionState": {
+        "type": "object",
+        "properties": {
+          "puuid": {
+            "type": "string"
+          },
+          "loginCountry": {
+            "type": "string"
+          }
+        }
+      },
       "VanguardPluginState": {
         "type": "object",
         "properties": {
@@ -93946,6 +96889,9 @@
           },
           "restartRequired": {
             "type": "boolean"
+          },
+          "restartWaivedReason": {
+            "type": "string"
           }
         }
       },
@@ -94111,11 +97057,39 @@
           }
         }
       },
+      "VngConsentData": {
+        "type": "object",
+        "properties": {
+          "consentMarketingStatus": {
+            "$ref": "#/components/schemas/VngConsentMarketingStatus"
+          }
+        }
+      },
+      "VngConsentMarketingStatus": {
+        "type": "string",
+        "enum": [
+          "CONSENTED",
+          "REVOKED",
+          "IGNORE"
+        ]
+      },
+      "VngFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "VngGetProfileData": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string"
+          },
+          "consent": {
+            "$ref": "#/components/schemas/VngConsentData"
           },
           "dob": {
             "type": "string"
@@ -94272,6 +97246,9 @@
           "addr": {
             "type": "string"
           },
+          "consentMarketingStatus": {
+            "type": "string"
+          },
           "dob": {
             "type": "string"
           },
@@ -94329,11 +97306,22 @@
           "PhoneVerification"
         ]
       },
+      "VngV1ConsentMarketingStatus": {
+        "type": "string",
+        "enum": [
+          "CONSENTED",
+          "REVOKED",
+          "IGNORE"
+        ]
+      },
       "VngV1Profile": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string"
+          },
+          "consentMarketingStatus": {
+            "$ref": "#/components/schemas/VngV1ConsentMarketingStatus"
           },
           "dateOfBirth": {
             "type": "string"
@@ -94365,7 +97353,8 @@
           "governmentId",
           "governmentIdIssueDate",
           "dateOfBirth",
-          "eulaAgreement"
+          "eulaAgreement",
+          "marketingConsent"
         ]
       },
       "VngV1ProfileVerificationError": {
@@ -94935,6 +97924,15 @@
           }
         }
       },
+      "VoiceChatFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "VoiceChatFriendUpdateList": {
         "type": "object",
         "properties": {
@@ -94967,6 +97965,14 @@
           "LeftThumbstickButton",
           "RightThumbstickButton"
         ]
+      },
+      "VoiceChatGetAuthenticationResource": {
+        "type": "object",
+        "properties": {
+          "isAuthenticated": {
+            "type": "boolean"
+          }
+        }
       },
       "VoiceChatIdToken": {
         "type": "object",
@@ -95012,6 +98018,17 @@
           }
         }
       },
+      "VoiceChatLocalizationLocaleV1": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          }
+        }
+      },
       "VoiceChatLogoutReason": {
         "type": "string",
         "enum": [
@@ -95037,6 +98054,46 @@
           "exclusive",
           "inclusive"
         ]
+      },
+      "VoiceChatParticipantReportRequestStatus": {
+        "type": "string",
+        "enum": [
+          "succeeded",
+          "failed"
+        ]
+      },
+      "VoiceChatParticipantReportResultResource": {
+        "type": "object",
+        "properties": {
+          "participantIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "participantPuuids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "requestStatus": {
+            "$ref": "#/components/schemas/VoiceChatParticipantReportRequestStatus"
+          },
+          "returnCode": {
+            "type": "number",
+            "format": "int32"
+          },
+          "returnCodeDescription": {
+            "type": "string"
+          },
+          "returnCodeName": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        }
       },
       "VoiceChatParticipantResource": {
         "type": "object",
@@ -95255,6 +98312,17 @@
           }
         }
       },
+      "VoiceChatPlatformSocialCrossPlatformInteractionPermissionDetails": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "$ref": "#/components/schemas/VoiceChatPlatformSocialInteractionPermission"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "VoiceChatPlatformSocialCrossPlayPermission": {
         "type": "string",
         "enum": [
@@ -95272,6 +98340,13 @@
             "type": "string"
           }
         }
+      },
+      "VoiceChatPlatformSocialInteractionPermission": {
+        "type": "string",
+        "enum": [
+          "Allowed",
+          "NotAllowed"
+        ]
       },
       "VoiceChatPlatformSocialMultiplayerPermission": {
         "type": "string",
@@ -95401,8 +98476,20 @@
           "permissionUnknown",
           "permissionDenied",
           "networkUnavailable",
+          "noProviders",
           "ready"
         ]
+      },
+      "VoiceChatPostAuthenticationResource": {
+        "type": "object",
+        "properties": {
+          "jwt": {
+            "type": "string"
+          },
+          "logoutAfterAllSessionsLeft": {
+            "type": "boolean"
+          }
+        }
       },
       "VoiceChatProductContext": {
         "type": "object",
@@ -95775,6 +98862,9 @@
             "type": "number",
             "format": "int32"
           },
+          "vadAuto": {
+            "type": "boolean"
+          },
           "vadHangoverTime": {
             "type": "number",
             "format": "int32"
@@ -95961,6 +99051,9 @@
           "speakerLevel": {
             "type": "number",
             "format": "int32"
+          },
+          "vadAuto": {
+            "type": "boolean"
           },
           "vadHangoverTime": {
             "type": "number",
@@ -96479,6 +99572,15 @@
           "content_update_required"
         ]
       },
+      "XboxAccountFieldExtension": {
+        "type": "string",
+        "enum": [
+          "x-engineeditor-notvisible",
+          "x-engineeditor-readonly",
+          "x-engineeditor-nonmvvm",
+          "x-engineeditor-object-uniqueid-key"
+        ]
+      },
       "XboxAccountGamertagType": {
         "type": "string",
         "enum": [
@@ -96582,6 +99684,9 @@
       "XboxAccountV1AuthMethodConfig": {
         "type": "object",
         "properties": {
+          "aclosMsdkGameId": {
+            "type": "string"
+          },
           "clientId": {
             "type": "string"
           },
@@ -96601,6 +99706,9 @@
             }
           },
           "status": {
+            "type": "string"
+          },
+          "wegameMsdkGameId": {
             "type": "string"
           }
         }

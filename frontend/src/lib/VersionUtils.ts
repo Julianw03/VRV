@@ -41,6 +41,8 @@ export const checkCompatibility = (
         }
         const current = parseSemver(currentVersion);
         const candidate = parseSemver(versionToCheck);
+        console.log(`VersionParser: ${currentVersion} -> ${current}`)
+        console.log(`VersionParser: ${versionToCheck} -> ${candidate}`);
 
         if (!current || !candidate) {
             return VersionComparisonResult.UNKNOWN;

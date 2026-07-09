@@ -157,6 +157,7 @@ export interface RoundPlayerStat {
 
 export interface Kill {
     gameTime: number;
+    round: number;
     roundTime: number;
     killer: PUUID;
     victim: PUUID;
@@ -195,7 +196,7 @@ export interface RiotMatchApiResponse {
     coaches: object[];
     teams: Team[] | null;
     roundResults: Partial<RoundResult>[];
-    kills: object[];
+    kills: Partial<Kill>[];
 }
 
 export class RiotMatchApiResponseDTO {}

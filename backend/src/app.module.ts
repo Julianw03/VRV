@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { RiotClientModule } from '@/core/riotclient/RiotClientModule';
 import { ProductSessionModule } from '@/modules/ProductSessionModule/ProductSessionModule';
 import { ValorantGameSessionModule } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionModule';
-import { AccountNameAndTagLineModule } from '@/modules/AccountNameAndTagLineModule/AccountNameAndTagLineModule';
+import { AccountNameAndTagLineModule } from '@/modules/Account/AccountNameAndTagLineModule/AccountNameAndTagLineModule';
 import { EntitlementTokenModule } from '@/modules/EntitlementTokenModule/EntitlementTokenModule';
 import { ValorantMatchStatsModule } from '@/modules/Valorant/ValorantMatchStatsModule/ValorantMatchStatsModule';
 import { EventBusModule } from '@/core/events/EventBusModule';
@@ -21,6 +21,9 @@ import { getPackageAwarePath } from '@/utils/PackagedPath';
 import { PuuidToPlayerAliasModule } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasModule';
 import { ShutdownModule } from '@/modules/ShutdownModule/ShutdownModule';
 import { AgentAssetResolverModule } from '@/modules/AssetResolving/Agents/AgentAssetResolverModule';
+import { WeaponAssetResolverModule } from '@/modules/AssetResolving/Weapons/WeaponAssetResolverModule';
+import { GearAssetResolverModule } from '@/modules/AssetResolving/Gear/GearAssetResolverModule';
+import { AccountPuuidModule } from '@/modules/Account/AccountPuuidModule/AccountPuuidModule';
 
 export const APP = Symbol('APP');
 
@@ -38,6 +41,7 @@ export const APP = Symbol('APP');
         RiotClientModule,
         ProductSessionModule,
         AccountNameAndTagLineModule,
+        AccountPuuidModule,
         ValorantGameSessionModule,
         PuuidToPlayerAliasModule,
         EntitlementTokenModule,
@@ -47,6 +51,8 @@ export const APP = Symbol('APP');
         ValorantAssetAPIModule,
         MapAssetResolverModule,
         AgentAssetResolverModule,
+        WeaponAssetResolverModule,
+        GearAssetResolverModule,
         StaticAssetProxyModule,
         ValorantVersionInfoModule,
         ShutdownModule,

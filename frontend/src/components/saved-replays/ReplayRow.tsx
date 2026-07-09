@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, Download, Loader2, Trash2 } from 'lucide-react';
+import { ChevronLeft, Download, Info, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -18,22 +18,24 @@ import {
 } from '@/components/match-details/MatchDetailsPanel.tsx';
 import { InjectButton } from '@/components/saved-replays/InjectButton.tsx';
 import { OutdatedTag } from '@/components/OutdatedTag';
+import { NavLink } from 'react-router-dom';
 
 // Shared grid layout — applied to both the header row and each replay row so
 // columns are always aligned. Columns:  queue | map | version | stored | tags | actions
-export const GRID_COLS = '6rem 1fr 10rem 10rem 6rem 8rem' as const;
+export const GRID_COLS = '6rem 1fr 10rem 10rem 6rem 10rem' as const;
 
-const ReplayRowButtons = {
+export const ReplayRowButtons = {
     INJECT: 'inject',
     DOWNLOAD: 'download',
+    DETAILS: 'details',
     DELETE: 'delete',
 } as const;
 
-export type ReplayRowButtons = typeof ReplayRowButtons[keyof typeof ReplayRowButtons];
+export type ReplayRowButton = typeof ReplayRowButtons[keyof typeof ReplayRowButtons];
 
 interface ReplayRowProps {
     replay: ReplayMetadata;
-    shownButtons?: ReplayRowButtons[];
+    shownButtons?: ReplayRowButton[];
 }
 
 const renderPanel = (replay: ReplayMetadata) => {
@@ -70,8 +72,7 @@ const renderPanel = (replay: ReplayMetadata) => {
 
     return (
         <MatchDetailsPanel teams={minimalTeams} players={minimalPlayers} matchInfo={minimalMatchInfo}
-                           highlightPlayer={replay.downloadInfo.downloaderId
-                           } />
+                           highlightPlayer={replay.downloadInfo.downloaderId} />
     );
 
 };
@@ -138,6 +139,13 @@ export function ReplayRow({ replay, shownButtons = Object.values(ReplayRowButton
                 </div>
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-1">
+                    {shownButtons.includes(ReplayRowButtons.DETAILS) && (
+                        <Button size="icon-sm" variant="ghost" title="View Details" asChild={true}>
+                            <NavLink to={`/details/saved/${replay.matchInfo.matchId}`}>
+                                <Info/>
+                            </NavLink>
+                        </Button>
+                    )}
                     {shownButtons.includes(ReplayRowButtons.INJECT) && <InjectButton replay={replay} />}
                     {shownButtons.includes(ReplayRowButtons.DOWNLOAD) && (
                         <Button size="icon-sm" variant="ghost" title="Download .vrp file" asChild>

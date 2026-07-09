@@ -4,6 +4,9 @@ import type { DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
 import type { PlayerAliasDTO } from '#/dto/PlayerAliasDTO.ts';
 import type { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO.ts';
 import type { MapAssetDTO } from '#/dto/assets/MapAssetDTO.ts';
+import type { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO.ts';
+import type { GearAssetDTO } from '#/dto/assets/GearAssetDTO.ts';
+import type { PlayerUuidDTO } from '#/dto/PlayerUuidDTO.ts';
 
 export const API_BASE = LocalLinkResolver.resolve('/api/v1', 'http');
 
@@ -24,6 +27,7 @@ export interface TeamSummary {
     won: boolean;
     roundsWon: number;
     roundsPlayed: number;
+    numPoints?: number;
 }
 
 export interface PlayerSummary {
@@ -36,6 +40,11 @@ export interface PlayerSummary {
     deaths: number;
     assists: number;
     isObserver: boolean;
+    competitiveTier?: number;
+    score?: number;
+    roundsPlayed?: number;
+    playtimeMillis?: number;
+    abilityCasts?: AbilityCasts;
 }
 
 export interface ReplayMetadata {
@@ -45,6 +54,8 @@ export interface ReplayMetadata {
     matchInfo: MatchInfo;
     teams: TeamSummary[];
     players: PlayerSummary[];
+    roundResults: RoundResult[];
+    kills: Kill[];
 }
 
 export interface DownloadInfo {
@@ -60,6 +71,7 @@ export interface MatchInfo {
     gameStartMillis: number;
     gameLengthMillis: number;
     isRanked: boolean;
+    isReplayRecorded?: boolean;
 }
 
 export interface MatchHistoryEntry {
@@ -88,16 +100,26 @@ export interface InjectStatus {
 
 // ---- Match stats (from Riot API via backend cache) ----
 
+export interface AbilityCasts {
+    grenadeCasts: number,
+    ability1Casts: number,
+    ability2Casts: number,
+    ultimateCasts: number
+}
+
 export interface RiotMatchPlayerStats {
     score: number;
     roundsPlayed: number;
     kills: number;
     deaths: number;
     assists: number;
+    playtimeMillis: number;
+    abilityCasts: AbilityCasts;
+    platformInfo: unknown;
 }
 
 export interface RiotMatchPlayer {
-    subject: string;
+    puuid: UUID;
     gameName: string;
     tagLine: string;
     teamId: string;
@@ -112,6 +134,7 @@ export interface RiotMatchTeam {
     won: boolean;
     roundsPlayed: number;
     roundsWon: number;
+    numPoints: number;
 }
 
 export interface RiotMatchInfo {
@@ -125,10 +148,110 @@ export interface RiotMatchInfo {
     isReplayRecorded: boolean;
 }
 
+export const TWO_TEAM_ROLE_IDS = {
+    ATTACKER: 'Attacker',
+    DEFENDER: 'Defender',
+} as const;
+
+export type TWO_TEAMS_ROLE_ID = typeof TWO_TEAM_ROLE_IDS[keyof typeof TWO_TEAM_ROLE_IDS];
+
+export const TWO_TEAM_IDS = {
+    RED: 'Red',
+    BLUE: 'Blue',
+} as const;
+
+export const getOppositeTeamId = (teamId: TWO_TEAMS_TEAM_ID) => {
+    if (teamId === TWO_TEAM_IDS.RED) return TWO_TEAM_IDS.BLUE;
+    return TWO_TEAM_IDS.RED;
+};
+
+export type TWO_TEAMS_TEAM_ID = typeof TWO_TEAM_IDS[keyof typeof TWO_TEAM_IDS];
+
+export interface Location {
+    x: number;
+    y: number;
+}
+
+export interface Kill {
+    gameTime: number;
+    roundTime: number;
+    killer: UUID
+    victim: UUID
+    victimLocation: Location
+    round: number,
+    assistants: UUID[]
+    playerLocations: {
+        subject: UUID
+        viewRadians: number
+        location: Location
+    }[]
+    finishingDamage: {
+        damageType: string,
+        damageItem: UUID
+        isSecondaryFireMode: boolean
+    }
+}
+
+export interface Economy {
+    loadoutValue: number;
+    weapon: UUID
+    armor: UUID
+    remaining: number
+    spent: number
+}
+
+export interface RoundResult {
+    roundNum: number;
+    roundResult: string;
+    roundCeremony: string;
+    roundResultCode: string;
+    winningTeam: TWO_TEAMS_TEAM_ID | string;
+    winningTeamRole: TWO_TEAMS_ROLE_ID | string;
+    bombPlanter?: UUID;
+    plantRoundTime?: number;
+    plantPlayerLocations?: {
+        subject: UUID,
+        viewRadians: number;
+        location: Location
+    }[];
+    plantLocation?: Location;
+    plantSite?: string;
+    defuseRoundTime?: number;
+    defusePlayerLocations?: {
+        subject: UUID,
+        viewRadians: number;
+        location: Location;
+    }[];
+    defuseLocation?: Location;
+    playerStats: {
+        subject: UUID;
+        score: number;
+        kills: Kill[]
+        damage: {
+            receiver: UUID
+            damage: number
+            legshots: number,
+            bodyshots: number,
+            headshots: number
+        }[]
+        wasAfk: boolean
+        wasPenalized: boolean
+        stayedInSpawn: boolean
+        economy: Economy
+    }[];
+    playerEconomies: ({ subject: UUID } & Economy)[];
+    playerScores: {
+        subject: UUID;
+        score: number;
+    }[];
+}
+
 export interface RiotMatchApiResponse {
     matchInfo: RiotMatchInfo;
     players: RiotMatchPlayer[];
     teams: RiotMatchTeam[] | null;
+    roundResults: RoundResult[];
+    kills: Kill[];
 }
 
 export type MatchStatsResult =
@@ -136,10 +259,6 @@ export type MatchStatsResult =
     | { type: 'SUCCESS'; data: RiotMatchApiResponse }
     | { type: 'FAILURE'; error: { message: string } }
 
-/** Rewrites an external asset URL to go through the local backend proxy cache. */
-export function proxyAssetUrl(externalUrl: string): string {
-    return `${API_BASE}/assets/proxy?url=${encodeURIComponent(externalUrl)}`;
-}
 
 // ---- Configuration ----
 
@@ -253,7 +372,8 @@ export const api = {
         cancelInject: () => request('/plugins/replay/injector', { method: 'DELETE' }),
     },
     account: {
-        getAlias: () => request<PlayerAliasDTO>('/caching/account-name-and-tag-line/active'),
+        getAlias: () => request<PlayerAliasDTO>('/caching/riot-account/alias'),
+        getPuuid: () => request<PlayerUuidDTO>('/caching/riot-account/puuid'),
     },
     sessions: {
         getAllProductSessions: () => request<Record<string, ProductSession>>('/caching/product-sessions'),
@@ -261,6 +381,8 @@ export const api = {
     assets: {
         getAllMaps: () => request<Record<string, MapAssetDTO>>('/assets/maps/'),
         getAllAgents: () => request<Record<string, AgentAssetDTO>>('/assets/agents'),
+        getAllWeapons: () => request<Record<string, WeaponAssetDTO>>('/assets/weapons'),
+        getAllGear: () => request<Record<string, GearAssetDTO>>('/assets/gear'),
     },
     matchStats: {
         getById: (matchId: string) =>

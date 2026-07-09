@@ -25,6 +25,19 @@ export interface ForwardedMessage {
 export class TrieRCUMessageDispatcher implements OnModuleDestroy {
     private readonly root = new TrieNode();
 
+    public onAny(): Observable<ForwardedMessage> {
+        const root = this.root;
+        return root.observable.pipe(
+            map(event => {
+                const uriParts = splitUri(event.uri);
+                return {
+                    matchResult: buildMatchResult(uriParts, []),
+                    message: event,
+                };
+            }),
+        );
+    }
+
     public on(path: AnyPathPattern[]): Observable<ForwardedMessage> {
         const node = this.root.resolveOrAdd(path);
         const parts = path;

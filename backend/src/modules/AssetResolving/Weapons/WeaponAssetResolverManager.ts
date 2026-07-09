@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AgentEntry, ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
+import { ValorantAssetAPI, WeaponEntry } from '@/integrations/NotOfficer/ValorantAssetAPI';
 import { appConfig } from '@/config/configLoader';
 import type { ConfigType } from '@nestjs/config';
-import { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO';
+import { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO';
 import { AssetResolverManager } from '@/modules/AssetResolving/common/AssetResolverManager';
 
-export type AgentId = UUID;
+export type WeaponId = string;
 
 @Injectable()
-export class AgentAssetResolverManager extends AssetResolverManager<AgentId, AgentEntry, AgentAssetDTO> {
+export class WeaponAssetResolverManager extends AssetResolverManager<WeaponId, WeaponEntry, WeaponAssetDTO> {
     constructor(
         valorantAssetAPI: ValorantAssetAPI,
         @Inject(appConfig.KEY)
@@ -17,11 +17,11 @@ export class AgentAssetResolverManager extends AssetResolverManager<AgentId, Age
         super(valorantAssetAPI, config);
     }
 
-    protected keyOf(entry: AgentEntry): AgentId {
+    protected keyOf(entry: WeaponEntry): WeaponId {
         return entry.uuid;
     }
 
-    protected fetchEntries(): Promise<AgentEntry[]> {
-        return this.valorantAssetAPI.getAgentList();
+    protected fetchEntries(): Promise<WeaponEntry[]> {
+        return this.valorantAssetAPI.getWeaponList();
     }
 }

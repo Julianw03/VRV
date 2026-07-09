@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PlayerAlias } from '@/modules/AccountNameAndTagLineModule/PlayerAlias';
+import { PlayerAlias } from '@/modules/Account/AccountNameAndTagLineModule/PlayerAlias';
 import { type RiotClientService } from '@/core/riotclient/RiotClientService';
 import { RIOT_CLIENT_SERVICE } from '@/core/riotclient/RiotClientTokens';
 import { PlayerAccountLookupV2NamesetsForPuuidResponse, PluginPlayerAccountApi } from '../../../gen';

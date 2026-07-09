@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AgentEntry, ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
+import { GearEntry, ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
 import { appConfig } from '@/config/configLoader';
 import type { ConfigType } from '@nestjs/config';
-import { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO';
+import { GearAssetDTO } from '#/dto/assets/GearAssetDTO';
 import { AssetResolverManager } from '@/modules/AssetResolving/common/AssetResolverManager';
 
-export type AgentId = UUID;
+export type GearId = UUID;
 
 @Injectable()
-export class AgentAssetResolverManager extends AssetResolverManager<AgentId, AgentEntry, AgentAssetDTO> {
+export class GearAssetResolverManager extends AssetResolverManager<GearId, GearEntry, GearAssetDTO> {
     constructor(
         valorantAssetAPI: ValorantAssetAPI,
         @Inject(appConfig.KEY)
@@ -17,11 +17,11 @@ export class AgentAssetResolverManager extends AssetResolverManager<AgentId, Age
         super(valorantAssetAPI, config);
     }
 
-    protected keyOf(entry: AgentEntry): AgentId {
+    protected keyOf(entry: GearEntry): GearId {
         return entry.uuid;
     }
 
-    protected fetchEntries(): Promise<AgentEntry[]> {
-        return this.valorantAssetAPI.getAgentList();
+    protected fetchEntries(): Promise<GearEntry[]> {
+        return this.valorantAssetAPI.getGearList();
     }
 }
