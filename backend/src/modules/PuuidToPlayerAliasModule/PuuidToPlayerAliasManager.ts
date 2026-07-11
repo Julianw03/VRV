@@ -7,7 +7,6 @@ import { AsyncMapDataBehavior } from '@/core/data/behaviors/async/AsyncMapDataBe
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { AsyncResultUnion } from '#/utils/AsyncResult';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
-import { SimpleUUID } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 
 export type PuuidToPlayerAliasErrorUnion = NetworkRequestError;
 
@@ -29,7 +28,7 @@ export class PuuidToPlayerAliasManager extends AsyncMapDataBehavior<
         @Inject(RIOT_CLIENT_SERVICE)
         protected readonly riotClientService: RiotClientService,
     ) {
-        const base = new SimpleMapDataManager<SimpleUUID, AsyncResultUnion<PlayerAlias, PuuidToPlayerAliasErrorUnion>>();
+        const base = new SimpleMapDataManager<UUID, AsyncResultUnion<PlayerAlias, PuuidToPlayerAliasErrorUnion>>();
         super(base);
     }
 

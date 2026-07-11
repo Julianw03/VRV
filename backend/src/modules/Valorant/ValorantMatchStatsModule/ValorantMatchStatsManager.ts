@@ -1,4 +1,3 @@
-import { RiotMatchApiResponse, SimpleUUID } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
@@ -10,10 +9,11 @@ import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/Pu
 import { AsyncMapDataBehavior } from '@/core/data/behaviors/async/AsyncMapDataBehavior';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { EmittingMapDataBehavior } from '@/core/data/behaviors/emission/EmittingMapDataBehavior';
+import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
 
 @Injectable()
 export class ValorantMatchStatsManager
-    extends AsyncMapDataBehavior<SimpleUUID, RiotMatchApiResponse, Error>
+    extends AsyncMapDataBehavior<UUID, RiotMatchApiResponseDTO, Error>
     implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(this.constructor.name);
 
@@ -24,7 +24,7 @@ export class ValorantMatchStatsManager
         protected readonly valorantApi: RiotValorantAPIManager,
         protected readonly playerAliasManager: PuuidToPlayerAliasManager,
     ) {
-        const base = new SimpleMapDataManager<SimpleUUID, AsyncResultUnion<RiotMatchApiResponse, Error>>();
+        const base = new SimpleMapDataManager<UUID, AsyncResultUnion<RiotMatchApiResponseDTO, Error>>();
         const emitting = new EmittingMapDataBehavior(base, eventBus, ValorantMatchStatsManager.name);
         super(emitting);
     }
@@ -42,7 +42,7 @@ export class ValorantMatchStatsManager
         this.deleteState();
     }
 
-    public requestMatchFetch(matchId: SimpleUUID) {
+    public requestMatchFetch(matchId: UUID) {
         if (this.externalRepresentation.getKeyView(matchId) !== null) {
             return;
         }
@@ -51,7 +51,7 @@ export class ValorantMatchStatsManager
     }
 
     private gameSessionStateChange(
-        event: KeyValueUpdatedEvent<SimpleUUID, MatchStatus>,
+        event: KeyValueUpdatedEvent<UUID, MatchStatus>,
     ) {
         if (event.payload.value !== MatchStatus.ENDED) {
             return;
@@ -61,7 +61,7 @@ export class ValorantMatchStatsManager
         this.requestMatchFetch(matchId);
     }
 
-    private async fetchMatchData(matchId: SimpleUUID) {
+    private async fetchMatchData(matchId: UUID) {
         const result = await this.valorantApi.getMatchDetails(matchId);
         const puuids = result.players.map(p => p.subject).filter((p) => p !== undefined);
         this.playerAliasManager.requestBatchFetch(puuids);

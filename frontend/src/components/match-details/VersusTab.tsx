@@ -1,10 +1,10 @@
 import { groupBy } from '@/lib/utils.ts';
-import type { RiotMatchApiResponse } from '@/lib/api.ts';
 import SlantedDisplay, { FacingDirections } from '@/components/advancedDetails/SlantedDisplay.tsx';
 import AgentDisplayComponent from '@/components/advancedDetails/AgentDisplayComponent.tsx';
+import type { ReplayMetadata } from '@/lib/api.ts';
 
 export interface VersusTabProps {
-    data: RiotMatchApiResponse;
+    data: ReplayMetadata;
 }
 
 export function VersusTab({ data }: VersusTabProps) {

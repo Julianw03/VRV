@@ -6,16 +6,16 @@ import {
     RoundResult,
     TeamSummary,
 } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageFormat';
-import { RiotMatchApiResponse } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import { MatchHistoryEntry, RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManager';
 import { ValorantMatchStatsManager } from '@/modules/Valorant/ValorantMatchStatsModule/ValorantMatchStatsManager';
 import { EntitlementTokenManager } from '@/modules/EntitlementTokenModule/EntitlementTokenManager';
 import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasManager';
+import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
 
 export interface CombinedReplayData {
     metadata: ReplayMetadata;
     replayBuffer: Buffer;
-    matchDetails: RiotMatchApiResponse;
+    matchDetails: RiotMatchApiResponseDTO;
 }
 
 @Injectable()
@@ -25,24 +25,10 @@ export class ReplayFetchManager {
     constructor(
         private readonly apiClient: RiotValorantAPIManager,
         private readonly tokenManager: EntitlementTokenManager,
-        private readonly valorantMatchStatsManager: ValorantMatchStatsManager,
         private readonly puuidManager: PuuidToPlayerAliasManager,
     ) {
     }
 
-    async getRecentMatches(
-        startIndex = 0,
-        endIndex = 20,
-    ): Promise<MatchHistoryEntry[]> {
-        const entries = await this.apiClient.getMatchHistory(
-            startIndex,
-            endIndex,
-        );
-        entries.forEach((entry) => {
-            this.valorantMatchStatsManager.requestMatchFetch(entry.MatchID);
-        });
-        return entries;
-    }
 
 
     public async fetchCombinedReplayData(matchId: string): Promise<CombinedReplayData> {
@@ -102,7 +88,7 @@ function buildMetadata(
     matchId: string,
     gameVersion: string,
     replayFileSize: number,
-    matchDetails: RiotMatchApiResponse,
+    matchDetails: RiotMatchApiResponseDTO,
     subject: string,
 ): ReplayMetadata {
     const { matchInfo, players, teams, roundResults, kills } = matchDetails;
@@ -195,7 +181,7 @@ function buildMetadata(
             victimLocation: k.victimLocation ?? { x: 0, y: 0 },
             assistants: k.assistants ?? [],
             playerLocations: k.playerLocations ?? [],
-            finishingDamage: k.finishingDamage ?? { damageType: '', damageItem: '', isSecondaryFireMode: false },
+            finishingDamage: k.finishingDamage!!,
         })),
     };
 }

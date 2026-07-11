@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { SimpleUUID } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import type { RiotClientService } from '@/core/riotclient/RiotClientService';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { RCUMessageType } from '@/core/riotclient/messaging/RCUMessage';
@@ -34,7 +33,7 @@ export class ValorantGameInProgressRCUAdapter extends RCUDataAdapter<ValorantGam
             matchResult,
         }: ForwardedMessage,
     ): Promise<void> {
-        const matchId = matchResult.params['matchId'] as SimpleUUID;
+        const matchId = matchResult.params['matchId'] as UUID;
 
         switch (type) {
             case RCUMessageType.UPDATE:

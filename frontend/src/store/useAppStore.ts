@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { InjectStates, type InjectStatus, type MatchStatsResult } from '@/lib/api';
-import type { ProductSession } from '#/dto/ProductSession.ts';
+import type { ProductSession } from '#/dto/ProductSessionDTO.ts';
 import type { MinimalVersionInfo } from '#/dto/MinimalVersionInfo.ts';
 import { type DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
 import type { PlayerAliasDTO } from '#/dto/PlayerAliasDTO.ts';

@@ -1,16 +1,16 @@
 import {
-    type RiotMatchPlayer,
-    type RoundResult,
+    RoundResult,
     TWO_TEAM_ROLE_IDS,
     type TWO_TEAMS_ROLE_ID,
     type TWO_TEAMS_TEAM_ID,
-} from '@/lib/api.ts';
+} from '#/dto/RiotMatchApiReponseDTO.ts';
+import type { PlayerSummary } from '@/lib/api.ts';
 
 export const DISPLAY_ROUND_RESULTS = {
-    WIN: "WIN",
-    LOSS: "LOSS",
-    UNKNOWN: "?",
-}
+    WIN: 'WIN',
+    LOSS: 'LOSS',
+    UNKNOWN: '?',
+};
 
 export type DISPLAY_ROUND_RESULT = typeof DISPLAY_ROUND_RESULTS[keyof typeof DISPLAY_ROUND_RESULTS];
 
@@ -18,9 +18,15 @@ const COLORS: Record<DISPLAY_ROUND_RESULT, string> = {
     [DISPLAY_ROUND_RESULTS.WIN]: '#3BE0A0',
     [DISPLAY_ROUND_RESULTS.LOSS]: '#FF6B76',
     [DISPLAY_ROUND_RESULTS.UNKNOWN]: '#FAFAFA',
-}
+};
 
-type RoundPhase = 'first_half' | 'second_half' | 'overtime';
+const ROUND_PHASES = {
+    FIRST_HALF: 'FIRST_HALF',
+    SECOND_HALF: 'SECOND_HALF',
+    OVERTIME: 'OVERTIME',
+};
+
+type RoundPhase = typeof ROUND_PHASES[keyof typeof ROUND_PHASES];
 
 export interface RoundChipData {
     roundNum: number;
@@ -36,7 +42,9 @@ export interface RoundSelectorStripProps {
     onSelect: (roundNum: number) => void;
 }
 
-function getUserRole(round: RoundResult, userTeamId: TWO_TEAMS_TEAM_ID): TWO_TEAMS_ROLE_ID  {
+function getUserRole(round: RoundResult, userTeamId: TWO_TEAMS_TEAM_ID | undefined): TWO_TEAMS_ROLE_ID | undefined {
+    if (userTeamId === undefined) return undefined;
+
     if (round.winningTeam === userTeamId) {
         return round.winningTeamRole as TWO_TEAMS_ROLE_ID;
     }
@@ -46,7 +54,7 @@ function getUserRole(round: RoundResult, userTeamId: TWO_TEAMS_TEAM_ID): TWO_TEA
         : TWO_TEAM_ROLE_IDS.ATTACKER;
 }
 
-function assignPhases(sorted: RoundResult[], players: RiotMatchPlayer[]): RoundPhase[] {
+function assignPhases(sorted: RoundResult[], players: PlayerSummary[]): RoundPhase[] {
     if (!sorted.length) return [];
     const any = players[0]?.teamId as TWO_TEAMS_TEAM_ID ?? undefined;
     const roles = sorted.map((r) => getUserRole(r, any));
@@ -72,9 +80,9 @@ function assignPhases(sorted: RoundResult[], players: RiotMatchPlayer[]): RoundP
     }
 
     return roles.map((_, i) => {
-        if (i < secondHalfStart) return 'first_half';
-        if (i < overtimeStart) return 'second_half';
-        return 'overtime';
+        if (i < secondHalfStart) return ROUND_PHASES.FIRST_HALF;
+        if (i < overtimeStart) return ROUND_PHASES.SECOND_HALF;
+        return ROUND_PHASES.OVERTIME;
     });
 }
 
@@ -86,7 +94,7 @@ export function getUserRoundResult(r: RoundResult, userTeamId: TWO_TEAMS_TEAM_ID
 
 export function buildRoundChips(
     roundResults: RoundResult[],
-    players: RiotMatchPlayer[],
+    players: PlayerSummary[],
     userTeamId: TWO_TEAMS_TEAM_ID | undefined,
 ): RoundChipData[] {
     const sorted = [...roundResults].sort((a, b) => a.roundNum - b.roundNum);
@@ -97,7 +105,7 @@ export function buildRoundChips(
         roundResult: getUserRoundResult(r, userTeamId),
         userRole: getUserRole(r, userTeamId),
         phase: phases[i],
-    }));
+    } as RoundChipData));
 }
 
 function tintHex(hex: string, alpha: number): string {
@@ -113,7 +121,7 @@ const ROLE_LABEL: Record<string, string> = {
     [TWO_TEAM_ROLE_IDS.DEFENDER]: 'Defending',
 };
 
-const PHASE_ORDER: RoundPhase[] = ['first_half', 'second_half', 'overtime'];
+const PHASE_ORDER: RoundPhase[] = [ROUND_PHASES.FIRST_HALF, ROUND_PHASES.SECOND_HALF, ROUND_PHASES.OVERTIME];
 
 function RoundChip({
                        chip,
@@ -173,9 +181,9 @@ export function RoundSelectorStrip({ chips, selectedRound, onSelect }: RoundSele
                 {presentPhases.map((phase) => {
                     const phaseChips = byPhase.get(phase)!;
                     const label =
-                        phase === 'overtime'
+                        (phase === ROUND_PHASES.OVERTIME)
                             ? 'Overtime'
-                            : (ROLE_LABEL[phaseChips[0]?.userRole] ?? phase);
+                            : (ROLE_LABEL[phaseChips[0].userRole!]);
                     return (
                         <div key={phase} className="flex flex-col gap-2 flex-shrink-0">
                             <div className="flex items-center gap-3">

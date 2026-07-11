@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { SimpleUUID } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import type { RiotClientService } from '@/core/riotclient/RiotClientService';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { RCUMessageType } from '@/core/riotclient/messaging/RCUMessage';
@@ -49,7 +48,7 @@ export class ValorantMatchEndedRCUAdapter extends RCUDataAdapter<ValorantGameSes
             case RCUMessageType.CREATE:
                 this.logger.log('Received match ended message', data);
                 const typedData = data as unknown as RMSMessage;
-                const matchId = typedData.payload as SimpleUUID;
+                const matchId = typedData.payload as UUID;
                 this.logger.log('Received match ended message', data);
                 this.manager.updateKeyValue(matchId, MatchStatus.ENDED);
                 break;

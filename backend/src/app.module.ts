@@ -24,6 +24,7 @@ import { AgentAssetResolverModule } from '@/modules/AssetResolving/Agents/AgentA
 import { WeaponAssetResolverModule } from '@/modules/AssetResolving/Weapons/WeaponAssetResolverModule';
 import { GearAssetResolverModule } from '@/modules/AssetResolving/Gear/GearAssetResolverModule';
 import { AccountPuuidModule } from '@/modules/Account/AccountPuuidModule/AccountPuuidModule';
+import { ValorantMatchHistoryModule } from '@/modules/Valorant/MatchHistory/MatchHistoryModule';
 
 export const APP = Symbol('APP');
 
@@ -47,6 +48,7 @@ export const APP = Symbol('APP');
         EntitlementTokenModule,
         ValorantMatchStatsModule,
         ValorantGameLoopModule,
+        ValorantMatchHistoryModule,
         RiotValorantAPIModule,
         ValorantAssetAPIModule,
         MapAssetResolverModule,

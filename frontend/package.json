@@ -21,6 +21,7 @@
     "radix-ui": "^1.4.3",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-intersection-observer": "^10.0.3",
     "react-router-dom": "^7.15.0",
     "semver": "^7.7.4",
     "shadcn": "^4.7.0",

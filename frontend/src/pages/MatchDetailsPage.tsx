@@ -5,7 +5,7 @@ import { VersusTab } from '@/components/match-details/VersusTab.tsx';
 import { useMatchMetadata, usePlayerUuid } from '@/lib/queries.ts';
 import { type Params, useParams } from 'react-router-dom';
 import { MatchOverviewHeader, type MatchOverviewHeaderProps } from '@/components/advancedDetails/MatchOverviewHeader.tsx';
-import type { RiotMatchTeam, TWO_TEAMS_TEAM_ID } from '@/lib/api.ts';
+import { RiotMatchTeam, type TWO_TEAMS_TEAM_ID } from '#/dto/RiotMatchApiReponseDTO.ts';
 
 const TABS = {
     ROUND_OVERVIEW: 'RoundOverview',
@@ -19,18 +19,18 @@ const MatchDetailsPage = (): JSX.Element => {
     const { data, isLoading, isError } = useMatchMetadata(matchId || '');
     const highlightPlayer = usePlayerUuid();
     //TODO: Tab selection.
-    const [tab, setTab] = useState<Tab>(TABS.ROUND_OVERVIEW);
+    const [tab] = useState<Tab>(TABS.ROUND_OVERVIEW);
 
     if (isLoading) {
         return <div>Loading...</div>;
     }
 
-    if (isError) {
+    if (isError || data === undefined) {
         return <div>Error loading match data.</div>;
     }
 
     const highlightPlayerTeam = data.players.find(p => p.puuid === highlightPlayer?.uuid)?.teamId;
-    const winningTeam = data?.teams.find(it => it.won);
+    const winningTeam = data.teams.find(it => it.won);
     const teamsById = groupByUnique((t => t.teamId), ...data.teams) as Record<TWO_TEAMS_TEAM_ID, RiotMatchTeam>;
     const matchOverviewHeaderData: MatchOverviewHeaderProps = {
         teams: teamsById,
@@ -46,7 +46,7 @@ const MatchDetailsPage = (): JSX.Element => {
         return <div>Replay Version 1 doesnt support this view :(</div>;
     }
 
-    const activePlayersByTeam = groupBy((p => p.teamId), ...data.players.filter(p => !p.isObserver));
+    const activePlayersByTeam = groupBy((p => p.teamId), ...data.players.filter(p => !p.isObserver)!);
 
     if (Object.keys(activePlayersByTeam).length !== 2) {
         return <div>Not supported...</div>;

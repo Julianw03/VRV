@@ -1,6 +1,6 @@
 import { MonitorOff } from 'lucide-react';
 import { useProductSession } from '@/lib/queries.ts';
-import type { ProductSession } from '#/dto/ProductSession.ts';
+import type { ProductSession } from '#/dto/ProductSessionDTO.ts';
 import type { ReactNode } from 'react';
 
 type RequireSessionGuardProps = {

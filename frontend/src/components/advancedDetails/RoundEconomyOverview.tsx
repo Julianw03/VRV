@@ -1,6 +1,6 @@
-import { TWO_TEAM_ROLE_IDS, type TWO_TEAMS_ROLE_ID } from '@/lib/api.ts';
 import { formatCredits } from '@/lib/utils.ts';
 import { useAgentRegistry, useGearRegistry, useWeaponRegistry } from '@/lib/queries.ts';
+import { TWO_TEAM_ROLE_IDS, type TWO_TEAMS_ROLE_ID } from '#/dto/RiotMatchApiReponseDTO.ts';
 
 export interface EconomyPlayerRow {
     subject: UUID;

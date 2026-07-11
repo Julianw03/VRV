@@ -1,6 +1,6 @@
-import { getOppositeTeamId, TWO_TEAM_IDS, type TWO_TEAMS_TEAM_ID } from '@/lib/api.ts';
 import { useMapRegistry } from '@/lib/queries.ts';
 import { formatDate, formatDuration } from '@/components/saved-replays/formatters.ts';
+import { getOppositeTeamId, TWO_TEAM_IDS, type TWO_TEAMS_TEAM_ID } from '#/dto/RiotMatchApiReponseDTO.ts';
 
 
 export interface MatchOverviewTeam {

@@ -14,6 +14,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ReplayIOManager } from '@/modules/Valorant/ValorantReplays/storage/ReplayIOManager';
 import { ReplayIOController } from '@/modules/Valorant/ValorantReplays/storage/ReplayIOController';
 import { PuuidToPlayerAliasModule } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasModule';
+import { ValorantMatchHistoryModule } from '@/modules/Valorant/MatchHistory/MatchHistoryModule';
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import { PuuidToPlayerAliasModule } from '@/modules/PuuidToPlayerAliasModule/Puu
         EntitlementTokenModule,
         ProductSessionModule,
         ValorantMatchStatsModule,
+        ValorantMatchHistoryModule,
         EventBusModule,
         ValorantGameLoopModule,
         PuuidToPlayerAliasModule,

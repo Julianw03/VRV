@@ -1,14 +1,5 @@
 import { useState } from 'react';
 import { groupByUnique } from '@/lib/utils.ts';
-import {
-    type Kill,
-    type RiotMatchApiResponse,
-    type RoundResult,
-    TWO_TEAM_IDS,
-    TWO_TEAM_ROLE_IDS,
-    type TWO_TEAMS_ROLE_ID,
-    type TWO_TEAMS_TEAM_ID,
-} from '@/lib/api.ts';
 import { RoundTimeline, type RoundTimelineData } from '@/components/advancedDetails/RoundTimeline.tsx';
 import { buildRoundChips, RoundSelectorStrip } from '@/components/advancedDetails/RoundSelectorStrip.tsx';
 import {
@@ -16,6 +7,13 @@ import {
     type RoundEconomyData,
     RoundEconomyOverview,
 } from '@/components/advancedDetails/RoundEconomyOverview.tsx';
+import {
+    TWO_TEAM_IDS,
+    TWO_TEAM_ROLE_IDS,
+    type TWO_TEAMS_ROLE_ID,
+    type TWO_TEAMS_TEAM_ID,
+} from '#/dto/RiotMatchApiReponseDTO.ts';
+import type { Kill, ReplayMetadata, RoundResult } from '@/lib/api.ts';
 
 function roundDuration(r: RoundResult, kills: Kill[]): number {
     let last = 0;
@@ -28,14 +26,14 @@ function roundDuration(r: RoundResult, kills: Kill[]): number {
 function deriveRolesRoundResult(
     result: RoundResult,
 ): Record<TWO_TEAMS_TEAM_ID, TWO_TEAMS_ROLE_ID> {
-    const winningTeamRole = result.winningTeamRole;
-    const winningTeam = result.winningTeam;
+    const winningTeamRole = result.winningTeamRole as TWO_TEAMS_ROLE_ID;
+    const winningTeam = result.winningTeam as TWO_TEAMS_TEAM_ID;
 
     const ret = {} as Record<TWO_TEAMS_TEAM_ID, TWO_TEAMS_ROLE_ID>;
     ret[winningTeam] = winningTeamRole;
 
-    const losingTeam = Object.values(TWO_TEAM_IDS).find(t => t !== winningTeam);
-    const losingTeamRole = Object.values(TWO_TEAM_ROLE_IDS).find(r => r !== winningTeamRole);
+    const losingTeam = Object.values(TWO_TEAM_IDS).find(t => t !== winningTeam) as TWO_TEAMS_TEAM_ID;
+    const losingTeamRole = Object.values(TWO_TEAM_ROLE_IDS).find(r => r !== winningTeamRole) as TWO_TEAMS_ROLE_ID;
 
     ret[losingTeam] = losingTeamRole;
 
@@ -43,11 +41,11 @@ function deriveRolesRoundResult(
 }
 
 function roundTimeline(
-    match: RiotMatchApiResponse,
+    match: ReplayMetadata,
     roundNum: number,
 ): RoundTimelineData {
-    const roundResult = match.roundResults.find((x) => x.roundNum === roundNum);
-    const kills = match.kills.filter(k => k.round === roundNum);
+    const roundResult = match.roundResults?.find((x) => x.roundNum === roundNum) as RoundResult;
+    const kills = match.kills?.filter(k => k.round === roundNum) as Kill[];
     const duration = roundDuration(roundResult, kills);
 
     const roles = deriveRolesRoundResult(roundResult);
@@ -60,22 +58,22 @@ function roundTimeline(
         kills: kills.map((k, i) => ({
             roundTimeMs: k.roundTime,
             killerId: k.killer,
-            killerSide: roles[players[k.killer].teamId],
+            killerSide: roles[players[k.killer].teamId as TWO_TEAMS_TEAM_ID],
             killerAgentId: players[k.killer]?.characterId,
             weaponIconUrl: k.finishingDamage?.damageItem,
             headshot: (k.finishingDamage?.damageType || '').toLowerCase() === 'head',
             firstBlood: i === 0,
-        })),
+        })) ?? [],
         plant: roundResult.plantRoundTime ? { roundTimeMs: roundResult.plantRoundTime } : undefined,
         defuse: roundResult.defuseRoundTime ? { roundTimeMs: roundResult.defuseRoundTime } : undefined,
     };
 }
 
 function roundEconomy(
-    match: RiotMatchApiResponse,
+    match: ReplayMetadata,
     roundNum: number,
 ): RoundEconomyData {
-    const roundResult = match.roundResults.find((x) => x.roundNum === roundNum);
+    const roundResult = match.roundResults?.find((x) => x.roundNum === roundNum)!;
     const roles = deriveRolesRoundResult(roundResult);
     const players = groupByUnique(f => f.puuid, ...match.players);
 
@@ -90,12 +88,12 @@ function roundEconomy(
             armorId: stat.economy.armor,
             remaining: stat.economy.remaining,
             moneySpend: stat.economy.spent,
-            loadoutValue: stat.economy.loadoutValue
+            loadoutValue: stat.economy.loadoutValue,
         };
     });
 
-    const attackers = rows.filter((row) => roles[players[row.subject].teamId] === TWO_TEAM_ROLE_IDS.ATTACKER);
-    const defenders = rows.filter((row) => roles[players[row.subject].teamId] === TWO_TEAM_ROLE_IDS.DEFENDER);
+    const attackers = rows.filter((row) => roles[players[row.subject].teamId as TWO_TEAMS_TEAM_ID] === TWO_TEAM_ROLE_IDS.ATTACKER);
+    const defenders = rows.filter((row) => roles[players[row.subject].teamId as TWO_TEAMS_TEAM_ID] === TWO_TEAM_ROLE_IDS.DEFENDER);
 
     return {
         roundNum,
@@ -107,7 +105,7 @@ function roundEconomy(
 }
 
 export interface RoundOverviewTabProps {
-    data: RiotMatchApiResponse;
+    data: ReplayMetadata;
     highlightPlayerUuid: UUID | undefined;
 }
 
@@ -119,7 +117,7 @@ export function RoundOverviewTab({ data, highlightPlayerUuid }: RoundOverviewTab
         <>
 
             <RoundSelectorStrip
-                chips={buildRoundChips(data.roundResults, data.players, highlightPlayerTeam as TWO_TEAMS_TEAM_ID)}
+                chips={buildRoundChips(data.roundResults!, data.players, highlightPlayerTeam as TWO_TEAMS_TEAM_ID)}
                 selectedRound={selectedRound}
                 onSelect={setSelectedRound}
             />

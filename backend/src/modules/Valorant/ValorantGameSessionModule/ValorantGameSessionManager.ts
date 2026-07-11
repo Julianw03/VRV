@@ -1,4 +1,3 @@
-import { SimpleUUID } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import { Injectable, Logger } from '@nestjs/common';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { MatchStatus } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus';
@@ -10,20 +9,20 @@ import { DataDeletable } from '@/core/data/interfaces/capabilities/DataDeletable
 import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataViewable';
 
 @Injectable()
-export class ValorantGameSessionManager implements KeyDataUpdatable<SimpleUUID, MatchStatus>, DataDeletable, KeyDataViewable<SimpleUUID, MatchStatus> {
+export class ValorantGameSessionManager implements KeyDataUpdatable<UUID, MatchStatus>, DataDeletable, KeyDataViewable<UUID, MatchStatus> {
     private readonly manager: IMapDataManager<
-        SimpleUUID,
+        UUID,
         MatchStatus,
         MatchStatus
     >;
     private readonly logger = new Logger(this.constructor.name);
 
     constructor(protected readonly eventBus: SimpleEventBus) {
-        const base = new SimpleMapDataManager<SimpleUUID, MatchStatus>();
+        const base = new SimpleMapDataManager<UUID, MatchStatus>();
         this.manager = new EmittingMapDataBehavior(base, eventBus, this.constructor.name);
     }
 
-    private latestMatchId: SimpleUUID | null = null;
+    private latestMatchId: UUID | null = null;
 
     private static ValidTransitionStates: Record<MatchStatus, MatchStatus[]> = {
         [MatchStatus.CHAMPION_SELECTION]: [
@@ -59,15 +58,15 @@ export class ValorantGameSessionManager implements KeyDataUpdatable<SimpleUUID, 
         this.manager.deleteState();
     }
 
-    getKeyView(key: SimpleUUID): MatchStatus | null {
+    getKeyView(key: UUID): MatchStatus | null {
         return this.manager.getKeyView(key);
     }
 
-    getView(): Record<SimpleUUID, MatchStatus> | null {
+    getView(): Record<UUID, MatchStatus> | null {
         return this.manager.getView();
     }
 
-    updateKeyValue(key: SimpleUUID, value: MatchStatus): void {
+    updateKeyValue(key: UUID, value: MatchStatus): void {
         const prev = this.getKeyView(key);
         if (!this.verifyTransition(prev, value)) return;
         const prevMatchId = this.latestMatchId;

@@ -45,8 +45,8 @@ export class AsyncMapDataBehavior<K extends PropertyKey, V, E extends Error> imp
         const guarded = promise.catch((): TimedOut => TIMED_OUT);
         if (!timeoutMs) return guarded;
 
-        return new Promise<V | TimedOut>(resolve => {
-            const timer = setTimeout(() => resolve(TIMED_OUT), timeoutMs);
+        return new Promise<V | TimedOut>((resolve, reject) => {
+            const timer = setTimeout(() => reject(TIMED_OUT), timeoutMs);
             guarded.then(result => {
                 clearTimeout(timer);
                 resolve(result);
@@ -62,7 +62,7 @@ export class AsyncMapDataBehavior<K extends PropertyKey, V, E extends Error> imp
         return withMaxTimeout(promise, timeoutMs ?? 0);
     }
 
-    public async getBestEffortBatchedResult(keys: K[], timeoutMs?: number): Promise<Partial<Record<K, V>>> {
+    public async getBestEffortBatchedResult(keys: K[], timeoutMs?: number): Promise<Record<K, V>> {
         await Promise.all(
             keys.map(key => {
                 const promise = this.pending.get(key);
@@ -71,7 +71,7 @@ export class AsyncMapDataBehavior<K extends PropertyKey, V, E extends Error> imp
             }),
         );
 
-        const result = {} as Partial<Record<K, V>>;
+        const result = {} as Record<K, V>;
         for (const key of keys) {
             const view = this.externalRepresentation.getKeyView(key);
             if (view?.isSuccess()) {

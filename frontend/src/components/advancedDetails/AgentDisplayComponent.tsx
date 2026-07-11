@@ -30,11 +30,11 @@ const AgentDisplayComponent = (
             ? `linear-gradient(
             45deg,
             ${agent.backgroundGradientColors
-                .map(
+                ?.map(
                     (color, index) =>
-                        `#${color} ${(index * 100) / (agent.backgroundGradientColors.length - 1)}%`,
+                        `#${color} ${(index * 100) / (agent.backgroundGradientColors!.length - 1)}%`,
                 )
-                .join(', ')}
+                ?.join(', ') ?? "#FFFFFF"}
         )`
             : undefined;
 
@@ -64,7 +64,7 @@ const AgentDisplayComponent = (
         <div className="relative h-full w-full flex flex-col overflow-hidden justify-center items-center">
             <div
                 className={`relative min-h-0 flex-1 overflow-hidden transition-[width] duration-300 ${isSelected ? 'w-full' : 'w-1/2'} `}>
-                <img src={agent.fullPortrait}
+                <img src={agent.fullPortrait!}
                      className={`absolute object-cover scale-x-[2.5] scale-y-[2.5] origin-[50%_15%] z-1`}
                 />
                 <div

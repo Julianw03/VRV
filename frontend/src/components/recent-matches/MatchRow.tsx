@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDownloadStateFlags, useRetryDownload, useTriggerDownload } from '@/lib/queries';
 import { cn } from '@/lib/utils';
-import type { MatchHistoryEntry } from '@/lib/api';
+import type { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO.ts';
 import { mapDisplayName } from '@/components/saved-replays/formatters';
 import { MatchStatsPanel } from './MatchStatsPanel';
 import { useAppStore } from '@/store/useAppStore';
@@ -78,20 +78,21 @@ function DownloadButton({
 }
 
 interface MatchRowProps {
-    match: MatchHistoryEntry;
+    match: RiotMatchApiResponseDTO;
 }
 
 export function MatchRow({ match }: MatchRowProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const matchId = match.matchInfo.matchId;
 
     const { canDownload, isDownloading, isFailed, isDownloaded } =
-        useDownloadStateFlags(match.MatchID);
+        useDownloadStateFlags(matchId);
 
     const { mutate: triggerDownload } = useTriggerDownload();
     const { mutate: retryDownload } = useRetryDownload();
-    const relativeTime = useRelativeTime(match.GameStartTime);
+    const relativeTime = useRelativeTime(match.matchInfo.gameStartMillis);
 
-    const matchStats = useAppStore((s) => s.matchStatsCache?.[match.MatchID]);
+    const matchStats = useAppStore((s) => s.matchStatsCache?.[matchId]);
     const mapId = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo.mapId : null;
     const mapAsset = useAppStore((s) => (mapId ? s.mapRegistry?.[mapId] ?? null : null));
     const isDownloadAvailable = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo?.isReplayRecorded : false;
@@ -125,7 +126,7 @@ export function MatchRow({ match }: MatchRowProps) {
 
                 <div>
                     <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-                        {match.QueueID || 'Unknown'}
+                        {match.matchInfo.queueID || 'Unknown'}
                     </span>
                 </div>
 
@@ -137,7 +138,7 @@ export function MatchRow({ match }: MatchRowProps) {
                 </div>
 
                 <div className="text-xs text-muted-foreground">
-                    {formatDate(match.GameStartTime)} · {relativeTime}
+                    {formatDate(match.matchInfo.gameStartMillis)} · {relativeTime}
                 </div>
                 <div className="flex items-center">
                     <OutdatedTag matchGameVersion={matchGameVersion} />
@@ -148,8 +149,8 @@ export function MatchRow({ match }: MatchRowProps) {
                         isDownloading={isDownloading}
                         isFailed={isFailed}
                         isDownloaded={isDownloaded}
-                        onDownload={() => triggerDownload(match.MatchID)}
-                        onRetry={() => retryDownload(match.MatchID)}
+                        onDownload={() => triggerDownload(matchId)}
+                        onRetry={() => retryDownload(matchId)}
                     />
                     <CollapsibleTrigger asChild>
                         <Button size="icon-sm" variant="ghost" title="Show match details">
@@ -165,7 +166,7 @@ export function MatchRow({ match }: MatchRowProps) {
             </div>
 
             <CollapsibleContent>
-                {isOpen && <MatchStatsPanel matchId={match.MatchID} />}
+                {isOpen && <MatchStatsPanel matchId={matchId} />}
             </CollapsibleContent>
         </Collapsible>
     );

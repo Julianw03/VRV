@@ -28,27 +28,7 @@ export class ReplayRemoteController {
 
     constructor(
         protected readonly replayIOManager: ReplayIOManager,
-        protected readonly replayFetchManager: ReplayFetchManager,
     ) {
-    }
-
-    @Get('matches/recent')
-    @ApiOperation({
-        summary: 'Get recent matches',
-        description: 'Fetches recent matches from the Riot API.',
-    })
-    @ApiOkResponse({
-        description: 'List of recent matches.',
-    })
-    async getRecentMatches(
-        @Query() query: GetRecentMatchesDto,
-    ): Promise<MatchHistoryEntry[]> {
-        this.logger.debug(
-            `Fetching recent matches with offset ${query.offset} and limit ${query.limit}`,
-        );
-        const startIndex = query.offset;
-        const endIndex = query.offset + query.limit;
-        return this.replayFetchManager.getRecentMatches(startIndex, endIndex);
     }
 
     @Post('matches/recent/:matchId/download')

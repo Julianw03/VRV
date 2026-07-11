@@ -1,7 +1,6 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { EntitlementTokenManager } from '@/modules/EntitlementTokenModule/EntitlementTokenManager';
 import { ProductSessionManager } from '@/modules/ProductSessionModule/ProductSessionManager';
-import { RiotMatchApiResponse } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import { ValorantVersionInfoManager } from '@/modules/Valorant/ValorantVersionInfo/ValorantVersionInfoManager';
 import { type ConfigType } from '@nestjs/config';
 import { appConfig } from '@/config/configLoader';
@@ -17,6 +16,7 @@ import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/Emitt
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import { EventType } from '@/core/events/EventTypes';
 import { RiotValorantAPIReadyState } from '@/integrations/riot/RiotValorantAPIReadyState';
+import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
 
 export enum ValorantServiceUrl {
     ACCOUNT_XP = 'ACCOUNT_XP',
@@ -255,8 +255,9 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
             headers: this.getAuthHeaders(version),
         });
         if (!response.ok) {
+            this.logger.error("Request failed: ", response);
             throw new Error(
-                `Match history request failed with status ${response.status}`,
+                `Match history request failed with status ${response.status}`
             );
         }
 
@@ -264,7 +265,7 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
         return data.History ?? [];
     }
 
-    async getMatchDetails(matchId: string): Promise<RiotMatchApiResponse> {
+    async getMatchDetails(matchId: string): Promise<RiotMatchApiResponseDTO> {
         const { version } = this.getDeploymentContext();
         const url = this.createUrl(ValorantServiceUrl.MATCH_DETAILS, `match-details/v1/matches/${matchId}`);
 

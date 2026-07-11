@@ -11,6 +11,7 @@ export function AppShell() {
   const matches = useMatches();
   const match = matches.at(-1);
 
+  //@ts-expect-error
   const title = match?.handle?.title
   const { data: isConnected, isLoading, isError } = useIsConnected()
 

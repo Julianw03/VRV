@@ -1,7 +1,7 @@
 import React from 'react';
 import { formatClock } from '@/lib/utils.ts';
-import { TWO_TEAM_ROLE_IDS, type TWO_TEAMS_ROLE_ID } from '@/lib/api.ts';
 import { useAgentRegistry } from '@/lib/queries.ts';
+import { TWO_TEAM_ROLE_IDS, type TWO_TEAMS_ROLE_ID } from '#/dto/RiotMatchApiReponseDTO.ts';
 
 export interface TimelineKill {
     roundTimeMs: number;
@@ -115,7 +115,7 @@ export function RoundTimeline({ data, height = 250 }: RoundTimelineProps) {
                                     border: `2px solid ${col}`,
                                     zIndex: 3,
                                 }}>
-                                <img src={agents?.[k.killerAgentId]?.displayIconSmall} alt=""
+                                <img src={agents?.[k.killerAgentId]?.displayIconSmall!} alt=""
                                      className={'w-[32px] h-[32px] object-cover'} />
                             </div>
                         </React.Fragment>

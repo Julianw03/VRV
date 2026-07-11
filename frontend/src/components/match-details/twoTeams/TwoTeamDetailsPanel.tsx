@@ -1,6 +1,9 @@
-import type { MatchDetailsPanelProps, MinimalMatchPlayer } from '@/components/match-details/MatchDetailsPanel.tsx';
+import type {
+    MatchDetailsPanelProps,
+    MinimalMatchPlayer,
+    MinimalMatchTeam,
+} from '@/components/match-details/MatchDetailsPanel.tsx';
 import { formatDate, formatDuration } from '@/components/saved-replays/formatters.ts';
-import type { RiotMatchTeam } from '@/lib/api.ts';
 import { cn } from '@/lib/utils.ts';
 import { useAgentRegistry } from '@/lib/queries.ts';
 
@@ -10,7 +13,7 @@ const TEAM_NAMES: Record<string, string> = {
     'Blue': 'Defender',
 } as const;
 
-function ScoreBanner({ teams }: { teams: RiotMatchTeam[] }) {
+function ScoreBanner({ teams }: { teams: MinimalMatchTeam[] }) {
     if (teams.length < 2) return null;
     const [a, b] = teams;
 
@@ -91,8 +94,8 @@ function PlayerRow({ player, highlightPlayer }: PlayerRowProps) {
                     : 'bg-muted/30',
             )}
         >
-            <span className={"shrink-0 aspect-square w-6"} >
-                <img draggable={false} className={"object-cover h-auto"} src={agentInfo?.displayIconSmall ?? ""}/>
+            <span className={'shrink-0 aspect-square w-6'}>
+                <img draggable={false} className={'object-cover h-auto'} src={agentInfo?.displayIconSmall ?? ''} />
             </span>
             <span className="flex-1 truncate">
                 <span className={cn('font-medium', isActive && 'text-blue-300')}>
