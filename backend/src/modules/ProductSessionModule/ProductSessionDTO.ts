@@ -1,5 +1,5 @@
 import { IsArray, IsBoolean, IsObject, IsString } from 'class-validator';
-import { ProductSession, ProductSessionLaunchConfig } from '#/dto/ProductSession';
+import { ProductSession, ProductSessionLaunchConfig } from '#/dto/ProductSessionDTO';
 
 export class ProductSessionDTO implements ProductSession {
     @IsString()

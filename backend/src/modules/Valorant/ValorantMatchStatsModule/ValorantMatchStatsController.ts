@@ -19,9 +19,9 @@ import {
     Pending,
     Success,
 } from '#/utils/AsyncResult';
-import { RiotMatchApiResponseDTO } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import { ProductSessionGuard, RequiredProduct } from '@/modules/ProductSessionModule/ProductSessionGuard';
 import { AsyncResultSchema } from '@/utils/AsyncResultSwagger';
+import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
 
 @RequiredProduct('valorant')
 @UseGuards(RiotClientReadyGuard, ProductSessionGuard)

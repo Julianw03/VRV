@@ -1,40 +1,56 @@
-import { useState } from 'react'
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { useInView } from 'react-intersection-observer'
+import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
-import { RECENT_MATCHES_PAGE_SIZE, useRecentMatches } from '@/lib/queries'
+import { useNewMatchesPoll, useRecentMatches } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { MatchRow, GRID_COLS } from '@/components/recent-matches/MatchRow'
 
 export function RecentMatchesPage() {
-  const [page, setPage] = useState(0)
-  const offset = page * RECENT_MATCHES_PAGE_SIZE
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useRecentMatches()
 
-  const { data: matches = [], isLoading, isError, error, refetch, isFetching } =
-    useRecentMatches(offset)
+  const matches = data?.pages.flat() ?? []
+  const newestMatchId = matches[0]?.matchInfo.matchId ?? null
 
-  const hasNextPage = matches.length === RECENT_MATCHES_PAGE_SIZE
+  // Periodically checks for matches newer than `newestMatchId` and prepends them.
+  useNewMatchesPoll(newestMatchId)
 
-  function handleRefresh() {
-    setPage(0)
-    refetch()
-  }
+  // Fires fetchNextPage when the sentinel at the bottom of the list scrolls into view.
+  const { ref: loadMoreRef, inView: loadMoreInView } = useInView({ rootMargin: '200px' })
+
+  // Only fetch on the not-in-view -> in-view transition, not on every re-render where
+  // the sentinel merely *remains* in view (e.g. a short trailing page doesn't push the
+  // sentinel back out, which would otherwise re-fire this effect the moment the previous
+  // fetch's isFetchingNextPage flips back to false and chain-fetch further pages).
+  const wasInViewRef = useRef(false)
+
+  useEffect(() => {
+    const justEnteredView = loadMoreInView && !wasInViewRef.current
+    wasInViewRef.current = loadMoreInView
+
+    if (justEnteredView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [loadMoreInView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {matches.length > 0 ? `Page ${page + 1}` : 'No matches loaded'}
+          {matches.length > 0 ? `${matches.length} matches loaded` : 'No matches loaded'}
         </p>
-        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isFetching}>
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={cn(isFetching && 'animate-spin')} />
           Refresh
         </Button>
@@ -73,31 +89,27 @@ export function RecentMatchesPage() {
             <div />
           </div>
           {matches.map((match) => (
-            <MatchRow key={match.MatchID} match={match} />
+            <MatchRow key={match.matchInfo.matchId} match={match} />
           ))}
         </div>
       ) : null}
 
-      {!isLoading && !isError && (page > 0 || hasNextPage) && (
-        <Pagination className="mt-auto">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((p) => p - 1)}
-                className={cn(page === 0 || isFetching ? 'pointer-events-none opacity-50' : '')}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink isActive>{page + 1}</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setPage((p) => p + 1)}
-                className={cn(!hasNextPage || isFetching ? 'pointer-events-none opacity-50' : '')}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {!isLoading && !isError && matches.length > 0 && (
+        <div ref={loadMoreRef} className="flex justify-center">
+          {hasNextPage ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+            >
+              {isFetchingNextPage && <Loader2 className="animate-spin" />}
+              Load older matches
+            </Button>
+          ) : (
+            <p className="text-xs text-muted-foreground">No more matches.</p>
+          )}
+        </div>
       )}
     </div>
   )

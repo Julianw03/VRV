@@ -1,7 +1,7 @@
-import { PlayerAccountGameNameAndTagLine } from '../../../gen';
+import { PlayerAccountGameNameAndTagLine } from '../../../../gen';
 import { Injectable } from '@nestjs/common';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
-import { PlayerAlias } from '@/modules/AccountNameAndTagLineModule/PlayerAlias';
+import { PlayerAlias } from '@/modules/Account/AccountNameAndTagLineModule/PlayerAlias';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import {

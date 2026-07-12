@@ -1,5 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { VALORANT_API_BASE_URL } from '@/integrations/NotOfficer/ValorantAPITokens';
+import { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO';
+import { GearAssetDTO } from '#/dto/assets/GearAssetDTO';
 
 
 export interface ResponseWrapper<T> {
@@ -21,6 +23,10 @@ export interface MapEntry {
     assetPath: string,
     mapUrl: string,
 }
+
+export interface WeaponEntry extends WeaponAssetDTO {}
+
+export interface GearEntry extends GearAssetDTO {}
 
 export interface AgentEntry {
     uuid: UUID,
@@ -92,11 +98,19 @@ export class ValorantAssetAPI {
         return this.fetchAndParse<MapEntry[]>('/v1/maps');
     }
 
+    public async getWeaponList(): Promise<WeaponEntry[]> {
+        return this.fetchAndParse<WeaponEntry[]>('/v1/weapons');
+    }
+
     public async getVersionInfo(): Promise<VersionInfo> {
         return this.fetchAndParse<VersionInfo>('/v1/version');
     }
 
     public async getAgentList(): Promise<AgentEntry[]> {
         return this.fetchAndParse<AgentEntry[]>('/v1/agents');
+    }
+
+    public async getGearList(): Promise<GearEntry[]> {
+        return this.fetchAndParse<GearEntry[]>('/v1/gear');
     }
 }

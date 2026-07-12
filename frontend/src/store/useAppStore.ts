@@ -1,11 +1,14 @@
 import { create } from 'zustand';
 import { InjectStates, type InjectStatus, type MatchStatsResult } from '@/lib/api';
-import type { ProductSession } from '#/dto/ProductSession.ts';
+import type { ProductSession } from '#/dto/ProductSessionDTO.ts';
 import type { MinimalVersionInfo } from '#/dto/MinimalVersionInfo.ts';
 import { type DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
 import type { PlayerAliasDTO } from '#/dto/PlayerAliasDTO.ts';
 import type { MapAssetDTO } from '#/dto/assets/MapAssetDTO.ts';
 import type { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO.ts';
+import type { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO.ts';
+import type { GearAssetDTO } from '#/dto/assets/GearAssetDTO.ts';
+import type { PlayerUuidDTO } from '#/dto/PlayerUuidDTO.ts';
 
 export type EventType =
     | 'StateUpdated'
@@ -46,6 +49,7 @@ export type KeyValueUpdatedEvent<K extends PropertyKey, V> =
 interface AppState {
     wsConnected: boolean;
     playerAlias: PlayerAliasDTO | null;
+    playerUuid: PlayerUuidDTO | null;
 
     downloadStates: Record<string, DownloadStateDTO> | null;
 
@@ -56,10 +60,13 @@ interface AppState {
 
     mapRegistry: Record<string, MapAssetDTO> | null;
     agentRegistry: Record<string, AgentAssetDTO> | null;
+    weaponRegistry: Record<string, WeaponAssetDTO> | null;
+    gearRegistry: Record<string, GearAssetDTO> | null;
     sessionRegistry: Record<string, ProductSession> | null;
 
     setWsConnected: (connected: boolean) => void;
     setPlayerAlias: (alias: PlayerAliasDTO) => void;
+    setPlayerUuid: (uuid: PlayerUuidDTO) => void;
 
     setCurrentInjectState: (currentInjectState: InjectStatus) => void;
 
@@ -73,6 +80,8 @@ interface AppState {
 
     setMapRegistry: (registry: Record<string, MapAssetDTO>) => void;
     setAgentRegistry: (agentRegistry: Record<string, AgentAssetDTO>) => void;
+    setWeaponRegistry: (weaponRegistry: Record<string, WeaponAssetDTO>) => void;
+    setGearRegistry: (gearRegistry: Record<string, GearAssetDTO>) => void;
     setSessionRegistry: (registry: Record<string, ProductSession>) => void;
     setCurrentShippingVersion: (version: string | null) => void;
 
@@ -91,6 +100,7 @@ export const useAppStore = create<AppState>((set) => {
 
     const setWsConnected = (connected: boolean) => set({ wsConnected: connected });
     const setPlayerAlias = (alias: PlayerAliasDTO) => set({ playerAlias: alias });
+    const setPlayerUuid = (uuid: PlayerUuidDTO) => set({ playerUuid: uuid });
 
     const setDownloadStates = (states: Record<string, DownloadStateDTO> | null) =>
         set({ downloadStates: states });
@@ -138,6 +148,12 @@ export const useAppStore = create<AppState>((set) => {
     const setAgentRegistry = (registry: Record<string, AgentAssetDTO>) =>
         set({ agentRegistry: registry });
 
+    const setWeaponRegistry = (registry: Record<string, WeaponAssetDTO>) =>
+        set({ weaponRegistry: registry });
+
+    const setGearRegistry = (registry: Record<string, GearAssetDTO>) =>
+        set({ gearRegistry: registry });
+
     const setSessionRegistry = (registry: Record<string, ProductSession>) =>
         set({ sessionRegistry: registry });
 
@@ -156,6 +172,11 @@ export const useAppStore = create<AppState>((set) => {
             AccountNameAndTagLineManager: (event) => {
                 if (event.type !== 'StateUpdated') return;
                 set({ playerAlias: event.payload.value as PlayerAliasDTO | null });
+            },
+
+            AccountPuuidManager: (event) => {
+              if (event.type !== 'StateUpdated') return;
+              set({ playerUuid: event.payload.value as PlayerUuidDTO | null })
             },
 
             ReplayInjectManager: (event) => {
@@ -234,11 +255,14 @@ export const useAppStore = create<AppState>((set) => {
     return {
         wsConnected: false,
         playerAlias: null,
+        playerUuid: null,
         currentValorantShippingVersion: null,
         downloadStates: null,
         matchStatsCache: null,
         mapRegistry: null,
         agentRegistry: null,
+        weaponRegistry: null,
+        gearRegistry: null,
         sessionRegistry: null,
         currentInjectState: {
             state: InjectStates.IDLE,
@@ -248,6 +272,7 @@ export const useAppStore = create<AppState>((set) => {
 
         setWsConnected,
         setPlayerAlias,
+        setPlayerUuid,
         setDownloadStates,
         setDownloadStat,
         setCurrentInjectState: setCurrentInjectStatus,
@@ -255,6 +280,8 @@ export const useAppStore = create<AppState>((set) => {
         setMatchStat,
         setMapRegistry,
         setAgentRegistry,
+        setWeaponRegistry,
+        setGearRegistry,
         setSessionRegistry,
         setCurrentShippingVersion,
         handleWSEvent,

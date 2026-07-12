@@ -1,4 +1,4 @@
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { AppShell } from './AppShell';
 import { ConnectPage } from '@/pages/ConnectPage';
 import { RecentMatchesPage } from '@/pages/RecentMatchesPage';
@@ -8,36 +8,75 @@ import { ConfigPage } from '@/pages/ConfigPage';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useAgentRegistry, useMapRegistry } from '@/lib/queries';
 import { RequireSessionGuard } from '@/components/RequireSessionGuard.tsx';
+import MatchDetailsPage from '@/pages/MatchDetailsPage.tsx';
 
-function App() {
+const router = createHashRouter([
+    {
+        path: "/connect",
+        element: <ConnectPage />,
+    },
+    {
+        element: <AppShell />,
+        children: [
+            {
+                index: true,
+                element: <Navigate to="/recent" replace />,
+            },
+            {
+                path: "saved",
+                element: <SavedReplaysPage />,
+                handle: {
+                    title: "Saved Replays",
+                },
+            },
+            {
+                path: "details/saved/:matchId",
+                element: <MatchDetailsPage />,
+                handle: {
+                    title: "Match Details",
+                },
+            },
+            {
+                path: "recent",
+                handle: {
+                    title: "Recent Matches",
+                },
+                element: (
+                    <RequireSessionGuard productId="valorant">
+                        {() => <RecentMatchesPage />}
+                    </RequireSessionGuard>
+                ),
+            },
+            {
+                path: "injector",
+                handle: {
+                    title: "Injector",
+                },
+                element: (
+                    <RequireSessionGuard productId="valorant">
+                        {() => <InjectorPage />}
+                    </RequireSessionGuard>
+                ),
+            },
+            {
+                path: "config",
+                element: <ConfigPage />,
+                handle: {
+                    title: "Configuration",
+                },
+            },
+            {
+                path: "*",
+                element: <Navigate to="/recent" replace />,
+            },
+        ],
+    },
+]);
+
+export default function App() {
     useWebSocket();
     useMapRegistry();
     useAgentRegistry();
 
-    return (
-        <HashRouter>
-            <Routes>
-                <Route path="/connect" element={<ConnectPage />} />
-
-                <Route element={<AppShell />}>
-                    { /* Todo use proper routing definition */}
-                    <Route index element={<Navigate to="/recent" replace />} />
-                    <Route path="/saved" element={<SavedReplaysPage />} />
-                    <Route path="/recent" element={
-                        <RequireSessionGuard productId={'valorant'}>
-                            {() => <RecentMatchesPage />}
-                        </RequireSessionGuard>} />
-                    <Route path="/injector" element={
-                        <RequireSessionGuard productId={'valorant'}>
-                            {() => <InjectorPage />}
-                        </RequireSessionGuard>
-                    } />
-                    <Route path="/config" element={<ConfigPage />} />
-                    <Route path="*" element={<Navigate to="/recent" replace />} />
-                </Route>
-            </Routes>
-        </HashRouter>
-    );
+    return <RouterProvider router={router} />;
 }
-
-export default App;

@@ -6,24 +6,25 @@ import {
     NotFoundException,
     UseGuards,
 } from '@nestjs/common';
-import { AccountNameAndTagLineManager } from '@/modules/AccountNameAndTagLineModule/AccountNameAndTagLineManager';
+import { AccountNameAndTagLineManager } from '@/modules/Account/AccountNameAndTagLineModule/AccountNameAndTagLineManager';
 import { ApiNotFoundResponse, ApiResponse } from '@nestjs/swagger';
-import { PlayerAlias } from '@/modules/AccountNameAndTagLineModule/PlayerAlias';
+import { PlayerAlias } from '@/modules/Account/AccountNameAndTagLineModule/PlayerAlias';
 import { RiotClientReadyGuard } from '@/core/riotclient/RiotClientReadyGuard';
+import { EntitlementTokenManager } from '@/modules/EntitlementTokenModule/EntitlementTokenManager';
 
 @UseGuards(RiotClientReadyGuard)
 @Controller({
-    path: 'caching/account-name-and-tag-line',
+    path: 'caching/riot-account',
     version: '1',
 })
 export class AccountNameAndTagLineController {
     private readonly logger = new Logger(this.constructor.name);
 
     constructor(
-        protected readonly accountNameAndTagLineManager: AccountNameAndTagLineManager,
+        protected readonly accountNameAndTagLineManager: AccountNameAndTagLineManager
     ) {}
 
-    @Get('active')
+    @Get('alias')
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Returns the active account name and tag line.',

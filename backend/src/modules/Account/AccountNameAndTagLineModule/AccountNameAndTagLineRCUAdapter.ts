@@ -1,9 +1,9 @@
 import { type RiotClientService } from '@/core/riotclient/RiotClientService';
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { RIOT_CLIENT_STATE_DISPATCHING_SERVICE, RIOT_CLIENT_SERVICE } from '@/core/riotclient/RiotClientTokens';
-import { AccountNameAndTagLineManager } from '@/modules/AccountNameAndTagLineModule/AccountNameAndTagLineManager';
+import { AccountNameAndTagLineManager } from '@/modules/Account/AccountNameAndTagLineModule/AccountNameAndTagLineManager';
 import { RCUMessageType } from '@/core/riotclient/messaging/RCUMessage';
-import { PlayerAccountGameNameAndTagLine, PluginPlayerAccountApi } from '../../../gen';
+import { PlayerAccountGameNameAndTagLine, PluginPlayerAccountApi } from '../../../../gen';
 import { AnyPathPattern, parsePatternString } from '@/core/riotclient/messaging/path/PatternParser';
 import { type RiotClientStateDispatcher } from '@/core/riotclient/RiotClientStateDispatcher';
 import { ForwardedMessage, TrieRCUMessageDispatcher } from '@/core/riotclient/messaging/trie/TrieRCUMessageDispatcher';

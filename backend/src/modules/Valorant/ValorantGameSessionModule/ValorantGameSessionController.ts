@@ -10,7 +10,6 @@ import { RiotClientReadyGuard } from '@/core/riotclient/RiotClientReadyGuard';
 import { ApiNotFoundResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { MatchStatusDTO } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatusDTO';
-import type { SimpleUUID } from '@/modules/Valorant/ValorantMatchStatsModule/RiotMatchApiResponseDTO';
 import { ProductSessionGuard, RequiredProduct } from '@/modules/ProductSessionModule/ProductSessionGuard';
 
 @RequiredProduct('valorant')
@@ -29,7 +28,7 @@ export class ValorantGameSessionController {
     @ApiOkResponse({
         description:
             'Returns a map of match IDs to their current match status for all matches that are currently registered',
-        type: Map<SimpleUUID, MatchStatusDTO>,
+        type: Map<UUID, MatchStatusDTO>,
     })
     @ApiNotFoundResponse({
         description: 'Returned when there is no match in progress registered.',
@@ -52,7 +51,7 @@ export class ValorantGameSessionController {
     @ApiNotFoundResponse({
         description: 'Returned when the specified match ID is not found.',
     })
-    public async getMatchStateById(matchId: SimpleUUID) {
+    public async getMatchStateById(matchId: UUID) {
         const entry = this.valorantGameSessionManager.getKeyView(matchId);
         if (entry === null) {
             throw new NotFoundException();

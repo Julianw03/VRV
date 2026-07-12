@@ -9,7 +9,7 @@ import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/EmittingObjectDataBehavior';
 import { DataViewable } from '@/core/data/interfaces/capabilities/DataViewable';
-import e from 'express';
+import { MatchHistoryManager } from '@/modules/Valorant/MatchHistory/MatchHistoryManager';
 
 export enum InjectState {
     IDLE = 'IDLE',
@@ -40,6 +40,7 @@ export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModule
     constructor(
         private readonly apiClient: RiotValorantAPIManager,
         private readonly ioManager: ReplayIOManager,
+        private readonly matchHistory: MatchHistoryManager,
         protected readonly eventBus: SimpleEventBus,
     ) {
         const base = new SimpleObjectDataManager<InjectStatus>();
@@ -64,14 +65,15 @@ export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModule
         this.targetMatchId = matchId;
 
         try {
-            const history = await this.apiClient.getMatchHistory(0, 10);
-            if (!history.length)
+            const history = await this.matchHistory.getMatchDataAfter(null, 20);
+            const matches = Object.values(history);
+            if (!matches.length)
                 throw new Error(
                     'No recent match history available for placeholder',
                 );
 
-            const validPlaceholder = history.find((entry) =>
-                VALID_QUEUE_IDS.includes(entry.QueueID.toLowerCase()),
+            const validPlaceholder = matches.find(entry =>
+                entry.matchInfo.isReplayRecorded,
             );
 
             if (!validPlaceholder) {
@@ -80,7 +82,7 @@ export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModule
                 );
             }
 
-            this.placeholderMatchId = validPlaceholder.MatchID;
+            this.placeholderMatchId = validPlaceholder.matchInfo.matchId;
             this.manager.updateValue({
                 state: InjectState.DOWNLOADING_PLACEHOLDER,
                 targetMatchId: this.targetMatchId,

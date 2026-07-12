@@ -1,11 +1,11 @@
-import { AlertCircle, BugPlay, Info, Package, RefreshCw, Upload } from 'lucide-react';
+import { AlertCircle, Package, RefreshCw, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { queryKeys, useStorageStatus, useStoredMatches } from '@/lib/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { StorageCard } from '@/components/saved-replays/StorageCard';
-import { GRID_COLS, ReplayRow } from '@/components/saved-replays/ReplayRow';
+import { GRID_COLS, ReplayRow, type ReplayRowButton, ReplayRowButtons } from '@/components/saved-replays/ReplayRow';
 import { UploadReplayDialog } from '@/components/saved-replays/UploadReplayDialog';
 
 export function SavedReplaysPage() {
@@ -84,20 +84,26 @@ export function SavedReplaysPage() {
                             </div>
                             {storedMatches.slice()
                                 .sort((a, b) => (b?.downloadInfo?.downloadedAt ?? 0) - (a?.downloadInfo?.downloadedAt ?? 0))
-                                .map((replay) => (
-                                    <ReplayRow key={replay.matchInfo.matchId} replay={replay} />
-                                ))}
+                                .map((replay) => {
+                                    const showDetails = replay.formatVersion !== 1;
+
+                                    const shownButtons: ReplayRowButton[] = [
+                                        ReplayRowButtons.INJECT,
+                                        ReplayRowButtons.DELETE,
+                                        ReplayRowButtons.DOWNLOAD,
+                                    ];
+
+                                    if (showDetails) {
+                                        shownButtons.push(ReplayRowButtons.DETAILS);
+                                    }
+
+                                    return (
+                                        <ReplayRow key={replay.matchInfo.matchId} replay={replay} shownButtons={shownButtons} />
+                                    );
+                                })
+                            }
                         </div>
                     )}
-
-                    <div className="flex items-center gap-2 rounded-lg border border-dashed border-border px-4 py-3">
-                        <Info className="size-4 shrink-0 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                            Use the <span className="inline-flex items-center mx-1"><BugPlay
-                            className="size-3.5" /></span>
-                            inject button on any saved replay to start the process.
-                        </p>
-                    </div>
                 </>
             )}
         </div>

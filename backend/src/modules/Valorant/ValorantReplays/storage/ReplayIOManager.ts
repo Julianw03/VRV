@@ -92,7 +92,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
     protected readonly manager: IMapDataManager<string, DownloadState, DownloadStateDTO>;
     protected readonly logger = new Logger(this.constructor.name);
     private storageStatus: StorageStatusDTO = ReplayIOManager.NON_SETUP_STATUS;
-    private demosDir: string;
+    private readonly demosDir: string;
 
     constructor(
         protected readonly fetchManager: ReplayFetchManager,

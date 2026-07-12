@@ -1,21 +1,18 @@
 import { useEffect } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet,  useNavigate, useMatches } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { AppSidebar } from '@/components/Sidebar'
 import { useIsConnected } from '@/lib/queries'
 
-const PAGE_TITLES: Record<string, string> = {
-  '/recent': 'Recent Matches',
-  '/saved': 'Saved Replays',
-  '/injector': 'Injector',
-  '/config': 'Configuration',
-}
-
 export function AppShell() {
   const navigate = useNavigate()
-  const location = useLocation()
+  const matches = useMatches();
+  const match = matches.at(-1);
+
+  //@ts-expect-error
+  const title = match?.handle?.title
   const { data: isConnected, isLoading, isError } = useIsConnected()
 
   useEffect(() => {
@@ -36,7 +33,6 @@ export function AppShell() {
   // Will redirect in the effect — render nothing to avoid flash
   if (!isConnected) return null
 
-  const title = PAGE_TITLES[location.pathname] ?? 'VRV'
 
   return (
     <SidebarProvider>

@@ -1,27 +1,35 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { InfiniteData } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ConfigOverrides, MatchStatsResult } from '@/lib/api';
+import type { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO.ts';
 import { api } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
-import type { ProductSession } from '#/dto/ProductSession.ts';
+import type { ProductSession } from '#/dto/ProductSessionDTO.ts';
 import { DownloadState, type DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
 import type { MapAssetDTO } from '#/dto/assets/MapAssetDTO.ts';
 import type { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO.ts';
+import type { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO.ts';
+import type { GearAssetDTO } from '#/dto/assets/GearAssetDTO.ts';
 
 // ---- Query keys ----
 
 export const queryKeys = {
     isConnected: ['isConnected'] as const,
     playerAlias: ['playerAlias'] as const,
+    playerUuid: ['playerUuid'] as const,
     storageStatus: ['storageStatus'] as const,
     storedMatches: ['storedMatches'] as const,
     currentShippingVersion: ['currentShippingVersion'] as const,
-    recentMatches: (offset: number, limit: number) => ['recentMatches', offset, limit] as const,
+    recentMatches: ['recentMatches'] as const,
+    newMatchesPoll: (after: UUID | null) => ['recentMatches', 'poll', after] as const,
     downloadStates: ['downloadStates'] as const,
     injectStatus: ['injectStatus'] as const,
     matchStats: (matchId: string) => ['matchStats', matchId] as const,
     matchMetadata: (matchId: string) => ['matchMetadata', matchId] as const,
     mapRegistry: ['mapRegistry'] as const,
     agentRegistry: ['agentRegistry'] as const,
+    weaponRegistry: ['weaponRegistry'] as const,
+    gearRegistry: ['gearRegistry'] as const,
     productSessionRegistry: ['productSessionRegistry'] as const,
     effectiveConfig: ['effectiveConfig'] as const,
     configOverrides: ['configOverrides'] as const,
@@ -49,6 +57,25 @@ export function usePlayerAlias() {
             const alias = await api.account.getAlias();
             setPlayerAlias(alias);
             return alias;
+        },
+        enabled: existing === null,
+        staleTime: Infinity,
+        retry: 3
+    })
+
+    return existing;
+}
+
+export function usePlayerUuid() {
+    const existing = useAppStore((s) => s.playerUuid)
+    const setPlayerUuid = useAppStore((s) => s.setPlayerUuid);
+
+    useQuery({
+        queryKey: queryKeys.playerUuid,
+        queryFn: async () => {
+            const uuid = await api.account.getPuuid()
+            setPlayerUuid(uuid)
+            return uuid;
         },
         enabled: existing === null,
         staleTime: Infinity,
@@ -128,12 +155,88 @@ export function useUploadReplay() {
 
 // ---- Recent matches ----
 
-export const RECENT_MATCHES_PAGE_SIZE = 10;
+// Backend caps `matchHistory.getRecentMatches` at 20 per page (GetRecentMatchesDto).
+export const RECENT_MATCHES_PAGE_SIZE = 15;
+// Backend caps `matchHistory.getNewMatches` at 10 per call (GetNewMatchesDto).
+const NEW_MATCHES_POLL_LIMIT = 10;
+const NEW_MATCHES_POLL_INTERVAL_MS = 15_000;
 
-export function useRecentMatches(offset: number) {
-    return useQuery({
-        queryKey: queryKeys.recentMatches(offset, RECENT_MATCHES_PAGE_SIZE),
-        queryFn: () => api.remote.getRecentMatches(offset, RECENT_MATCHES_PAGE_SIZE),
+/**
+ * `matchHistory` responses already contain full match data, so seed the
+ * `matchStatsCache` store from them for any match that isn't cached yet.
+ * This lets `useMatchStats` skip its own fetch once a row is expanded.
+ */
+function seedMatchStatsCache(matches: RiotMatchApiResponseDTO[]) {
+    const { matchStatsCache, setMatchStat } = useAppStore.getState();
+    for (const match of matches) {
+        const matchId = match.matchInfo.matchId;
+        if (matchStatsCache?.[matchId] === undefined) {
+            setMatchStat(matchId, { type: 'SUCCESS', data: match });
+        }
+    }
+}
+
+/**
+ * Infinite, cursor-paginated match history. Each page is fetched using the oldest
+ * match id of the previous page as the `after` cursor; the first page has no cursor.
+ * A page shorter than the page size (including an empty page) means the end of the
+ * remote history has been reached.
+ */
+export function useRecentMatches() {
+    return useInfiniteQuery({
+        queryKey: queryKeys.recentMatches,
+        queryFn: async ({ pageParam }) => {
+            const matches = await api.matchHistory.getRecentMatches({ after: pageParam, limit: RECENT_MATCHES_PAGE_SIZE });
+            seedMatchStatsCache(matches);
+            return matches;
+        },
+        initialPageParam: null as UUID | null,
+        getNextPageParam: (lastPage) =>
+            lastPage.length < RECENT_MATCHES_PAGE_SIZE
+                ? undefined
+                : lastPage[lastPage.length - 1].matchInfo.matchId,
+    });
+}
+
+/**
+ * Periodically checks whether matches newer than the newest one currently known
+ * have arrived, and prepends any found to the `useRecentMatches` cache.
+ * Disabled until a newest match id is known (i.e. the first page has loaded).
+ */
+export function useNewMatchesPoll(newestMatchId: UUID | null) {
+    const queryClient = useQueryClient();
+
+    useQuery({
+        queryKey: queryKeys.newMatchesPoll(newestMatchId),
+        queryFn: async () => {
+            const newMatches = await api.matchHistory.getNewMatches({
+                after: newestMatchId as UUID,
+                limit: NEW_MATCHES_POLL_LIMIT,
+            });
+
+            seedMatchStatsCache(newMatches);
+
+            if (newMatches.length > 0) {
+                queryClient.setQueryData<InfiniteData<RiotMatchApiResponseDTO[], UUID | null>>(
+                    queryKeys.recentMatches,
+                    (old) => {
+                        if (!old) return old;
+                        const knownIds = new Set(old.pages.flat().map((m) => m.matchInfo.matchId));
+                        const uniqueNewMatches = newMatches.filter((m) => !knownIds.has(m.matchInfo.matchId));
+                        if (uniqueNewMatches.length === 0) return old;
+                        return {
+                            ...old,
+                            pages: [[...uniqueNewMatches, ...old.pages[0]], ...old.pages.slice(1)],
+                        };
+                    },
+                );
+            }
+
+            return newMatches;
+        },
+        enabled: newestMatchId !== null,
+        refetchInterval: NEW_MATCHES_POLL_INTERVAL_MS,
+        staleTime: 0,
     });
 }
 
@@ -158,19 +261,6 @@ export function useShippingVersion() {
 
 // ---- Download states ----
 
-/**
- * Returns the current `DownloadStateDTO` for a single match from the Zustand store.
- *
- * On first call, if the store hasn't been hydrated yet (no WS StateUpdated snapshot
- * has arrived), fires a one-shot REST fetch to seed the full map. Subsequent calls
- * from any component share the same React Query cache entry and will not re-fetch.
- *
- * After hydration, all updates arrive exclusively via WebSocket events:
- *   - `StateUpdated`    → full snapshot (on WS reconnect)
- *   - `KeyValueUpdated` → single-match delta
- *
- * Returns `undefined` while the store is still being hydrated.
- */
 export function useDownloadState(matchId: string): DownloadStateDTO | undefined {
     const downloadStates = useAppStore((s) => s.downloadStates);
     const setDownloadStates = useAppStore((s) => s.setDownloadStates);
@@ -240,10 +330,6 @@ export function useRetryDownload() {
 /**
  * Returns match stats for a single match, lazily fetched from the REST endpoint.
  *
- * Priority:
- *  1. If the Zustand store already has data (pushed via WS), return that immediately.
- *  2. Otherwise fire a REST call, write the result into the store, and return it.
- *
  * Pass `enabled = false` to defer fetching (e.g. for collapsed rows).
  * Returns `null` if the backend reports no stats yet (HTTP 404).
  */
@@ -293,11 +379,7 @@ export function useTriggerMatchStatsFetch() {
 
 // ---- Map registry ----
 
-/**
- * Fetches the full map asset registry from the backend and stores it in the Zustand app state.
- * Re-polls every 3s if the backend hasn't finished loading the data yet (HTTP 404).
- * Once loaded, the registry is stable and never re-fetched.
- */
+//TODO: This error handling is not good.
 export function useMapRegistry() {
     const setMapRegistry = useAppStore((s) => s.setMapRegistry);
     const existing = useAppStore((s) => s.mapRegistry);
@@ -335,6 +417,60 @@ export function useAgentRegistry() {
             try {
                 const raw = await api.assets.getAllAgents();
                 setAgentRegistry(raw);
+                return raw;
+            } catch (e) {
+                if (e instanceof Error && e.message.startsWith('HTTP 404')) {
+                    return null;
+                }
+                throw e;
+            }
+        },
+        enabled: existing === null,
+        refetchInterval: (query) => query.state.data === null ? 3000 : false,
+        staleTime: Infinity,
+        retry: false,
+    });
+
+    return existing;
+}
+
+export function useWeaponRegistry() {
+    const setWeaponRegistry = useAppStore((s) => s.setWeaponRegistry);
+    const existing = useAppStore((s) => s.weaponRegistry);
+
+    useQuery<Record<string, WeaponAssetDTO> | null>({
+        queryKey: queryKeys.weaponRegistry,
+        queryFn: async () => {
+            try {
+                const raw = await api.assets.getAllWeapons();
+                setWeaponRegistry(raw);
+                return raw;
+            } catch (e) {
+                if (e instanceof Error && e.message.startsWith('HTTP 404')) {
+                    return null;
+                }
+                throw e;
+            }
+        },
+        enabled: existing === null,
+        refetchInterval: (query) => query.state.data === null ? 3000 : false,
+        staleTime: Infinity,
+        retry: false,
+    });
+
+    return existing;
+}
+
+export function useGearRegistry() {
+    const setGearRegistry = useAppStore((s) => s.setGearRegistry);
+    const existing = useAppStore((s) => s.gearRegistry);
+
+    useQuery<Record<string, GearAssetDTO> | null>({
+        queryKey: queryKeys.gearRegistry,
+        queryFn: async () => {
+            try {
+                const raw = await api.assets.getAllGear();
+                setGearRegistry(raw);
                 return raw;
             } catch (e) {
                 if (e instanceof Error && e.message.startsWith('HTTP 404')) {
