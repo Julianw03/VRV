@@ -1,4 +1,4 @@
-<img width="1917" height="943" alt="grafik" src="https://github.com/user-attachments/assets/41b0ec0b-80c6-4c6d-8ba5-6e6fcc8509e2" /># Valorant Replay Viewer (VRV)
+# Valorant Replay Viewer (VRV)
 
 Allows you to download, share, and watch replays as if they were your own in Valorant's replay system.
 
@@ -28,14 +28,15 @@ its use may violate Riot Games’ Terms of Service.
 ## Screenshots
 ### Recent Matches
 <img width="1917" height="943" alt="grafik" src="https://github.com/user-attachments/assets/fdd76236-e99d-4056-bde0-d3779054a8e0" />
+
 ### Saved Replays
 <img width="1913" height="940" alt="grafik" src="https://github.com/user-attachments/assets/a39dd7a1-aade-4813-b84a-37bccc784a26" />
+
 ### Replay Injection
 <img width="1913" height="944" alt="grafik" src="https://github.com/user-attachments/assets/09d264d9-d56c-49ef-b0df-45193f7419a6" />
+
 ### Match Details
 <img width="1911" height="943" alt="grafik" src="https://github.com/user-attachments/assets/59f6f093-d035-4edd-be1b-0f9297baf895" />
-
-
 
 ## More Information
 <details>
