@@ -45,8 +45,8 @@ export class AsyncMapDataBehavior<K extends PropertyKey, V, E extends Error> imp
         const guarded = promise.catch((): TimedOut => TIMED_OUT);
         if (!timeoutMs) return guarded;
 
-        return new Promise<V | TimedOut>((resolve, reject) => {
-            const timer = setTimeout(() => reject(TIMED_OUT), timeoutMs);
+        return new Promise<V | TimedOut>((resolve) => {
+            const timer = setTimeout(() => resolve(TIMED_OUT), timeoutMs);
             guarded.then(result => {
                 clearTimeout(timer);
                 resolve(result);

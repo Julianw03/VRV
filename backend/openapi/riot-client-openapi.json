@@ -2,8 +2,8 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Riot Client API",
-    "version": "133.0.7.4621",
-    "description": "Created with SDK - Version 26.6.0.0"
+    "version": "134.0.4.4664",
+    "description": "Created with SDK - Version 26.6.1.0"
   },
   "servers": [
     {
@@ -32519,6 +32519,39 @@
         }
       }
     },
+    "/vanguard/v1/check-vanguard-service/products/{productId}": {
+      "post": {
+        "tags": [
+          "Plugin vanguard"
+        ],
+        "description": "Check if Vanguard requires a restart for a specific product ",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "2XX": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VanguardPluginState"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/vng/v1/profile/verification/send/{productId}": {
       "post": {
         "tags": [
@@ -58947,6 +58980,32 @@
           }
         }
       },
+      "PatchProxyPluginState": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/PatchProxyUpToDateStatus"
+          },
+          "version": {
+            "type": "string"
+          },
+          "available": {
+            "type": "string"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/ThirdPartyDependencyStatus"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "restartRequired": {
+            "type": "boolean"
+          },
+          "restartWaivedReason": {
+            "type": "string"
+          }
+        }
+      },
       "PatchProxyProduct": {
         "type": "object",
         "properties": {
@@ -59035,6 +59094,14 @@
           "CheckingForUpdate",
           "DependencyUpdate",
           "Paused"
+        ]
+      },
+      "PatchProxyUpToDateStatus": {
+        "type": "string",
+        "enum": [
+          "UpToDate",
+          "Updating",
+          "UpdateAvailable"
         ]
       },
       "PatchRegionLocale": {
@@ -77278,6 +77345,9 @@
           },
           "restartRequired": {
             "type": "boolean"
+          },
+          "restartWaivedReason": {
+            "type": "string"
           }
         }
       },
