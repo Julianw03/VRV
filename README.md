@@ -5,6 +5,8 @@ Allows you to download, share, and watch replays as if they were your own in Val
 > Currently in early development, expect bugs and missing features. The app is not yet feature complete and may be unstable.
 > Please report any issues you encounter and feel free to leave feedback or suggestions in the project's issue tracker.
 
+For technical help you can also join the [Discord](https://discord.com/invite/WgznctjTuj).
+
 ## Project Status 
 As of [Patch 12.10](https://playvalorant.com/en-us/news/game-updates/valorant-patch-notes-12-10/), Valorant now supports viewing replays from friends directly through the official replay system.
 
