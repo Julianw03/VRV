@@ -2,7 +2,7 @@ import { type JSX, useState } from 'react';
 import { groupBy, groupByUnique } from '@/lib/utils.ts';
 import { RoundOverviewTab } from '@/components/match-details/RoundOverviewTab.tsx';
 import { VersusTab } from '@/components/match-details/VersusTab.tsx';
-import { useMatchMetadata, usePlayerUuid } from '@/lib/queries.ts';
+import { useMatchMetadata } from '@/lib/queries.ts';
 import { type Params, useParams } from 'react-router-dom';
 import { MatchOverviewHeader, type MatchOverviewHeaderProps } from '@/components/advancedDetails/MatchOverviewHeader.tsx';
 import { RiotMatchTeam, type TWO_TEAMS_TEAM_ID } from '#/dto/RiotMatchApiReponseDTO.ts';
@@ -17,7 +17,6 @@ type Tab = typeof TABS[keyof typeof TABS];
 const MatchDetailsPage = (): JSX.Element => {
     const { matchId } = useParams<Params>();
     const { data, isLoading, isError } = useMatchMetadata(matchId || '');
-    const highlightPlayer = usePlayerUuid();
     //TODO: Tab selection.
     const [tab] = useState<Tab>(TABS.ROUND_OVERVIEW);
 
@@ -29,7 +28,9 @@ const MatchDetailsPage = (): JSX.Element => {
         return <div>Error loading match data.</div>;
     }
 
-    const highlightPlayerTeam = data.players.find(p => p.puuid === highlightPlayer?.uuid)?.teamId;
+    const highlightPlayer = data.downloadInfo.downloaderId
+
+    const highlightPlayerTeam = data.players.find(p => p.puuid === highlightPlayer)?.teamId;
     const winningTeam = data.teams.find(it => it.won);
     const teamsById = groupByUnique((t => t.teamId), ...data.teams) as Record<TWO_TEAMS_TEAM_ID, RiotMatchTeam>;
     const matchOverviewHeaderData: MatchOverviewHeaderProps = {
@@ -57,7 +58,7 @@ const MatchDetailsPage = (): JSX.Element => {
             return (
                 <>
                     <MatchOverviewHeader data={matchOverviewHeaderData} />
-                    <RoundOverviewTab data={data} highlightPlayerUuid={highlightPlayer?.uuid} /></>
+                    <RoundOverviewTab data={data} highlightPlayerUuid={highlightPlayer} /></>
             );
         case TABS.VERSUS:
             return <>
