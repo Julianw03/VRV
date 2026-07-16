@@ -3,7 +3,7 @@ import { useInView } from 'react-intersection-observer'
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useNewMatchesPoll, useRecentMatches } from '@/lib/queries'
+import { useRecentMatches } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 import { MatchRow, GRID_COLS } from '@/components/recent-matches/MatchRow'
 
@@ -21,10 +21,6 @@ export function RecentMatchesPage() {
   } = useRecentMatches()
 
   const matches = data?.pages.flat() ?? []
-  const newestMatchId = matches[0]?.matchInfo.matchId ?? null
-
-  // Periodically checks for matches newer than `newestMatchId` and prepends them.
-  useNewMatchesPoll(newestMatchId)
 
   // Fires fetchNextPage when the sentinel at the bottom of the list scrolls into view.
   const { ref: loadMoreRef, inView: loadMoreInView } = useInView({ rootMargin: '200px' })

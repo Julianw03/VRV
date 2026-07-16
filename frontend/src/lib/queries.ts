@@ -1,4 +1,3 @@
-import type { InfiniteData } from '@tanstack/react-query';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ConfigOverrides, MatchStatsResult } from '@/lib/api';
 import type { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO.ts';
@@ -21,7 +20,6 @@ export const queryKeys = {
     storedMatches: ['storedMatches'] as const,
     currentShippingVersion: ['currentShippingVersion'] as const,
     recentMatches: ['recentMatches'] as const,
-    newMatchesPoll: (after: UUID | null) => ['recentMatches', 'poll', after] as const,
     downloadStates: ['downloadStates'] as const,
     injectStatus: ['injectStatus'] as const,
     matchStats: (matchId: string) => ['matchStats', matchId] as const,
@@ -157,9 +155,6 @@ export function useUploadReplay() {
 
 // Backend caps `matchHistory.getRecentMatches` at 20 per page (GetRecentMatchesDto).
 export const RECENT_MATCHES_PAGE_SIZE = 15;
-// Backend caps `matchHistory.getNewMatches` at 10 per call (GetNewMatchesDto).
-const NEW_MATCHES_POLL_LIMIT = 10;
-const NEW_MATCHES_POLL_INTERVAL_MS = 15_000;
 
 /**
  * `matchHistory` responses already contain full match data, so seed the
@@ -195,48 +190,6 @@ export function useRecentMatches() {
             lastPage.length < RECENT_MATCHES_PAGE_SIZE
                 ? undefined
                 : lastPage[lastPage.length - 1].matchInfo.matchId,
-    });
-}
-
-/**
- * Periodically checks whether matches newer than the newest one currently known
- * have arrived, and prepends any found to the `useRecentMatches` cache.
- * Disabled until a newest match id is known (i.e. the first page has loaded).
- */
-export function useNewMatchesPoll(newestMatchId: UUID | null) {
-    const queryClient = useQueryClient();
-
-    useQuery({
-        queryKey: queryKeys.newMatchesPoll(newestMatchId),
-        queryFn: async () => {
-            const newMatches = await api.matchHistory.getNewMatches({
-                after: newestMatchId as UUID,
-                limit: NEW_MATCHES_POLL_LIMIT,
-            });
-
-            seedMatchStatsCache(newMatches);
-
-            if (newMatches.length > 0) {
-                queryClient.setQueryData<InfiniteData<RiotMatchApiResponseDTO[], UUID | null>>(
-                    queryKeys.recentMatches,
-                    (old) => {
-                        if (!old) return old;
-                        const knownIds = new Set(old.pages.flat().map((m) => m.matchInfo.matchId));
-                        const uniqueNewMatches = newMatches.filter((m) => !knownIds.has(m.matchInfo.matchId));
-                        if (uniqueNewMatches.length === 0) return old;
-                        return {
-                            ...old,
-                            pages: [[...uniqueNewMatches, ...old.pages[0]], ...old.pages.slice(1)],
-                        };
-                    },
-                );
-            }
-
-            return newMatches;
-        },
-        enabled: newestMatchId !== null,
-        refetchInterval: NEW_MATCHES_POLL_INTERVAL_MS,
-        staleTime: 0,
     });
 }
 

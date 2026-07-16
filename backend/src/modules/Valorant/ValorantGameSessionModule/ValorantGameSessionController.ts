@@ -2,7 +2,7 @@ import {
     ClassSerializerInterceptor,
     Controller,
     Get,
-    NotFoundException,
+    NotFoundException, Param,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
@@ -16,7 +16,7 @@ import { ProductSessionGuard, RequiredProduct } from '@/modules/ProductSessionMo
 @UseGuards(RiotClientReadyGuard, ProductSessionGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller({
-    path: 'caching/valorant-game-sessions',
+    path: 'caching/valorant-game-sessions/match-states',
     version: '1',
 })
 export class ValorantGameSessionController {
@@ -24,7 +24,7 @@ export class ValorantGameSessionController {
         protected readonly valorantGameSessionManager: ValorantGameSessionManager,
     ) {}
 
-    @Get('/match-states')
+    @Get('')
     @ApiOkResponse({
         description:
             'Returns a map of match IDs to their current match status for all matches that are currently registered',
@@ -42,7 +42,7 @@ export class ValorantGameSessionController {
         return entries;
     }
 
-    @Get('/match-states/:matchId')
+    @Get('/:matchId')
     @ApiOkResponse({
         description:
             'Returns the current match status for the specified match ID.',
@@ -51,7 +51,7 @@ export class ValorantGameSessionController {
     @ApiNotFoundResponse({
         description: 'Returned when the specified match ID is not found.',
     })
-    public async getMatchStateById(matchId: UUID) {
+    public async getMatchStateById(@Param('matchId')matchId: UUID) {
         const entry = this.valorantGameSessionManager.getKeyView(matchId);
         if (entry === null) {
             throw new NotFoundException();
