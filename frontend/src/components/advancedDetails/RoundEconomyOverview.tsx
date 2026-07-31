@@ -1,14 +1,15 @@
 import { formatCredits } from '@/lib/utils.ts';
 import { useAgentRegistry, useGearRegistry, useWeaponRegistry } from '@/lib/queries.ts';
-import { TWO_TEAM_ROLE_IDS, type TWO_TEAMS_ROLE_ID } from '#/dto/RiotMatchApiReponseDTO.ts';
+import { TWO_TEAM_ROLE_IDS, type TWO_TEAMS_ROLE_ID } from '#/schemas/RiotMatchApiReponseDTO.ts';
+import type { GUID } from '#/schemas/GUIDSchema.ts';
 
 export interface EconomyPlayerRow {
-    subject: UUID;
-    agentId: UUID;
+    subject: GUID;
+    agentId: GUID;
     gameName: string;
     tagLine: string;
-    weaponId: UUID;
-    armorId: UUID;
+    weaponId: GUID;
+    armorId: GUID;
     remaining: number;
     moneySpend: number;
     loadoutValue: number;
@@ -24,7 +25,7 @@ export interface RoundEconomyData {
 
 export interface RoundEconomyOverviewProps {
     data: RoundEconomyData;
-    highlightPlayer?: UUID;
+    highlightPlayer?: GUID;
 }
 
 const ROLE_ACCENT: Record<TWO_TEAMS_ROLE_ID, string> = {
@@ -126,7 +127,7 @@ function EconomyColumn({
     accent: string;
     rows: EconomyPlayerRow[];
     total: number;
-    highlightPlayer?: UUID;
+    highlightPlayer?: GUID;
 }) {
     return (
         <div>

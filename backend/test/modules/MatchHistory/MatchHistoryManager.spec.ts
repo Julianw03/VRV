@@ -5,8 +5,9 @@ import { RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManag
 import { ValorantMatchStatsManager } from '@/modules/Valorant/ValorantMatchStatsModule/ValorantMatchStatsManager';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { EventType } from '@/core/events/EventTypes';
-import { MatchStatus } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus';
 import * as rxjsAdapters from '@/core/events/adapters/rxjsAdapters';
+import { MatchStatusDTOSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatusDTO.schema';
+import { MatchStatus, MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
 
 // We mock the adapter so we can push events into a Subject we control,
 // instead of needing a real SimpleEventBus wiring.
@@ -60,7 +61,7 @@ describe('MatchHistoryManager', () => {
         it('prepends a match and requests its data when status is ENDED', async () => {
             eventSubject.next({
                 type: EventType.KeyValueUpdated,
-                payload: { key: 'match-1', value: MatchStatus.ENDED },
+                payload: { key: 'match-1', value: MatchStatusSchema.enum.ENDED },
             });
 
             const ids = await manager.getMatchIdsAfter(null, 10);
@@ -71,7 +72,7 @@ describe('MatchHistoryManager', () => {
         it('ignores KeyValueUpdated events whose value is not ENDED', async () => {
             eventSubject.next({
                 type: EventType.KeyValueUpdated,
-                payload: { key: 'match-1', value: MatchStatus.IN_PROGRESS },
+                payload: { key: 'match-1', value: MatchStatusSchema.enum.IN_PROGRESS },
             });
 
             riot.getMatchHistory.mockResolvedValue([]);
@@ -88,7 +89,7 @@ describe('MatchHistoryManager', () => {
         it('ignores a duplicate match id (no double insert, no double fetch)', async () => {
             const evt = {
                 type: EventType.KeyValueUpdated,
-                payload: { key: 'match-1', value: MatchStatus.ENDED },
+                payload: { key: 'match-1', value: MatchStatusSchema.enum.ENDED },
             };
             eventSubject.next(evt);
             eventSubject.next(evt);
@@ -104,7 +105,7 @@ describe('MatchHistoryManager', () => {
 
             eventSubject.next({
                 type: EventType.KeyValueUpdated,
-                payload: { key: 'new-1', value: MatchStatus.ENDED },
+                payload: { key: 'new-1', value: MatchStatusSchema.enum.ENDED },
             });
 
             const ids = await manager.getMatchIdsAfter(null, 10);
@@ -126,7 +127,7 @@ describe('MatchHistoryManager', () => {
             // The live match ends *while* the historical fetch is still pending.
             eventSubject.next({
                 type: EventType.KeyValueUpdated,
-                payload: { key: 'live-1', value: MatchStatus.ENDED },
+                payload: { key: 'live-1', value: MatchStatusSchema.enum.ENDED },
             });
 
             // The pending historical page resolves afterward.
@@ -153,7 +154,7 @@ describe('MatchHistoryManager', () => {
 
             eventSubject.next({
                 type: EventType.KeyValueUpdated,
-                payload: { key: 'live-1', value: MatchStatus.ENDED },
+                payload: { key: 'live-1', value: MatchStatusSchema.enum.ENDED },
             });
 
             // Simulate Riot's own paginated history having since caught up and

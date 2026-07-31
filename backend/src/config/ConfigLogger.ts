@@ -8,11 +8,11 @@ export class ConfigLogger implements OnModuleInit {
 
     constructor(
         @Inject(appConfig.KEY)
-        private readonly config: ConfigType<typeof appConfig>
+        private readonly config: ConfigType<typeof appConfig>,
     ) {
     }
 
     onModuleInit() {
-        this.logger.log('Init with config', this.config)
+        this.logger.log('Init with config', this.config);
     }
 }

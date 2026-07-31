@@ -2,15 +2,18 @@ import {
     ClassSerializerInterceptor,
     Controller,
     Get,
-    NotFoundException, Param,
+    NotFoundException,
+    Param,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
 import { RiotClientReadyGuard } from '@/core/riotclient/RiotClientReadyGuard';
 import { ApiNotFoundResponse, ApiOkResponse } from '@nestjs/swagger';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
-import { MatchStatusDTO } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatusDTO';
 import { ProductSessionGuard, RequiredProduct } from '@/modules/ProductSessionModule/ProductSessionGuard';
+import { MatchStatusDTO } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatusDTO.schema';
+import { MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
+import type { GUID } from '#/schemas/GUIDSchema';
 
 @RequiredProduct('valorant')
 @UseGuards(RiotClientReadyGuard, ProductSessionGuard)
@@ -22,13 +25,14 @@ import { ProductSessionGuard, RequiredProduct } from '@/modules/ProductSessionMo
 export class ValorantGameSessionController {
     constructor(
         protected readonly valorantGameSessionManager: ValorantGameSessionManager,
-    ) {}
+    ) {
+    }
 
     @Get('')
     @ApiOkResponse({
         description:
             'Returns a map of match IDs to their current match status for all matches that are currently registered',
-        type: Map<UUID, MatchStatusDTO>,
+        type: Map<GUID, MatchStatusDTO>,
     })
     @ApiNotFoundResponse({
         description: 'Returned when there is no match in progress registered.',
@@ -46,12 +50,12 @@ export class ValorantGameSessionController {
     @ApiOkResponse({
         description:
             'Returns the current match status for the specified match ID.',
-        type: MatchStatusDTO,
+        type: MatchStatusSchema.type,
     })
     @ApiNotFoundResponse({
         description: 'Returned when the specified match ID is not found.',
     })
-    public async getMatchStateById(@Param('matchId')matchId: UUID) {
+    public async getMatchStateById(@Param('matchId') matchId: GUID) {
         const entry = this.valorantGameSessionManager.getKeyView(matchId);
         if (entry === null) {
             throw new NotFoundException();

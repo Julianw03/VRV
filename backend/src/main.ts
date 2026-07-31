@@ -26,9 +26,6 @@ async function bootstrap() {
     });
     app.enableShutdownHooks();
     app.useWebSocketAdapter(new WsAdapter(app));
-    app.useGlobalPipes(
-        new ValidationPipe({ transform: true, whitelist: true }),
-    );
     app.enableCors({ origin: isDev ? '*' : corsOrigin });
 
     const shutdownService = app.get(ShutdownManager);

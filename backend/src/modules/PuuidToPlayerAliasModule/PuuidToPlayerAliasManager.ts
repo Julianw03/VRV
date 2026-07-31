@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PlayerAlias } from '@/modules/Account/AccountNameAndTagLineModule/PlayerAlias';
 import { type RiotClientService } from '@/core/riotclient/RiotClientService';
 import { RIOT_CLIENT_SERVICE } from '@/core/riotclient/RiotClientTokens';
 import { PlayerAccountLookupV2NamesetsForPuuidResponse, PluginPlayerAccountApi } from '../../../gen';
@@ -7,6 +6,8 @@ import { AsyncMapDataBehavior } from '@/core/data/behaviors/async/AsyncMapDataBe
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { AsyncResultUnion } from '#/utils/AsyncResult';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
+import { GUID } from '#/schemas/GUIDSchema';
+import { PlayerAliasDTO } from '#/schemas/PlayerAlias.schema';
 
 export type PuuidToPlayerAliasErrorUnion = NetworkRequestError;
 
@@ -19,16 +20,16 @@ class NetworkRequestError extends Error {
 @Injectable()
 export class PuuidToPlayerAliasManager extends AsyncMapDataBehavior<
     string,
-    PlayerAlias,
+    PlayerAliasDTO,
     PuuidToPlayerAliasErrorUnion
 > {
-    protected manager: IMapDataManager<string, PlayerAccountLookupV2NamesetsForPuuidResponse, AsyncResultUnion<PlayerAlias, PuuidToPlayerAliasErrorUnion>>;
+    protected manager: IMapDataManager<string, PlayerAccountLookupV2NamesetsForPuuidResponse, AsyncResultUnion<PlayerAliasDTO, PuuidToPlayerAliasErrorUnion>>;
 
     constructor(
         @Inject(RIOT_CLIENT_SERVICE)
         protected readonly riotClientService: RiotClientService,
     ) {
-        const base = new SimpleMapDataManager<UUID, AsyncResultUnion<PlayerAlias, PuuidToPlayerAliasErrorUnion>>();
+        const base = new SimpleMapDataManager<GUID, AsyncResultUnion<PlayerAliasDTO, PuuidToPlayerAliasErrorUnion>>();
         super(base);
     }
 
@@ -54,7 +55,7 @@ export class PuuidToPlayerAliasManager extends AsyncMapDataBehavior<
         }
     }
 
-    protected map(value: PlayerAccountLookupV2NamesetsForPuuidResponse): PlayerAlias {
+    protected map(value: PlayerAccountLookupV2NamesetsForPuuidResponse): PlayerAliasDTO {
         const alias = value.alias;
 
         if (!alias || !alias.gameName || !alias.tagLine) {

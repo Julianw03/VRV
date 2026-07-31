@@ -1,11 +1,11 @@
 import { MonitorOff } from 'lucide-react';
 import { useProductSession } from '@/lib/queries.ts';
-import type { ProductSession } from '#/dto/ProductSessionDTO.ts';
 import type { ReactNode } from 'react';
+import type { ProductSessionDTO } from '#/schemas/ProductSession.schema.ts';
 
 type RequireSessionGuardProps = {
     productId: string;
-    children: (session: ProductSession) => ReactNode;
+    children: (session: ProductSessionDTO) => ReactNode;
 };
 
 export const RequireSessionGuard = (

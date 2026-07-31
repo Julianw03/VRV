@@ -1,40 +1,41 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
-import { MatchStatus } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { EmittingMapDataBehavior } from '@/core/data/behaviors/emission/EmittingMapDataBehavior';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { KeyDataUpdatable } from '@/core/data/interfaces/capabilities/KeyDataUpdatable';
 import { DataDeletable } from '@/core/data/interfaces/capabilities/DataDeletable';
 import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataViewable';
+import { MatchStatus, MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
+import { GUID } from '#/schemas/GUIDSchema';
 
 @Injectable()
-export class ValorantGameSessionManager implements KeyDataUpdatable<UUID, MatchStatus>, DataDeletable, KeyDataViewable<UUID, MatchStatus> {
+export class ValorantGameSessionManager implements KeyDataUpdatable<GUID, MatchStatus>, DataDeletable, KeyDataViewable<GUID, MatchStatus> {
     private readonly manager: IMapDataManager<
-        UUID,
+        GUID,
         MatchStatus,
         MatchStatus
     >;
     private readonly logger = new Logger(this.constructor.name);
 
     constructor(protected readonly eventBus: SimpleEventBus) {
-        const base = new SimpleMapDataManager<UUID, MatchStatus>();
+        const base = new SimpleMapDataManager<GUID, MatchStatus>();
         this.manager = new EmittingMapDataBehavior(base, eventBus, this.constructor.name);
     }
 
-    private latestMatchId: UUID | null = null;
+    private latestMatchId: GUID | null = null;
 
     private static ValidTransitionStates: Record<MatchStatus, MatchStatus[]> = {
-        [MatchStatus.CHAMPION_SELECTION]: [
-            MatchStatus.IN_PROGRESS,
-            MatchStatus.ASSUMED_CANCELLED,
+        [MatchStatusSchema.enum.CHAMPION_SELECTION]: [
+            MatchStatusSchema.enum.IN_PROGRESS,
+            MatchStatusSchema.enum.ASSUMED_CANCELLED,
         ],
-        [MatchStatus.IN_PROGRESS]: [MatchStatus.ENDED],
-        [MatchStatus.ENDED]: [],
+        [MatchStatusSchema.enum.IN_PROGRESS]: [MatchStatusSchema.enum.ENDED],
+        [MatchStatusSchema.enum.ENDED]: [],
         // An example would be quitting a deathmatch game, while its in progress,
         // We could start another game right after, but the game would later on end
         // so we need to allow this transition
-        [MatchStatus.ASSUMED_CANCELLED]: [MatchStatus.ENDED],
+        [MatchStatusSchema.enum.ASSUMED_CANCELLED]: [MatchStatusSchema.enum.ENDED],
     };
 
     private verifyTransition(
@@ -58,15 +59,15 @@ export class ValorantGameSessionManager implements KeyDataUpdatable<UUID, MatchS
         this.manager.deleteState();
     }
 
-    getKeyView(key: UUID): MatchStatus | null {
+    getKeyView(key: GUID): MatchStatus | null {
         return this.manager.getKeyView(key);
     }
 
-    getView(): Record<UUID, MatchStatus> | null {
+    getView(): Record<GUID, MatchStatus> | null {
         return this.manager.getView();
     }
 
-    updateKeyValue(key: UUID, value: MatchStatus): void {
+    updateKeyValue(key: GUID, value: MatchStatus): void {
         const prev = this.getKeyView(key);
         if (!this.verifyTransition(prev, value)) return;
         const prevMatchId = this.latestMatchId;
@@ -74,9 +75,9 @@ export class ValorantGameSessionManager implements KeyDataUpdatable<UUID, MatchS
             this.latestMatchId = key;
             if (prevMatchId !== null) {
                 this.logger.log(
-                    `Got a new match id ${key} that will replace ${prevMatchId} -> Attempting to transition it to ${MatchStatus.ASSUMED_CANCELLED}`,
+                    `Got a new match id ${key} that will replace ${prevMatchId} -> Attempting to transition it to ${MatchStatusSchema.enum.ASSUMED_CANCELLED}`,
                 );
-                this.updateKeyValue(prevMatchId, MatchStatus.ASSUMED_CANCELLED);
+                this.updateKeyValue(prevMatchId, MatchStatusSchema.enum.ASSUMED_CANCELLED);
             }
         }
         this.manager.updateKeyValue(key, value);

@@ -1,0 +1,35 @@
+{
+  "version": {
+    "config": 1,
+    "app": "0.7.0"
+  },
+  "filepaths": {
+    "riot-games-folder": {
+      "relativeToEnvVar": "LOCALAPPDATA",
+      "path": [
+        "Riot Games"
+      ]
+    },
+    "valorant-saved": {
+      "relativeToEnvVar": "LOCALAPPDATA",
+      "path": [
+        "VALORANT",
+        "Saved"
+      ]
+    }
+  },
+  "configurations": {
+    "app": {
+      "port": 3000,
+      "additional-cors-origins": []
+    },
+    "valorant-version-read": {
+      "regex": "CI server version: (\\S*)",
+      "retry-timeout-ms": 5000
+    }
+  },
+  "overrides": {
+    "valorant-version-read": {},
+    "valorant-api": {}
+  }
+}

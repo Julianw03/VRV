@@ -2,12 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { RiotClientService } from '@/core/riotclient/RiotClientService';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { RCUMessageType } from '@/core/riotclient/messaging/RCUMessage';
-import { MatchStatus } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus';
 import { RIOT_CLIENT_SERVICE, RIOT_CLIENT_STATE_DISPATCHING_SERVICE } from '@/core/riotclient/RiotClientTokens';
 import { ForwardedMessage, TrieRCUMessageDispatcher } from '@/core/riotclient/messaging/trie/TrieRCUMessageDispatcher';
 import { AnyPathPattern, parsePatternString } from '@/core/riotclient/messaging/path/PatternParser';
 import type { RiotClientStateDispatcher } from '@/core/riotclient/RiotClientStateDispatcher';
 import { RCUDataAdapter } from '@/core/data/adapters/RCUDataAdapter';
+import { MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
+import { GUID } from '#/schemas/GUIDSchema';
 
 interface RMSMessage {
     ackRequired: boolean;
@@ -48,9 +49,9 @@ export class ValorantMatchEndedRCUAdapter extends RCUDataAdapter<ValorantGameSes
             case RCUMessageType.CREATE:
                 this.logger.log('Received match ended message', data);
                 const typedData = data as unknown as RMSMessage;
-                const matchId = typedData.payload as UUID;
+                const matchId = typedData.payload as GUID;
                 this.logger.log('Received match ended message', data);
-                this.manager.updateKeyValue(matchId, MatchStatus.ENDED);
+                this.manager.updateKeyValue(matchId, MatchStatusSchema.enum.ENDED);
                 break;
             case RCUMessageType.DELETE:
             default:

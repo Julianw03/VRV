@@ -5,8 +5,8 @@ import { queryKeys, useStorageStatus, useStoredMatches } from '@/lib/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { StorageCard } from '@/components/saved-replays/StorageCard';
-import { GRID_COLS, ReplayRow, type ReplayRowButton, ReplayRowButtons } from '@/components/saved-replays/ReplayRow';
 import { UploadReplayDialog } from '@/components/saved-replays/UploadReplayDialog';
+import { ReplayEntry, type ReplayRowButton, ReplayRowButtons } from '@/components/saved-replays/ReplayEntry.tsx';
 
 export function SavedReplaysPage() {
     const queryClient = useQueryClient();
@@ -44,7 +44,7 @@ export function SavedReplaysPage() {
                             <UploadReplayDialog>
                                 <Button variant="outline" size="sm">
                                     <Upload />
-                                    Upload .vrp
+                                    Upload a file
                                 </Button>
                             </UploadReplayDialog>
                             <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isFetching}>
@@ -71,19 +71,8 @@ export function SavedReplaysPage() {
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2">
-                            {/* Column header — same grid template as ReplayRow */}
-                            <div
-                                className="grid items-center gap-3 px-4 text-xs font-medium text-muted-foreground"
-                                style={{ gridTemplateColumns: GRID_COLS }}
-                            >
-                                <div>Queue</div>
-                                <div>Map</div>
-                                <div>User</div>
-                                <div>Downloaded</div>
-                                <div />
-                            </div>
                             {storedMatches.slice()
-                                .sort((a, b) => (b?.downloadInfo?.downloadedAt ?? 0) - (a?.downloadInfo?.downloadedAt ?? 0))
+                                .sort((a, b) => (b?.downloaderMetadata?.downloadedAt ?? 0) - (a?.downloaderMetadata?.downloadedAt ?? 0))
                                 .map((replay) => {
                                     const showDetails = replay.formatVersion !== 1;
 
@@ -98,7 +87,7 @@ export function SavedReplaysPage() {
                                     }
 
                                     return (
-                                        <ReplayRow key={replay.matchInfo.matchId} replay={replay} shownButtons={shownButtons} />
+                                        <ReplayEntry key={replay.uuid} replay={replay} shownButtons={shownButtons} />
                                     );
                                 })
                             }

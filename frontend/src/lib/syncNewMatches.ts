@@ -1,8 +1,10 @@
 import type { InfiniteData } from '@tanstack/react-query';
-import type { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO.ts';
 import { queryClient } from '@/lib/queryClient';
 import { queryKeys } from '@/lib/queries';
 import { useAppStore } from '@/store/useAppStore';
+import type { GUID } from '#/schemas/GUIDSchema.ts';
+import type { RiotMatchMetadata } from '#/schemas/ReplayFormatV2.schema.ts';
+import { compareMatchOrder } from '#/utils/MatchOrdering.ts';
 
 /**
  * Keeps the `recentMatches` query cache in sync with `ValorantMatchStatsManager` WS
@@ -22,21 +24,35 @@ useAppStore.subscribe((state, prevState) => {
         if (result.type !== 'SUCCESS' || prevState.matchStatsCache?.[matchId] === result) continue;
 
         const match = result.data;
-        queryClient.setQueryData<InfiniteData<RiotMatchApiResponseDTO[], UUID | null>>(
+        queryClient.setQueryData<InfiniteData<RiotMatchMetadata[], GUID | null>>(
             queryKeys.recentMatches,
             (old) => {
-                if (!old || old.pages.some((page) => page.some((m) => m.matchInfo.matchId === matchId))) {
+                if (!old || old.pages.some((page) => page.some((m) => m.matchMetadata.matchInfo.matchId === matchId))) {
                     return old;
                 }
-                const firstPage = old.pages[0] ?? [];
-                const insertAt = firstPage.findIndex(
-                    (m) => m.matchInfo.gameStartMillis < match.matchInfo.gameStartMillis,
+
+                const pageSize = old.pages[0]?.length ?? 20;
+
+                const matches = old.pages.flat();
+                matches.push(match);
+
+                matches.sort((a, b) =>
+                    compareMatchOrder(
+                        a.matchMetadata.matchInfo,
+                        b.matchMetadata.matchInfo,
+                    )
                 );
-                const newFirstPage =
-                    insertAt === -1
-                        ? [...firstPage, match]
-                        : [...firstPage.slice(0, insertAt), match, ...firstPage.slice(insertAt)];
-                return { ...old, pages: [newFirstPage, ...old.pages.slice(1)] };
+
+                const pages: RiotMatchMetadata[][] = [];
+
+                for (let i = 0; i < matches.length; i += pageSize) {
+                    pages.push(matches.slice(i, i + pageSize));
+                }
+
+                return {
+                    ...old,
+                    pages,
+                };
             },
         );
     }

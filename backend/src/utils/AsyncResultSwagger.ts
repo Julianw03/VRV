@@ -40,6 +40,8 @@ export async function mapErrorAsync<T, E extends Error>(
         for (const [ErrorCtor, mapper] of errorMap.entries()) {
             if (res.error instanceof ErrorCtor) throw mapper(res.error);
         }
+
+        throw new InternalServerErrorException('Unhandled error type', { cause: res.error });
     }
 
     throw new InternalServerErrorException('Unexpected pending state');

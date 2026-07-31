@@ -1,56 +1,55 @@
-import { EnvConfigV1DTO } from '@/config/ConfigV1DTO';
-import { plainToInstance } from 'class-transformer';
-import yaml from 'js-yaml';
 import fs from 'node:fs';
-import merge from 'lodash.merge'
+import merge from 'lodash.merge';
 import path from 'path';
 import os from 'node:os';
-import { validateSync } from 'class-validator';
 import { registerAs } from '@nestjs/config';
+import { Logger } from '@nestjs/common';
 import { getPackageAwarePath } from '@/utils/PackagedPath';
+import { EnvConfigV1DTO, EnvConfigV1DTOSchema, OverridableConfigV1Schema } from '@/config/ConfigV1.schema';
 
 export const SYMBOL_CONFIG = Symbol('CONFIG');
 
-export const getPersistentPath = () => {
-    const localAppData =
-        process.env.LOCALAPPDATA ??
-        path.join(os.homedir(), 'AppData', 'Local');
-    return path.join(localAppData, 'ValorantReplayViewer');
-}
+class ConfigLoader {
+    private readonly logger = new Logger(this.constructor.name);
 
-export const getConfigOverridesPath = () => {
-    return path.join(getPersistentPath(), 'config-overrides.yml');
-}
-
-export const appConfig = registerAs(SYMBOL_CONFIG, () => {
-    return configLoader();
-});
-
-const configLoader =  (): EnvConfigV1DTO => {
-    let configToUse: any;
-    const defaultConfig = yaml.load(fs.readFileSync(getPackageAwarePath( "config.yml"), 'utf8'));
-    configToUse = merge({}, defaultConfig);
-    try {
-        const configPath = getConfigOverridesPath();
-        console.info(`Attempting to load config overrides from ${configPath}`);
-        const overrides = yaml.load(fs.readFileSync(configPath, 'utf8'));
-        configToUse = merge({}, defaultConfig, overrides);
-    } catch (e) {
-        console.info("Failed to load config overrides, using default config.");
+    public getPersistentPath(): string {
+        const localAppData =
+            process.env.LOCALAPPDATA ??
+            path.join(os.homedir(), 'AppData', 'Local');
+        return path.join(localAppData, 'ValorantReplayViewer');
     }
 
-    const instance = plainToInstance(EnvConfigV1DTO, configToUse, {
-        enableImplicitConversion: true,
-    });
-
-    const errors = validateSync(instance, {
-        whitelist: true,
-        forbidNonWhitelisted: true,
-    });
-
-    if (errors.length > 0) {
-        throw new Error(errors.toString());
+    public getConfigOverridesPath(): string {
+        return path.join(this.getPersistentPath(), 'config-overrides.json');
     }
 
-    return instance;
+    public load(): EnvConfigV1DTO {
+        const defaultConfig = JSON.parse(fs.readFileSync(getPackageAwarePath('config.json'), 'utf8'));
+        let configToUse: any = merge({}, defaultConfig);
+
+        try {
+            const configPath = this.getConfigOverridesPath();
+            this.logger.log(`Attempting to load config overrides from ${configPath}`);
+
+            if (fs.existsSync(configPath)) {
+                const overrides = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                OverridableConfigV1Schema.parse(overrides);
+                configToUse = merge({}, defaultConfig, overrides);
+                return EnvConfigV1DTOSchema.parse(configToUse);
+            } else {
+                this.logger.log(`No config overrides found at ${configPath}`);
+            }
+        } catch (e) {
+            this.logger.warn('Failed to load config overrides, using default config.', e);
+        }
+
+        return EnvConfigV1DTOSchema.parse(defaultConfig);
+    }
 }
+
+const configLoader = new ConfigLoader();
+
+export const getPersistentPath = () => configLoader.getPersistentPath();
+export const getConfigOverridesPath = () => configLoader.getConfigOverridesPath();
+
+export const appConfig = registerAs(SYMBOL_CONFIG, () => configLoader.load());

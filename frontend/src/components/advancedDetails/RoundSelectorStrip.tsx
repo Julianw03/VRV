@@ -1,10 +1,9 @@
 import {
-    RoundResult,
+    type RiotMatchApiResponseDTO,
     TWO_TEAM_ROLE_IDS,
     type TWO_TEAMS_ROLE_ID,
     type TWO_TEAMS_TEAM_ID,
-} from '#/dto/RiotMatchApiReponseDTO.ts';
-import type { PlayerSummary } from '@/lib/api.ts';
+} from '#/schemas/RiotMatchApiReponseDTO.ts';
 
 export const DISPLAY_ROUND_RESULTS = {
     WIN: 'WIN',
@@ -27,6 +26,9 @@ const ROUND_PHASES = {
 };
 
 type RoundPhase = typeof ROUND_PHASES[keyof typeof ROUND_PHASES];
+
+type RoundResult = RiotMatchApiResponseDTO["roundResults"][number]
+type PlayerSummary = RiotMatchApiResponseDTO["players"][number]
 
 export interface RoundChipData {
     roundNum: number;

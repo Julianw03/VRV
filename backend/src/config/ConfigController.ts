@@ -1,26 +1,21 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Delete,
-    Get, Inject,
+    Get,
+    Inject,
     InternalServerErrorException,
-    Logger, NotFoundException,
+    Logger,
+    NotFoundException,
     Post,
 } from '@nestjs/common';
-import {
-    ApiBadRequestResponse,
-    ApiNoContentResponse,
-    ApiNotFoundResponse,
-    ApiOkResponse,
-    ApiOperation,
-} from '@nestjs/swagger';
-import { EnvConfigV1DTO } from '@/config/ConfigV1DTO';
+import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { appConfig, getConfigOverridesPath, getPersistentPath } from '@/config/configLoader';
 import { unlink } from 'node:fs/promises';
 import fs from 'node:fs';
-import yaml from 'js-yaml';
-import { ConfigService, type ConfigType } from '@nestjs/config';
+import { type ConfigType } from '@nestjs/config';
+import { type EnvConfigV1DTO, EnvConfigV1DTOSchema } from '@/config/ConfigV1.schema';
+import { ZodValidationPipe } from 'nestjs-zod';
 
 @Controller({
     path: 'configuration',
@@ -31,7 +26,7 @@ export class ConfigController {
 
     constructor(
         @Inject(appConfig.KEY)
-        private readonly config: ConfigType<typeof appConfig>
+        private readonly config: ConfigType<typeof appConfig>,
     ) {
     }
 
@@ -50,7 +45,7 @@ export class ConfigController {
             description: 'The config that would be saved.',
         },
     )
-    public async validateConfig(@Body() config: EnvConfigV1DTO): Promise<EnvConfigV1DTO> {
+    public async validateConfig(@Body(new ZodValidationPipe(EnvConfigV1DTOSchema)) config: EnvConfigV1DTO): Promise<EnvConfigV1DTO> {
         return config;
     }
 
@@ -75,9 +70,9 @@ export class ConfigController {
             description: 'Can be used to validate a configuration file before saving it. This does not change the current configuration.',
         },
     )
-    public async updateCurrentConfiguration(@Body() config: EnvConfigV1DTO): Promise<EnvConfigV1DTO> {
+    public async updateCurrentConfiguration(@Body(new ZodValidationPipe(EnvConfigV1DTOSchema)) config: EnvConfigV1DTO): Promise<EnvConfigV1DTO> {
         try {
-            const content = yaml.dump(config);
+            const content = JSON.stringify(config);
             await fs.promises.mkdir(getPersistentPath(), { recursive: true });
             await fs.promises.writeFile(getConfigOverridesPath(), content, 'utf8');
             return config;
@@ -90,16 +85,16 @@ export class ConfigController {
     @Get('overrides')
     @ApiNotFoundResponse(
         {
-            description: 'No configuration overrides found'
+            description: 'No configuration overrides found',
         },
     )
     public async readCurrentConfiguration(): Promise<EnvConfigV1DTO> {
         try {
             const content = await fs.promises.readFile(getConfigOverridesPath(), 'utf8');
-            return yaml.load(content) as EnvConfigV1DTO;
+            return JSON.parse(content) as EnvConfigV1DTO;
         } catch (e) {
             this.logger.error('Failed to read config overrides file', e);
-            throw new NotFoundException("No configuration overrides found");
+            throw new NotFoundException('No configuration overrides found');
         }
     }
 

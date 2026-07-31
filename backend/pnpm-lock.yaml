@@ -41,6 +41,9 @@ importers:
       '@nestjs/websockets':
         specifier: ^11.1.19
         version: 11.1.19(@nestjs/common@11.1.19(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.19)(@nestjs/platform-socket.io@11.1.19)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@types/adm-zip':
+        specifier: ^0.5.8
+        version: 0.5.8
       '@types/lodash':
         specifier: ^4.17.24
         version: 4.17.24
@@ -77,6 +80,9 @@ importers:
       multer:
         specifier: ^2.1.1
         version: 2.1.1
+      nestjs-zod:
+        specifier: ^5.4.0
+        version: 5.4.0(@nestjs/common@11.1.19(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/swagger@11.4.2(@nestjs/common@11.1.19(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.19)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2))(rxjs@7.8.2)(zod@4.4.3)
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -89,6 +95,9 @@ importers:
       ws:
         specifier: ^8.20.0
         version: 8.20.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.5
@@ -176,10 +185,10 @@ importers:
         version: 8.59.2(eslint@9.39.4)(typescript@5.9.3)
       vite:
         specifier: ^8.0.11
-        version: 8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)
+        version: 8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0)
       vitest:
         specifier: ^4.1.5
-        version: 4.1.5(@types/node@22.19.18)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1))
+        version: 4.1.5(@types/node@22.19.18)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0))
 
 packages:
 
@@ -1187,6 +1196,9 @@ packages:
 
   '@tybys/wasm-util@0.10.2':
     resolution: {integrity: sha512-RoBvJ2X0wuKlWFIjrwffGw1IqZHKQqzIchKaadZZfnNpsAYp2mM0h36JtPCjNDAHGgYez/15uMBpfGwchhiMgg==}
+
+  '@types/adm-zip@0.5.8':
+    resolution: {integrity: sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q==}
 
   '@types/body-parser@1.19.6':
     resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
@@ -2735,6 +2747,17 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
+  nestjs-zod@5.4.0:
+    resolution: {integrity: sha512-dxVpy1fjfK4kp+ztK+7xQP46fpvZxkeR/jcEdIvEGh/2o71iwXuy/hrKOWSPhJ1nQXV4iBdHqMizndn2GTaXDg==}
+    peerDependencies:
+      '@nestjs/common': ^10.0.0 || ^11.0.0
+      '@nestjs/swagger': ^7.4.2 || ^8.0.0 || ^11.0.0
+      rxjs: ^7.0.0
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      '@nestjs/swagger':
+        optional: true
+
   netmask@2.1.1:
     resolution: {integrity: sha512-eonl3sLUha+S1GzTPxychyhnUzKyeQkZ7jLjKrBagJgPla13F+uQ71HgpFefyHgqrjEbCPkDArxYsjY8/+gLKA==}
     engines: {node: '>= 0.4.0'}
@@ -3603,6 +3626,11 @@ packages:
     resolution: {integrity: sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==}
     engines: {node: '>=18'}
 
+  yaml@2.9.0:
+    resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
     engines: {node: '>=10'}
@@ -3630,6 +3658,9 @@ packages:
   yoctocolors-cjs@2.1.3:
     resolution: {integrity: sha512-U/PBtDf35ff0D8X8D0jfdzHYEPFxAI7jJlxZXwCSez5M3190m+QobIfh+sWDWSHMCWWJN2AWamkegn6vr6YBTw==}
     engines: {node: '>=18'}
+
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
 snapshots:
 
@@ -4525,6 +4556,10 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
+  '@types/adm-zip@0.5.8':
+    dependencies:
+      '@types/node': 22.19.18
+
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
@@ -4740,7 +4775,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.5(@types/node@22.19.18)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1))
+      vitest: 4.1.5(@types/node@22.19.18)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0))
 
   '@vitest/expect@4.1.5':
     dependencies:
@@ -4751,13 +4786,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.5(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1))':
+  '@vitest/mocker@4.1.5(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0))':
     dependencies:
       '@vitest/spy': 4.1.5
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)
+      vite: 8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0)
 
   '@vitest/pretty-format@4.1.5':
     dependencies:
@@ -4786,7 +4821,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
-      vitest: 4.1.5(@types/node@22.19.18)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1))
+      vitest: 4.1.5(@types/node@22.19.18)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0))
 
   '@vitest/utils@4.1.5':
     dependencies:
@@ -6163,6 +6198,15 @@ snapshots:
 
   neo-async@2.6.2: {}
 
+  nestjs-zod@5.4.0(@nestjs/common@11.1.19(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/swagger@11.4.2(@nestjs/common@11.1.19(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.19)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2))(rxjs@7.8.2)(zod@4.4.3):
+    dependencies:
+      '@nestjs/common': 11.1.19(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      deepmerge: 4.3.1
+      rxjs: 7.8.2
+      zod: 4.4.3
+    optionalDependencies:
+      '@nestjs/swagger': 11.4.2(@nestjs/common@11.1.19(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.19)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
+
   netmask@2.1.1: {}
 
   node-abi@3.92.0:
@@ -6936,7 +6980,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1):
+  vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -6948,11 +6992,12 @@ snapshots:
       esbuild: 0.28.0
       fsevents: 2.3.3
       terser: 5.47.1
+      yaml: 2.9.0
 
-  vitest@4.1.5(@types/node@22.19.18)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)):
+  vitest@4.1.5(@types/node@22.19.18)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.5
-      '@vitest/mocker': 4.1.5(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1))
+      '@vitest/mocker': 4.1.5(vite@8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0))
       '@vitest/pretty-format': 4.1.5
       '@vitest/runner': 4.1.5
       '@vitest/snapshot': 4.1.5
@@ -6969,7 +7014,7 @@ snapshots:
       tinyexec: 1.1.2
       tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
-      vite: 8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)
+      vite: 8.0.11(@types/node@22.19.18)(esbuild@0.28.0)(terser@5.47.1)(yaml@2.9.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.19.18
@@ -7072,6 +7117,9 @@ snapshots:
 
   yallist@5.0.0: {}
 
+  yaml@2.9.0:
+    optional: true
+
   yargs-parser@20.2.9: {}
 
   yargs-parser@21.1.1: {}
@@ -7101,3 +7149,5 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yoctocolors-cjs@2.1.3: {}
+
+  zod@4.4.3: {}

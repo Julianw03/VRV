@@ -7,14 +7,15 @@ import { Subscription } from 'rxjs';
 import { onSource } from '@/core/events/adapters/rxjsAdapters';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { EventType } from '@/core/events/EventTypes';
-import { MatchStatus } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus';
 import { KeyValueUpdatedEvent } from '@/core/events/BasicEvent';
-import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
+import { GUID } from '#/schemas/GUIDSchema';
+import { MatchStatus, MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
+import { RiotMatchMetadata } from '#/schemas/ReplayFormatV2.schema';
 
 @Injectable()
 export class MatchHistoryManager implements DataDeletable, OnModuleInit {
-    private readonly orderedMatchIds: UUID[] = [];
-    private readonly knownMatchIds = new Set<UUID>();
+    private readonly orderedMatchIds: GUID[] = [];
+    private readonly knownMatchIds = new Set<GUID>();
     private readonly logger = new Logger(MatchHistoryManager.name);
 
     private loadingMore: Promise<void> | null = null;
@@ -33,8 +34,8 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit {
             .subscribe((it) => {
                     switch (it.type) {
                         case EventType.KeyValueUpdated: {
-                            const typed = it as KeyValueUpdatedEvent<UUID, MatchStatus>;
-                            if (typed.payload.value !== MatchStatus.ENDED) return;
+                            const typed = it as KeyValueUpdatedEvent<GUID, MatchStatus>;
+                            if (typed.payload.value !== MatchStatusSchema.enum.ENDED) return;
                             this.logger.debug(`Match ${typed.payload.key} has ended, prepending to match history`);
                             /**
                              * This is correct under the assumption that a new match that ended is, well
@@ -56,9 +57,9 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit {
         this.remoteMatchHistoryEndReached = false;
     }
 
-    private prepend(matchId: UUID): void {
+    private prepend(matchId: GUID): void {
         if (this.knownMatchIds.has(matchId)) {
-            this.logger.debug(`Prepend for ${ matchId } cancelled: Key already registered.`);
+            this.logger.debug(`Prepend for ${matchId} cancelled: Key already registered.`);
             return;
         }
 
@@ -71,12 +72,12 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit {
 
     private async loadMore(count = 20): Promise<void> {
         if (this.remoteMatchHistoryEndReached) {
-            this.logger.debug("Wont load more data: External API has reached its limit.")
+            this.logger.debug('Wont load more data: External API has reached its limit.');
             return;
         }
 
         if (this.loadingMore) {
-            this.logger.debug("A load is in progress, wont start new one.")
+            this.logger.debug('A load is in progress, wont start new one.');
             return this.loadingMore;
         }
 
@@ -100,30 +101,28 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit {
         );
 
         if (page.length < count) {
-            this.logger.debug("We've seem to have hit the end of the match history. Marking as exhausted.")
+            this.logger.debug('We\'ve seem to have hit the end of the match history. Marking as exhausted.');
             this.remoteMatchHistoryEndReached = true;
         }
 
-        page
-            .sort((a, b) => b.GameStartTime - a.GameStartTime)
-            .forEach(entry => {
-                if (this.knownMatchIds.has(entry.MatchID)) {
-                    return;
-                }
+        page.sort((a, b) => b.GameStartTime - a.GameStartTime);
+        page.forEach(entry => {
+            if (this.knownMatchIds.has(entry.MatchID)) {
+                return;
+            }
 
-                this.knownMatchIds.add(entry.MatchID);
-                this.orderedMatchIds.push(entry.MatchID);
-
-                this.stats.requestMatchFetch(entry.MatchID);
-            });
+            this.knownMatchIds.add(entry.MatchID);
+            this.orderedMatchIds.push(entry.MatchID);
+            this.stats.requestMatchFetch(entry.MatchID);
+        });
     }
 
     public async getMatchIdsAfter(
-        afterMatchId: UUID | null,
+        afterMatchId: GUID | null,
         limit = 10,
-    ): Promise<UUID[]> {
+    ): Promise<GUID[]> {
         if (afterMatchId === null) {
-            this.logger.debug("No after provided, will therefore use / return our latest (newest) match data.")
+            this.logger.debug('No after provided, will therefore use / return our latest (newest) match data.');
             if (this.orderedMatchIds.length < limit) {
                 await this.loadMore();
             }
@@ -153,9 +152,9 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit {
     }
 
     public async getMatchDataAfter(
-        afterMatchId: UUID | null,
+        afterMatchId: GUID | null,
         limit = 10,
-    ): Promise<Record<UUID, RiotMatchApiResponseDTO>> {
+    ): Promise<Record<GUID, RiotMatchMetadata>> {
         const ids = await this.getMatchIdsAfter(afterMatchId, limit);
 
         return this.stats.getBestEffortBatchedResult(
@@ -165,9 +164,9 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit {
     }
 
     public async getMatchIdsBefore(
-        beforeMatchId: UUID,
+        beforeMatchId: GUID,
         limit = 10,
-    ): Promise<UUID[]> {
+    ): Promise<GUID[]> {
         const index = this.orderedMatchIds.indexOf(beforeMatchId);
 
         if (index === -1) {
@@ -180,9 +179,9 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit {
     }
 
     public async getMatchDataBefore(
-        beforeMatchId: UUID,
+        beforeMatchId: GUID,
         limit = 10,
-    ): Promise<Record<UUID, RiotMatchApiResponseDTO>> {
+    ): Promise<Record<GUID, RiotMatchMetadata>> {
         const ids = await this.getMatchIdsBefore(
             beforeMatchId,
             limit,

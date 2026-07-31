@@ -1,5 +1,6 @@
 import {
     BadRequestException,
+    Body,
     ConflictException,
     Controller,
     Delete,
@@ -24,18 +25,29 @@ import {
     ReplayIOManager,
 } from '@/modules/Valorant/ValorantReplays/storage/ReplayIOManager';
 import {
-    ApiCreatedResponse,
+    ApiCreatedResponse, ApiExtraModels,
     ApiNoContentResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
-    ApiOperation,
+    ApiOperation, getSchemaPath,
 } from '@nestjs/swagger';
-import { StorageStatusDTO } from '@/modules/Valorant/ValorantReplays/storage/StorageStatusDTO';
-import { ReplayMetadata } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageFormat';
 import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { DownloadStateDTO } from '#/dto/DownloadStateDTO';
 import { mapErrorAsync } from '@/utils/AsyncResultSwagger';
+import { DownloadStateDTO, DownloadStateDTOSchema } from '#/schemas/DownloadState.schema';
+import { ReplayMetadataV2, ReplayMetadataV2Schema } from '#/schemas/ReplayFormatV2.schema';
+import { StorageStatusDTO, StorageStatusDTOSchema } from '#/schemas/StorageStatusDTO';
+import { ReplayImportSchema } from '#/schemas/upload/ImportReplay.schema';
+import { createZodDto } from 'nestjs-zod';
+
+class StorageStatusModel extends createZodDto(StorageStatusDTOSchema) {
+}
+
+class DownloadStateModel extends createZodDto(DownloadStateDTOSchema) {
+}
+
+class ReplayMetadataV2Model extends createZodDto(ReplayMetadataV2Schema) {
+}
 
 @Controller({
     path: 'plugins/replay/storage',
@@ -74,7 +86,10 @@ export class ReplayIOController {
         summary: 'Get storage status',
         description: 'Returns current status and health of replay storage.',
     })
-    @ApiOkResponse({ description: 'Storage status retrieved.', type: StorageStatusDTO })
+    @ApiOkResponse({
+        description: 'Storage status retrieved.',
+        type: StorageStatusModel,
+    })
     async getStorageStatus(): Promise<StorageStatusDTO> {
         return this.replayIOManager.getStatus();
     }
@@ -84,8 +99,13 @@ export class ReplayIOController {
         summary: 'List stored matches',
         description: 'Returns metadata for all matches currently stored.',
     })
-    @ApiOkResponse({ description: 'List of stored match metadata.' })
-    async listStoredMatches(): Promise<ReplayMetadata[]> {
+    @ApiOkResponse({
+            description: 'List of stored match metadata.',
+            type: ReplayMetadataV2Model,
+            isArray: true,
+        },
+    )
+    async listStoredMatches(): Promise<ReplayMetadataV2[]> {
         return this.replayIOManager.getStoredMatchesMetadata();
     }
 
@@ -96,7 +116,16 @@ export class ReplayIOController {
             'Returns the current in-memory download state for every known match. ' +
             'Intended for initial hydration of the frontend store.',
     })
-    @ApiOkResponse({ description: 'Map of matchId to DownloadState' })
+    @ApiOkResponse({
+        description: 'Map of matchId to DownloadState',
+        schema: {
+            type: 'object',
+            additionalProperties: {
+                $ref: getSchemaPath(DownloadStateModel)
+            }
+        }
+    })
+    @ApiExtraModels(DownloadStateModel)
     async getDownloadStates(): Promise<Record<string, DownloadStateDTO | null>> {
         const view = this.replayIOManager.getView();
         if (!view) {
@@ -105,24 +134,41 @@ export class ReplayIOController {
         return view;
     }
 
-    @Post('matches')
+    @Post('import')
+    @ApiOperation({
+        summary: 'Import a replay',
+        description:
+            'Imports a full replay package (.vrp), a raw replay file (.vrf), or a raw Riot match API response (.json). ' +
+            'The `data` field must contain the JSON-encoded import request describing which of these `file` is.',
+    })
     @UseInterceptors(
         FileInterceptor('file', {
             limits: { fileSize: 200 * 1024 * 1024 },
         }),
     )
-    async uploadReplayPortable(
+    async importReplay(
         @UploadedFile() file: Express.Multer.File,
+        @Body('data') rawData: string,
         @Query('override') override = 'true',
     ): Promise<void> {
         if (!file) throw new BadRequestException('No file uploaded');
-        if (!file.originalname?.toLowerCase().endsWith('.vrp'))
-            throw new BadRequestException('Invalid file type (expected .vrp)');
         if (!file.buffer || file.buffer.length === 0)
             throw new BadRequestException('Uploaded file is empty');
 
+        let parsedData: unknown;
+        try {
+            parsedData = JSON.parse(rawData ?? '{}');
+        } catch {
+            throw new BadRequestException('Invalid JSON in `data` field');
+        }
+
+        const parseResult = ReplayImportSchema.safeParse(parsedData);
+        if (!parseResult.success) {
+            throw new BadRequestException(`Invalid import request: ${parseResult.error.message}`);
+        }
+
         return mapErrorAsync(
-            this.replayIOManager.importMatch(file.buffer, override !== 'false'),
+            this.replayIOManager.importReplay(file.buffer, parseResult.data, override !== 'false'),
             new Map([
                 [MatchAlreadyExistsError, (e) => new ConflictException(e.message)],
                 [IllegalDownloadStateError, (e) => new ConflictException(e.message)],
@@ -164,7 +210,7 @@ export class ReplayIOController {
                 [MatchNotFoundError, (e) => new NotFoundException(e.message)],
                 [IllegalDownloadStateError, (e) => new ConflictException(e.message)],
             ]),
-        )
+        );
     }
 
     @Get('matches/:matchId/metadata')
@@ -172,9 +218,14 @@ export class ReplayIOController {
         summary: 'Get match metadata',
         description: 'Returns detailed metadata for a specific stored match.',
     })
-    @ApiOkResponse({ description: 'Match metadata retrieved.' })
+    @ApiOkResponse(
+        {
+            description: 'Match metadata retrieved.',
+            type: ReplayMetadataV2Model,
+        },
+    )
     @ApiNotFoundResponse({ description: 'Match not found.' })
-    async getMatchMetadata(@Param('matchId') matchId: string): Promise<ReplayMetadata> {
+    async getMatchMetadata(@Param('matchId') matchId: string): Promise<ReplayMetadataV2> {
         return mapErrorAsync(
             this.replayIOManager.loadSavedMetadata(matchId),
             new Map([

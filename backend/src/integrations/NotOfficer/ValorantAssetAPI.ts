@@ -1,67 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { VALORANT_API_BASE_URL } from '@/integrations/NotOfficer/ValorantAPITokens';
-import { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO';
-import { GearAssetDTO } from '#/dto/assets/GearAssetDTO';
-
-
-export interface ResponseWrapper<T> {
-    status: number,
-    data: T,
-}
-
-export interface MapEntry {
-    uuid: UUID,
-    displayName: string,
-    narrativeDescription: string | null,
-    coordinates: string | null,
-    displayIcon: ExternalURL,
-    listViewIcon: ExternalURL,
-    listViewIconTall: ExternalURL,
-    splash: ExternalURL,
-    stylizedBackgroundImage: ExternalURL,
-    premierBackgroundImage: ExternalURL,
-    assetPath: string,
-    mapUrl: string,
-}
-
-export interface WeaponEntry extends WeaponAssetDTO {}
-
-export interface GearEntry extends GearAssetDTO {}
-
-export interface AgentEntry {
-    uuid: UUID,
-    displayName: string,
-    description: string | null,
-    developerName: string,
-    releaseDate: string,
-    characterTags: string[] | null,
-    displayIcon: ExternalURL | null,
-    displayIconSmall: ExternalURL | null,
-    bustPortrait: ExternalURL | null,
-    fullPortrait: ExternalURL | null,
-    fullPortraitV2: ExternalURL | null,
-    killfeedPortrait: ExternalURL | null,
-    minimalPortrait: ExternalURL | null,
-    homeScreenPromoTileImage: ExternalURL | null,
-    background: ExternalURL | null
-    backgroundGradientColors: string[] | null,
-    assetPath: string,
-    isFullPortraitRightFacing: boolean,
-    isPlayableCharacter: boolean,
-    isAvailableForTest: boolean,
-    isBaseContent: boolean,
-}
-
-export interface VersionInfo {
-    manifestId: string,
-    branch: string,
-    version: string,
-    buildVersion: string,
-    engineVersion: string,
-    riotClientVersion: string,
-    riotClientBuild: string,
-    buildDate: string
-}
+import { AgentAssetDTOSchema } from '#/schemas/assets/AgentAssetDTO';
+import { GearAssetDTOSchema } from '#/schemas/assets/GearAssetDTO';
+import { WeaponAssetDTOSchema } from '#/schemas/assets/WeaponAssetDTO';
+import { MapAssetDTOSchema } from '#/schemas/assets/MapAssetDTO';
+import { z } from 'zod';
 
 @Injectable()
 export class ValorantAssetAPI {
@@ -73,7 +16,10 @@ export class ValorantAssetAPI {
     ) {
     }
 
-    protected async fetchAndParse<T>(endpoint: string): Promise<T> {
+    protected async fetchAndParse<T extends z.ZodTypeAny>(
+        endpoint: string,
+        schema: T,
+    ): Promise<z.infer<T>> {
         const url = `${this.baseUrl}${endpoint}`;
 
         this.logger.debug(`Fetching data from ${url}`);
@@ -81,36 +27,45 @@ export class ValorantAssetAPI {
         const response = await fetch(url);
 
         if (!response.ok) {
-            this.logger.error(`Failed to fetch data from ${url}: ${response.status} ${response.statusText}`);
             throw new Error(`Failed to fetch data.`);
         }
 
-        try {
-            const data = await response.json() as ResponseWrapper<T>;
-            return data.data;
-        } catch (e) {
-            this.logger.error(`Failed to parse JSON`, e);
-            throw new Error(`Failed to parse response data.`);
-        }
+        const json = await response.json();
+
+        const parsed = await z.object({
+            status: z.number(),
+            data: schema,
+        }).parseAsync(json);
+
+        // @ts-ignore
+        return parsed.data;
     }
 
-    public async getMapList(): Promise<MapEntry[]> {
-        return this.fetchAndParse<MapEntry[]>('/v1/maps');
+    public async getMapList() {
+        return this.fetchAndParse(
+            '/v1/maps',
+            z.array(MapAssetDTOSchema),
+        );
     }
 
-    public async getWeaponList(): Promise<WeaponEntry[]> {
-        return this.fetchAndParse<WeaponEntry[]>('/v1/weapons');
+    public async getWeaponList() {
+        return this.fetchAndParse(
+            '/v1/weapons',
+            z.array(WeaponAssetDTOSchema),
+        );
     }
 
-    public async getVersionInfo(): Promise<VersionInfo> {
-        return this.fetchAndParse<VersionInfo>('/v1/version');
+    public async getGearList() {
+        return this.fetchAndParse(
+            '/v1/gear',
+            z.array(GearAssetDTOSchema),
+        );
     }
 
-    public async getAgentList(): Promise<AgentEntry[]> {
-        return this.fetchAndParse<AgentEntry[]>('/v1/agents');
-    }
-
-    public async getGearList(): Promise<GearEntry[]> {
-        return this.fetchAndParse<GearEntry[]>('/v1/gear');
+    public getAgentList() {
+        return this.fetchAndParse(
+            '/v1/agents',
+            z.array(AgentAssetDTOSchema),
+        );
     }
 }

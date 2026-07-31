@@ -1,23 +1,28 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ReplayMetadata } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageFormat';
 import path from 'node:path';
 import os from 'node:os';
 import fs from 'node:fs/promises';
-import { StorageStatusDTO } from '@/modules/Valorant/ValorantReplays/storage/StorageStatusDTO';
 import AdmZip from 'adm-zip';
 import { ReplayFetchManager } from '@/modules/Valorant/ValorantReplays/remote/ReplayFetchManager';
 import { AsyncResult } from '#/utils/AsyncResult';
 import { appConfig } from '@/config/configLoader';
 import { type ConfigType } from '@nestjs/config';
-import { DownloadState, DownloadStateDTO } from '#/dto/DownloadStateDTO';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
-import { plainToInstance } from 'class-transformer';
 import { isPathWithin } from '@/utils/PathUtils';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { EmittingMapDataBehavior } from '@/core/data/behaviors/emission/EmittingMapDataBehavior';
 import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataViewable';
 import { CachingMapMappingBehavior } from '@/core/data/behaviors/viewMapping/CachingMapMappingBehavior';
+import { DownloadState, DownloadStateDTO } from '#/schemas/DownloadState.schema';
+import { getResolvedPath } from '@/config/ConfigV1.schema';
+import { ReplayMetadataV2, ReplayMetadataV2Schema } from '#/schemas/ReplayFormatV2.schema';
+import { StorageStatusDTO } from '#/schemas/StorageStatusDTO';
+import { CURRENT_REPLAY_FORMAT_VERSION } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageDTO.schema';
+import { ReplayImportRequest } from '#/schemas/upload/ImportReplay.schema';
+import { ImportData } from '@/modules/Valorant/ValorantReplays/storage/import/ImportHandler';
+import { forType as forImportType } from '@/modules/Valorant/ValorantReplays/storage/import/HandlerFactory';
+import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasManager';
 
 
 type ImportMatchError =
@@ -97,6 +102,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
     constructor(
         protected readonly fetchManager: ReplayFetchManager,
         protected readonly eventBus: SimpleEventBus,
+        protected readonly puuidManager: PuuidToPlayerAliasManager,
         @Inject(appConfig.KEY)
         config: ConfigType<typeof appConfig>,
     ) {
@@ -108,7 +114,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
             path.join(os.homedir(), 'AppData', 'Local');
         this.storageBasePath = path.join(localAppData, 'ValorantReplayViewer', 'replays');
         this.demosDir = path.join(
-            config.filepaths['valorant-saved'].getResolvedPath(),
+            getResolvedPath(config.filepaths['valorant-saved']),
             'Demos',
         );
     }
@@ -172,18 +178,36 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         }
     }
 
-    async getStoredMatchesMetadata(): Promise<ReplayMetadata[]> {
+    async getStoredMatchesMetadata(): Promise<ReplayMetadataV2[]> {
         const matchIds = await this.listStoredMatchIds();
-        const metadataList: ReplayMetadata[] = [];
+        const metadataList: ReplayMetadataV2[] = [];
         for (const matchId of matchIds) {
             try {
-                const metadata = await this.loadSavedMetadataIO(matchId);
+                const contents = await this.getMetadataFileContents(matchId);
+                if (this.isUnsupportedFormat(contents)) {
+                    this.logger.warn(`Metadata for match ${matchId} is in an unsupported format`);
+                    continue;
+                }
+                const metadata = await this.parseMetadataFileContents(contents);
                 metadataList.push(metadata);
             } catch (err) {
                 this.logger.error(`Failed to load metadata for match ${matchId}`, err);
             }
         }
         return metadataList;
+    }
+
+     private isUnsupportedFormat(content: string): boolean {
+        try {
+            const parsed = JSON.parse(content);
+            const replayMetadataVersion = parsed["formatVersion"];
+            if (replayMetadataVersion !== CURRENT_REPLAY_FORMAT_VERSION) {
+                return true;
+            }
+        } catch {
+            return true;
+        }
+        return false;
     }
 
     // TODO: This might become an issue if the number of matches grows large.
@@ -274,24 +298,30 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         }
     }
 
-    private async loadSavedMetadataIO(matchId: string): Promise<ReplayMetadata> {
-        const raw = await fs.readFile(
-            this.metadataFilePath(matchId),
-            'utf-8',
-        );
-        return plainToInstance(
-            ReplayMetadata,
-            JSON.parse(
-                raw,
-            ));
+
+    private getMetadataFileContents(matchId: string): Promise<string> {
+        return fs.readFile(this.metadataFilePath(matchId), 'utf-8');
     }
 
-    public async loadSavedMetadata(matchId: string): Promise<AsyncResult<ReplayMetadata, LoadSavedMetadataError>> {
+    private async parseMetadataFileContents(contents: string): Promise<ReplayMetadataV2> {
+        try {
+            const data = JSON.parse(contents);
+            return await ReplayMetadataV2Schema.parseAsync(data);
+        } catch (e) {
+            this.logger.error(`Failed to parse metadata`, e);
+            throw e
+        }
+    }
+
+    public async loadSavedMetadata(matchId: string): Promise<AsyncResult<ReplayMetadataV2, LoadSavedMetadataError>> {
         const current = this.manager.getKeyView(matchId)?.state ?? null;
         if (current === null) {
             return AsyncResult.failure(new MatchNotFoundError(matchId));
         }
-        return expect(DownloadState.DOWNLOADED, current).flatMapAsync(async () => AsyncResult.fromPromise(this.loadSavedMetadataIO(matchId)));
+        return await expect(DownloadState.DOWNLOADED, current).flatMapAsync(async () => {
+            const content = await this.getMetadataFileContents(matchId);
+            return AsyncResult.fromPromise(this.parseMetadataFileContents(content));
+        });
     }
 
     async handleInitialLoad(): Promise<void> {
@@ -306,6 +336,12 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
 
                 try {
                     const matchExists = await this.matchExistsIO(matchId);
+                    const contents = await this.getMetadataFileContents(matchId);
+                    if (this.isUnsupportedFormat(contents)) {
+                        this.logger.warn(`Metadata for match ${matchId} is in an unsupported format, deleting`);
+                        await this.deleteMatch(matchId);
+                        throw new Error('Unsupported format for match ' + matchId);
+                    }
                     this.manager.updateKeyValue(matchId, matchExists ? DownloadState.DOWNLOADED : DownloadState.FAILED);
                 } catch (err) {
                     this.logger.error(`Failed to load metadata for match ${matchId}`, err);
@@ -313,6 +349,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
                 }
             }),
         );
+        this.logger.log("All matches initialzed")
     }
 
     async moveToValorantDemos(matchId: string): Promise<void> {
@@ -344,7 +381,8 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         }
         this.manager.updateKeyValue(matchId, DownloadState.DOWNLOADING);
         try {
-            const { metadata, replayBuffer, matchDetails } = await this.fetchManager.fetchCombinedReplayData(matchId);
+            const { metadata, replayBuffer } = await this.fetchManager.fetchCombinedReplayData(matchId);
+
             await this.doSaveReplay(matchId, replayBuffer, metadata);
             this.manager.updateKeyValue(matchId, DownloadState.DOWNLOADED);
         } catch (err) {
@@ -356,18 +394,22 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
 
     private async doSaveReplay(
         matchId: string,
-        replayData: Buffer,
-        metadata: ReplayMetadata,
+        replayData: Buffer | undefined,
+        metadata: ReplayMetadataV2,
     ): Promise<void> {
         await fs.mkdir(this.matchDirSafe(matchId), { recursive: true });
-        await fs.writeFile(this.replayFilePath(matchId), replayData);
+        if (replayData) {
+            await fs.writeFile(this.replayFilePath(matchId), replayData);
+        }
         await fs.writeFile(
             this.metadataFilePath(matchId),
             JSON.stringify(metadata, null, 2),
             'utf-8',
         );
         this.logger.log(
-            `Saved replay for match ${matchId} (${replayData.byteLength} bytes)`,
+            replayData
+                ? `Saved replay for match ${matchId} (${replayData.byteLength} bytes)`
+                : `Saved metadata-only entry for match ${matchId}`,
         );
     }
 
@@ -381,51 +423,25 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
     }
 
 
-    public async importMatch(
-        zipBuffer: Buffer,
+    public async importReplay(
+        file: Buffer,
+        request: ReplayImportRequest,
         overrideIfExists = true,
     ): Promise<AsyncResult<void, ImportMatchError>> {
-        let zip: AdmZip;
-
+        let importData: ImportData;
         try {
-            zip = new AdmZip(zipBuffer);
-        } catch {
-            return AsyncResult.failure(new InvalidReplayArchiveError('Invalid zip archive'));
+            const handler = forImportType(request.type, this.puuidManager);
+            importData = await handler.import(file, request);
+        } catch (e) {
+            if (e instanceof InvalidReplayArchiveError) {
+                return AsyncResult.failure(e);
+            }
+            this.logger.error('Failed to process uploaded replay import', e);
+            return AsyncResult.failure(new InvalidReplayArchiveError('Failed to process uploaded file'));
         }
 
-        const entries = zip.getEntries();
-
-        if (entries.length === 0) {
-            return AsyncResult.failure(new InvalidReplayArchiveError('No files found in archive'));
-        }
-
-        const metadataEntry = entries.find((e) =>
-            e.entryName.endsWith('metadata.json'),
-        );
-
-        if (!metadataEntry) {
-            return AsyncResult.failure(new InvalidReplayArchiveError('metadata.json not found in archive'));
-        }
-
-        const replayEntry = entries.find((e) => e.entryName.endsWith('.vrf'));
-
-        if (!replayEntry) {
-            return AsyncResult.failure(new InvalidReplayArchiveError('.vrf file not found in archive'));
-        }
-
-        let metadata: ReplayMetadata;
-
-        try {
-            metadata = plainToInstance(
-                ReplayMetadata,
-                JSON.parse(
-                    metadataEntry.getData().toString('utf-8'),
-                ));
-        } catch {
-            return AsyncResult.failure(new InvalidReplayArchiveError('Invalid metadata.json format'));
-        }
-
-        const matchId = metadata.matchInfo.matchId;
+        const { metadata, replayFile } = importData;
+        const matchId = metadata.uuid;
 
         const current = this.manager.getKeyView(matchId)?.state ?? null;
         switch (current) {
@@ -443,28 +459,17 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         this.manager.updateKeyValue(matchId, DownloadState.DOWNLOADING);
 
         try {
-            const targetDir = this.matchDirSafe(matchId);
-            await fs.mkdir(targetDir, { recursive: true });
-
-            const resolvedTarget = path.resolve(targetDir);
-            for (const entry of entries) {
-                const entryPath = path.normalize(path.resolve(path.join(resolvedTarget, entry.entryName)));
-                if (!isPathWithin(targetDir, entryPath)) {
-                    return AsyncResult.failure(
-                        new InvalidReplayArchiveError(`Archive entry escapes target directory: ${entry.entryName}`),
-                    );
-                }
-            }
-
-            zip.extractAllTo(targetDir, true);
-            this.logger.log(`Imported match ${matchId} from archive`);
+            await this.doSaveReplay(matchId, replayFile, metadata);
+            this.logger.log(`Imported match ${matchId} (type: ${request.type})`);
             this.manager.updateKeyValue(matchId, DownloadState.DOWNLOADED);
-            return AsyncResult.success(undefined);
         } catch (err) {
-            this.logger.error(`Failed to import match ${matchId} from archive`, err);
+            this.logger.error(`Failed to import match ${matchId}`, err);
             this.manager.updateKeyValue(matchId, DownloadState.FAILED);
-            throw new Error('Failed to extract replay archive, see server logs for details');
+            return AsyncResult.failure(new InvalidReplayArchiveError('Failed to save imported replay, see server logs for details'));
         }
+
+        this.updateStorageStatus();
+        return AsyncResult.success(undefined);
     }
 
     async injectReplayOverPlaceholder(
@@ -494,9 +499,5 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
             data,
         );
         this.logger.log(`Restored original replay file for ${matchId}`);
-    }
-
-    getStoreageStatus(): StorageStatusDTO {
-        return this.storageStatus;
     }
 }

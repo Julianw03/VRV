@@ -1,8 +1,9 @@
 import { FacingDirections, type ItemProps } from './SlantedDisplay.tsx';
 import { useAgentRegistry } from '@/lib/queries.ts';
+import type { GUID } from '#/schemas/GUIDSchema.ts';
 
 export interface AgentDisplayProps extends ItemProps {
-    agentId: UUID,
+    agentId: GUID,
     nameBgColorHex: string,
     gameName: string,
     tagLine: string

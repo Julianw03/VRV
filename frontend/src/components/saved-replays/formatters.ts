@@ -22,7 +22,7 @@ export function formatDuration(millis: number): string {
 }
 
 export function truncateId(id: string): string {
-    return id.length > 14 ? `${id.slice(0, 14)}…` : id
+    return id.length > 8 ? `${id.slice(0, 8)}` : id
 }
 
 export function mapDisplayName(mapId: string): string {

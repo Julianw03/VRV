@@ -56,10 +56,16 @@ export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModule
         if (this.manager.getView()?.state !== InjectState.IDLE) {
             throw new ConflictException('An inject process is already running');
         }
-        if (!this.ioManager.matchRegistered(matchId)) {
-            throw new NotFoundException(
-                `Match ${matchId} is not in persistent storage`,
-            );
+
+        const metadata = await this.ioManager.loadSavedMetadata(matchId);
+        if (!metadata.isSuccess()) {
+            throw new ConflictException(`Failed to load metadata for match ${matchId}`);
+        }
+
+        const hasReplay = metadata.data?.replayFileMetadata !== undefined
+
+        if (!hasReplay) {
+            throw new ConflictException(`Match ${matchId} has no replay file.`);
         }
 
         this.targetMatchId = matchId;
@@ -73,7 +79,7 @@ export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModule
                 );
 
             const validPlaceholder = matches.find(entry =>
-                entry.matchInfo.isReplayRecorded,
+                entry.matchMetadata.matchInfo.isReplayRecorded,
             );
 
             if (!validPlaceholder) {
@@ -82,7 +88,7 @@ export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModule
                 );
             }
 
-            this.placeholderMatchId = validPlaceholder.matchInfo.matchId;
+            this.placeholderMatchId = validPlaceholder.matchMetadata.matchInfo.matchId;
             this.manager.updateValue({
                 state: InjectState.DOWNLOADING_PLACEHOLDER,
                 targetMatchId: this.targetMatchId,

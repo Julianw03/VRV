@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDownloadStateFlags, useRetryDownload, useTriggerDownload } from '@/lib/queries';
 import { cn } from '@/lib/utils';
-import type { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO.ts';
 import { mapDisplayName } from '@/components/saved-replays/formatters';
 import { MatchStatsPanel } from './MatchStatsPanel';
 import { useAppStore } from '@/store/useAppStore';
 import { useRelativeTime } from '@/hooks/useRelativeTime.ts';
 import { OutdatedTag } from '@/components/OutdatedTag';
+import type { RiotMatchApiResponseDTO } from '#/schemas/RiotMatchApiReponseDTO.ts';
 
 // Shared grid layout: queue | map | date | tags | actions
 export const GRID_COLS = '7rem 6rem 1fr 4rem 6rem' as const;
@@ -93,10 +93,9 @@ export function MatchRow({ match }: MatchRowProps) {
     const relativeTime = useRelativeTime(match.matchInfo.gameStartMillis);
 
     const matchStats = useAppStore((s) => s.matchStatsCache?.[matchId]);
-    const mapId = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo.mapId : null;
+    const mapId = matchStats?.type === 'SUCCESS' ? matchStats.data.matchMetadata.matchInfo.mapId : null;
     const mapAsset = useAppStore((s) => (mapId ? s.mapRegistry?.[mapId] ?? null : null));
-    const isDownloadAvailable = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo?.isReplayRecorded : false;
-    const matchGameVersion = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo.gameVersion : null;
+    const matchGameVersion = matchStats?.type === 'SUCCESS' ? matchStats.data.matchMetadata.matchInfo.gameVersion : null;
 
     return (
         <Collapsible
@@ -145,7 +144,7 @@ export function MatchRow({ match }: MatchRowProps) {
                 </div>
                 <div className="flex items-center justify-end gap-1">
                     <DownloadButton
-                        canDownload={canDownload && isDownloadAvailable}
+                        canDownload={canDownload}
                         isDownloading={isDownloading}
                         isFailed={isFailed}
                         isDownloaded={isDownloaded}

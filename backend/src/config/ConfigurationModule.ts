@@ -5,7 +5,7 @@ import { ConfigController } from '@/config/ConfigController';
 
 @Module({
     imports: [ConfigModule],
-    providers: [ConfigLogger, ConfigController],
+    providers: [ConfigLogger],
     controllers: [ConfigController],
     exports: [ConfigLogger]
 })

@@ -1,14 +1,16 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ConfigOverrides, MatchStatsResult } from '@/lib/api';
-import type { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO.ts';
 import { api } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
-import type { ProductSession } from '#/dto/ProductSessionDTO.ts';
-import { DownloadState, type DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
-import type { MapAssetDTO } from '#/dto/assets/MapAssetDTO.ts';
-import type { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO.ts';
-import type { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO.ts';
-import type { GearAssetDTO } from '#/dto/assets/GearAssetDTO.ts';
+import type { GUID } from '#/schemas/GUIDSchema.ts';
+import { DownloadState, type DownloadStateDTO } from '#/schemas/DownloadState.schema.ts';
+import type { MapAssetDTO } from '#/schemas/assets/MapAssetDTO.ts';
+import type { AgentAssetDTO } from '#/schemas/assets/AgentAssetDTO.ts';
+import type { WeaponAssetDTO } from '#/schemas/assets/WeaponAssetDTO.ts';
+import type { GearAssetDTO } from '#/schemas/assets/GearAssetDTO.ts';
+import type { ProductSessionDTO } from '#/schemas/ProductSession.schema.ts';
+import type { RiotMatchMetadata } from '#/schemas/ReplayFormatV2.schema.ts';
+import type { ReplayImportRequest } from '#/schemas/upload/ImportReplay.schema.ts';
 
 // ---- Query keys ----
 
@@ -58,27 +60,27 @@ export function usePlayerAlias() {
         },
         enabled: existing === null,
         staleTime: Infinity,
-        retry: 3
-    })
+        retry: 3,
+    });
 
     return existing;
 }
 
 export function usePlayerUuid() {
-    const existing = useAppStore((s) => s.playerUuid)
+    const existing = useAppStore((s) => s.playerUuid);
     const setPlayerUuid = useAppStore((s) => s.setPlayerUuid);
 
     useQuery({
         queryKey: queryKeys.playerUuid,
         queryFn: async () => {
-            const uuid = await api.account.getPuuid()
-            setPlayerUuid(uuid)
+            const uuid = await api.account.getPuuid();
+            setPlayerUuid(uuid);
             return uuid;
         },
         enabled: existing === null,
         staleTime: Infinity,
-        retry: 3
-    })
+        retry: 3,
+    });
 
     return existing;
 }
@@ -142,8 +144,8 @@ export function useDeleteMatch() {
 export function useUploadReplay() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ file, override }: { file: File; override: boolean }) =>
-            api.storage.uploadReplay(file, override),
+        mutationFn: ({ file, data, override }: { file: File; data: ReplayImportRequest; override: boolean }) =>
+            api.storage.importReplay(file, data, override),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.storedMatches });
             queryClient.invalidateQueries({ queryKey: queryKeys.storageStatus });
@@ -161,10 +163,10 @@ export const RECENT_MATCHES_PAGE_SIZE = 15;
  * `matchStatsCache` store from them for any match that isn't cached yet.
  * This lets `useMatchStats` skip its own fetch once a row is expanded.
  */
-function seedMatchStatsCache(matches: RiotMatchApiResponseDTO[]) {
+function seedMatchStatsCache(matches: RiotMatchMetadata[]) {
     const { matchStatsCache, setMatchStat } = useAppStore.getState();
     for (const match of matches) {
-        const matchId = match.matchInfo.matchId;
+        const matchId = match.matchMetadata.matchInfo.matchId;
         if (matchStatsCache?.[matchId] === undefined) {
             setMatchStat(matchId, { type: 'SUCCESS', data: match });
         }
@@ -181,15 +183,18 @@ export function useRecentMatches() {
     return useInfiniteQuery({
         queryKey: queryKeys.recentMatches,
         queryFn: async ({ pageParam }) => {
-            const matches = await api.matchHistory.getRecentMatches({ after: pageParam, limit: RECENT_MATCHES_PAGE_SIZE });
+            const matches = await api.matchHistory.getRecentMatches({
+                after: pageParam,
+                limit: RECENT_MATCHES_PAGE_SIZE,
+            });
             seedMatchStatsCache(matches);
             return matches;
         },
-        initialPageParam: null as UUID | null,
+        initialPageParam: null as GUID | null,
         getNextPageParam: (lastPage) =>
             lastPage.length < RECENT_MATCHES_PAGE_SIZE
                 ? undefined
-                : lastPage[lastPage.length - 1].matchInfo.matchId,
+                : lastPage[lastPage.length - 1]?.matchMetadata?.matchInfo?.matchId,
     });
 }
 
@@ -206,7 +211,7 @@ export function useShippingVersion() {
         },
         enabled: existing === null,
         staleTime: Infinity,
-        retry: 3
+        retry: 3,
     });
 
     return existing;
@@ -245,13 +250,13 @@ export function useDownloadStateFlags(matchId: string) {
 
     return {
         /** No entry exists or the last attempt failed — a download can be started. */
-        canDownload:   dto === undefined || dto.state === DownloadState.FAILED,
+        canDownload: dto === undefined || dto.state === DownloadState.FAILED,
         /** A download is currently in progress. */
         isDownloading: dto?.state === DownloadState.DOWNLOADING,
         /** The download failed and can be retried. */
-        isFailed:      dto?.state === DownloadState.FAILED,
+        isFailed: dto?.state === DownloadState.FAILED,
         /** The replay is locally stored and ready to use. */
-        isDownloaded:  dto?.state === DownloadState.DOWNLOADED,
+        isDownloaded: dto?.state === DownloadState.DOWNLOADED,
         /** The raw DTO — useful when you need the state value itself. */
         dto,
     } as const;
@@ -460,7 +465,7 @@ export function useProductSessionRegistry() {
     return sessionRegistry;
 }
 
-export function useProductSession(productId: string): ProductSession | null {
+export function useProductSession(productId: string): ProductSessionDTO | null {
     const registry = useProductSessionRegistry();
     if (!registry) return null;
     return Object.values(registry).find((s) => s.productId === productId) ?? null;
