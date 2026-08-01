@@ -21,9 +21,9 @@ export function ConnectPage() {
     <div className="relative flex h-screen flex-col items-center justify-center gap-8 p-8">
       {/* Logo */}
       <div className="flex flex-col items-center gap-3">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">
-          <Zap className="size-7 text-primary-foreground" />
-        </div>
+        {/*<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">*/}
+        {/*  <Zap className="size-7 text-primary-foreground" />*/}
+        {/*</div>*/}
         <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight">VRV</h1>
           <p className="text-sm text-muted-foreground">Valorant Replay Viewer</p>

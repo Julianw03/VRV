@@ -80,13 +80,6 @@ export function ReplayEntryMenu({
                     </DropdownMenuItem>
                 </InjectTooltip>
 
-                <DropdownMenuItem asChild disabled={!showDownload}>
-                    <a href={downloadHref} download={downloadFilename} className="gap-2">
-                        <Download className="icon-sm" />
-                        Download
-                    </a>
-                </DropdownMenuItem>
-
                 <DropdownMenuSeparator />
 
                 <DropdownMenuLabel>Details</DropdownMenuLabel>
@@ -111,10 +104,16 @@ export function ReplayEntryMenu({
                 </Tooltip>
 
                 <DropdownMenuSeparator />
-                <>
+                <DropdownMenuLabel>Replay Package</DropdownMenuLabel>
+                <DropdownMenuItem asChild disabled={!showDownload}>
+                    <a href={downloadHref} download={downloadFilename} className="gap-2">
+                        <Download className="icon-sm" />
+                        Download
+                    </a>
+                </DropdownMenuItem>
 
-                    {/* onSelect preventDefault stops Radix from closing (and
-                            refocusing) the menu before the confirm dialog opens. */}
+                <DropdownMenuSeparator />
+                <>
                     <ConfirmDialog
                         title="Delete replay?"
                         description={<>

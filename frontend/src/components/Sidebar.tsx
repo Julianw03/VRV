@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BugPlay, ChevronDown, Clock, HardDrive, Settings, Zap } from 'lucide-react';
+import { BugPlay, ChevronDown, Clock, HardDrive, Settings } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Sidebar,
@@ -11,7 +11,8 @@ import {
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem, SidebarRail,
+    SidebarMenuItem,
+    SidebarRail,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ConnectionStatus } from '@/components/ConnectionStatus';
@@ -19,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { ShutdownButton } from '@/components/ShutdownButton';
 
 const replayNavItems = [
-    { title: 'Saved Replays', path: '/saved', icon: HardDrive },
+    { title: 'Saved Matches', path: '/saved', icon: HardDrive },
     { title: 'Recent Matches', path: '/recent', icon: Clock },
     { title: 'Injector', path: '/injector', icon: BugPlay },
 ];
@@ -34,12 +35,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <Sidebar variant="inset" {...props}>
             <SidebarHeader>
                 <div className="flex items-center gap-2.5 px-2 py-1.5">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-                        <Zap className="size-4 text-primary-foreground" />
-                    </div>
+                    {/*<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">*/}
+                    {/*    <Zap className="size-4 text-primary-foreground" />*/}
+                    {/*</div>*/}
                     <div>
                         <p className="text-sm font-semibold leading-none">VRV</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Replay Viewer</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">Valorant Replay Viewer</p>
                     </div>
                 </div>
             </SidebarHeader>

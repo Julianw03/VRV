@@ -155,8 +155,8 @@ export function ReplayEntry({
 
                 {/* Status + controls — paired in one cell, mirroring the mockup's
                     "label on the left, icon cluster on the right" last column. */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center">
+                <div className="flex items-center justify-end">
+                    <div className="flex items-center px-2">
                         <OutdatedTag matchGameVersion={matchInfo?.gameVersion} />
                     </div>
 

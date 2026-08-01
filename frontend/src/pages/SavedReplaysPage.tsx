@@ -44,7 +44,7 @@ export function SavedReplaysPage() {
                             <UploadReplayDialog>
                                 <Button variant="outline" size="sm">
                                     <Upload />
-                                    Upload a file
+                                    Upload
                                 </Button>
                             </UploadReplayDialog>
                             <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isFetching}>

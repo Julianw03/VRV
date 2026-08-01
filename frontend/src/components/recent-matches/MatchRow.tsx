@@ -68,7 +68,7 @@ function DownloadButton({
         <Button
             size="icon-sm"
             variant="ghost"
-            title="Download replay"
+            title="Download data"
             disabled={!canDownload}
             onClick={onDownload}
         >

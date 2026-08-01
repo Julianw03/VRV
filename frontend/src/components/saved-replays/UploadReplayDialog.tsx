@@ -23,13 +23,13 @@ const UPLOAD_TYPE_OPTIONS: {
     {
         type: ReplayFileTypeSchema.enum.package,
         label: 'Full Package',
-        description: 'Replay + metadata bundle',
+        description: 'VRV Replay Package',
         icon: FileArchive,
     },
     {
         type: ReplayFileTypeSchema.enum.replayFile,
         label: 'Raw Replay',
-        description: 'Just the replay file',
+        description: 'Valorant Replay File',
         icon: FileVideo,
     },
     {

@@ -23,6 +23,7 @@ import { ReplayImportRequest } from '#/schemas/upload/ImportReplay.schema';
 import { ImportData } from '@/modules/Valorant/ValorantReplays/storage/import/ImportHandler';
 import { forType as forImportType } from '@/modules/Valorant/ValorantReplays/storage/import/HandlerFactory';
 import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasManager';
+import { createHash } from 'node:crypto';
 
 
 type ImportMatchError =
@@ -423,15 +424,36 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
     }
 
 
+    async postImportValidate(importData: ImportData): Promise<ImportData> {
+        const  {replayFile: replay, metadata: metadata} = importData;
+        const schemaValidated = await ReplayMetadataV2Schema.parseAsync(metadata);
+
+        if (!!schemaValidated.replayFileMetadata) {
+            if (!replay) throw new InvalidReplayArchiveError("Expected replay file");
+            const checksum = createHash('sha256').update(replay).digest('hex');
+            if (schemaValidated.replayFileMetadata.checksum !== checksum) {
+                throw new InvalidReplayArchiveError("Replay file hash does not match metadata checksum.")
+            }
+        }
+
+        return {
+            replayFile: replay,
+            metadata: schemaValidated,
+        }
+    }
+
     public async importReplay(
         file: Buffer,
         request: ReplayImportRequest,
-        overrideIfExists = true,
+        overrideIfExists = false,
     ): Promise<AsyncResult<void, ImportMatchError>> {
         let importData: ImportData;
+        //TODO: restructure this.
         try {
             const handler = forImportType(request.type, this.puuidManager);
-            importData = await handler.import(file, request);
+            const untrustedImport = await handler.import(file, request);
+            this.logger.debug("Initial Import handler done. Will now run validation.");
+            importData = await this.postImportValidate(untrustedImport);
         } catch (e) {
             if (e instanceof InvalidReplayArchiveError) {
                 return AsyncResult.failure(e);
@@ -445,8 +467,10 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
 
         const current = this.manager.getKeyView(matchId)?.state ?? null;
         switch (current) {
+            //TODO: Are these two checks correct ?
             case DownloadState.DOWNLOADED:
                 if (!overrideIfExists) {
+                    this.logger.debug("Rejecting upload: Internal state marked as downloaded.")
                     return AsyncResult.failure(new MatchAlreadyExistsError(matchId));
                 }
             //Otherwise we can just continue, Fallthrough intended
@@ -459,6 +483,11 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         this.manager.updateKeyValue(matchId, DownloadState.DOWNLOADING);
 
         try {
+            const exists = await this.matchExistsIO(matchId);
+            if (exists && !overrideIfExists) {
+                this.logger.debug(`Rejecting import for ${matchId}: Already exists and no override provided.`)
+                throw new MatchAlreadyExistsError(matchId);
+            }
             await this.doSaveReplay(matchId, replayFile, metadata);
             this.logger.log(`Imported match ${matchId} (type: ${request.type})`);
             this.manager.updateKeyValue(matchId, DownloadState.DOWNLOADED);

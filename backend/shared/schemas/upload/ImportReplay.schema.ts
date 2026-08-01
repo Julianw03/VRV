@@ -8,7 +8,7 @@ export const ReplayFileTypeSchema = z.enum([
 ]);
 
 const BaseImportSchema = z.object({
-    userMetadata: UserMetadataSchema.optional().nullable(),
+    userMetadata: UserMetadataSchema.optional().nullable()
 });
 
 export const ReplayImportSchema = z.discriminatedUnion("type", [

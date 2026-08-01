@@ -26,10 +26,12 @@ export class FullPackageImportHandler implements ImportHandler {
             throw new InvalidReplayArchiveError('No files found in archive');
         }
 
-        const [metadata, replayBuffer] = await Promise.all([
-            this.handleMetadata(entries),
-            this.handleReplayFile(entries)
-        ]);
+        const metadata = await this.handleMetadata(entries);
+
+        let replayBuffer: Buffer | undefined = undefined;
+        if (!!metadata.replayFileMetadata) {
+            replayBuffer = await this.handleReplayFile(entries);
+        }
 
         if (request.userMetadata) {
             metadata.userMetadata = request.userMetadata;

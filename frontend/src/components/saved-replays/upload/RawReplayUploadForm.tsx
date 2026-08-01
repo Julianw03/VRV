@@ -29,10 +29,6 @@ export function RawReplayUploadForm({ onUploaded }: { onUploaded: () => void }) 
                     onChange={(e) => setMatchUuid(e.target.value)}
                     aria-invalid={matchUuid.length > 0 && !matchUuidValid}
                 />
-                <p className="text-xs text-muted-foreground">
-                    A raw <code className="font-mono">.vrf</code> file has no embedded match ID — provide the match
-                    UUID this replay belongs to.
-                </p>
             </div>
         </ReplayUploadForm>
     );
