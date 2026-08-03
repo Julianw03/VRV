@@ -4,7 +4,6 @@ import type { GUID } from '#/schemas/GUIDSchema.ts';
 
 export interface AgentDisplayProps extends ItemProps {
     agentId: GUID,
-    nameBgColorHex: string,
     gameName: string,
     tagLine: string
 }
@@ -14,7 +13,6 @@ const AgentDisplayComponent = (
         agentId,
         gameName,
         isSelected,
-        nameBgColorHex,
         direction,
         currentTilt,
     }: AgentDisplayProps,
@@ -39,9 +37,7 @@ const AgentDisplayComponent = (
         )`
             : undefined;
 
-    const offset = {
-        backgroundColor: nameBgColorHex,
-    } as React.CSSProperties;
+    const offset = {} as React.CSSProperties;
     if (direction === FacingDirections.LEFT) {
         offset.paddingLeft = `${currentTilt}px`;
     } else {
@@ -74,7 +70,7 @@ const AgentDisplayComponent = (
                 >
                 </div>
             </div>
-            <div className={'flex w-full justify-center items-center z-1'} style={{background: nameBgColorHex}}>
+            <div className={'flex w-full justify-center items-center z-1 bg-muted'}>
                 <span className={'flex-1 shrink-0 truncate text-center text-sm'}
                       style={offset}>{gameName}</span>
             </div>

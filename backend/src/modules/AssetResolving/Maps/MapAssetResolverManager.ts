@@ -1,9 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
-import { appConfig } from '@/config/configLoader';
-import type { ConfigType } from '@nestjs/config';
 import { AssetResolverManager } from '@/modules/AssetResolving/common/AssetResolverManager';
 import { MapAssetDTO } from '#/schemas/assets/MapAssetDTO';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 export type MapId = string;
 
@@ -11,8 +10,8 @@ export type MapId = string;
 export class MapAssetResolverManager extends AssetResolverManager<MapId, MapAssetDTO, MapAssetDTO> {
     constructor(
         valorantAssetAPI: ValorantAssetAPI,
-        @Inject(appConfig.KEY)
-        config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        config: AppConfig,
     ) {
         super(valorantAssetAPI, config);
     }

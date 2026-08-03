@@ -111,7 +111,6 @@ export type OverrideConfig = z.infer<typeof OverrideConfig>;
 // Root DTO
 // ---------------------------------------------------------------------------
 
-
 export const EnvConfigV1DTOSchema = z.object({
     version: VersionConfig,
     filepaths: FilepathConfig,
@@ -121,8 +120,33 @@ export const EnvConfigV1DTOSchema = z.object({
 
 export type EnvConfigV1DTO = z.infer<typeof EnvConfigV1DTOSchema>;
 
-export const OverridableConfigV1Schema = EnvConfigV1DTOSchema.omit({
-    version: true,
-}).strict();
+// ---------------------------------------------------------------------------
+// Overridable subset
+//
+// Every level is partial so a user can supply only the keys they care about.
+// Built from partial-ized pieces rather than `EnvConfigV1DTOSchema.omit(...)`
+// so that `.default()` values on leaf fields are not materialized into the
+// override object and merged over real base-config values.
+// ---------------------------------------------------------------------------
+
+export const OverridableConfigV1Schema = z
+    .object({
+        filepaths: FilepathConfig.partial().strict().optional(),
+        configurations: z
+            .object({
+                app: AppConfigurationConfig.partial().strict().optional(),
+                'valorant-version-read': VersionReadConfiguration.partial().strict().optional(),
+            })
+            .strict()
+            .optional(),
+        overrides: z
+            .object({
+                'valorant-api': ValorantApiOverrides.strict().optional(),
+                'valorant-version-read': ValorantVersionReadOverrides.strict().optional(),
+            })
+            .strict()
+            .optional(),
+    })
+    .strict();
 
 export type OverridableConfigV1 = z.infer<typeof OverridableConfigV1Schema>;

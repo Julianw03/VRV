@@ -123,18 +123,10 @@ export const KillSchema = z.object({
         damageType: z.string(),
         damageItem: z.string().optional().nullable(),
         isSecondaryFireMode: z.boolean().optional().nullable(),
-    }).superRefine((data, ctx) => {
-        if (!['Ability', 'Bomb', 'Melee', 'Fall'].includes(data.damageType)) {
-            if (!GUIDSchema.safeParse(data.damageItem).success) {
-                ctx.addIssue({
-                    code: 'custom',
-                    path: ['damageItem'],
-                    message: 'Expected GUID for non-Ability and non-Bomb damage types',
-                });
-            }
-        }
-    }),
+    })
 });
+
+// Finishing Damage can be ['Ability', 'Bomb', 'Melee', 'Fall', 'Weapon'] as of now.
 
 export type Kill = z.infer<typeof KillSchema>;
 

@@ -5,7 +5,6 @@ import fs from 'node:fs/promises';
 import AdmZip from 'adm-zip';
 import { ReplayFetchManager } from '@/modules/Valorant/ValorantReplays/remote/ReplayFetchManager';
 import { AsyncResult } from '#/utils/AsyncResult';
-import { appConfig } from '@/config/configLoader';
 import { type ConfigType } from '@nestjs/config';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { isPathWithin } from '@/utils/PathUtils';
@@ -24,6 +23,7 @@ import { ImportData } from '@/modules/Valorant/ValorantReplays/storage/import/Im
 import { forType as forImportType } from '@/modules/Valorant/ValorantReplays/storage/import/HandlerFactory';
 import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasManager';
 import { createHash } from 'node:crypto';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 
 type ImportMatchError =
@@ -104,8 +104,8 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         protected readonly fetchManager: ReplayFetchManager,
         protected readonly eventBus: SimpleEventBus,
         protected readonly puuidManager: PuuidToPlayerAliasManager,
-        @Inject(appConfig.KEY)
-        config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        config: AppConfig
     ) {
         const base = new SimpleMapDataManager<string, DownloadState>();
         const map = new CachingMapMappingBehavior(base, ReplayIOManager.map);

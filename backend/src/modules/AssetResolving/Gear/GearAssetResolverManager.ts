@@ -1,10 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
-import { appConfig } from '@/config/configLoader';
-import type { ConfigType } from '@nestjs/config';
 import { AssetResolverManager } from '@/modules/AssetResolving/common/AssetResolverManager';
 import { GUID } from '#/schemas/GUIDSchema';
 import { GearAssetDTO } from '#/schemas/assets/GearAssetDTO';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 export type GearId = GUID;
 
@@ -12,8 +11,8 @@ export type GearId = GUID;
 export class GearAssetResolverManager extends AssetResolverManager<GearId, GearAssetDTO, GearAssetDTO> {
     constructor(
         valorantAssetAPI: ValorantAssetAPI,
-        @Inject(appConfig.KEY)
-        config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        config: AppConfig,
     ) {
         super(valorantAssetAPI, config);
     }

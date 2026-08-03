@@ -68,25 +68,23 @@ const SlantedDisplay = <T, >(
              style={{ paddingLeft: `${tilt / 2.0}px`, paddingRight: `${tilt / 2.0}px` }}
         >
             {items?.map((item, index) => (
-                <>
-                    <div
-                        key={index}
-                        style={{
-                            marginRight: `-${(tilt - gap) / 2 + 0.5}px`,
-                            marginLeft: `-${(tilt - gap) / 2 + 0.5}px`,
-                            flex: (index === activeIndex ? 3 : 2),
-                            clipPath: clipPath,
-                        }}
-                        className="flex items-center justify-center cursor-pointer transition-all ease-in-out duration-300 overflow-hidden "
-                        onClick={() => handleClick(index)}
-                    >
-                        {renderItem(item, {
-                            isSelected: index === activeIndex,
-                            currentTilt: tilt,
-                            direction: tiltTowards,
-                        })}
-                    </div>
-                </>
+                <div
+                    key={index}
+                    style={{
+                        marginRight: `-${(tilt - gap) / 2 + 0.5}px`,
+                        marginLeft: `-${(tilt - gap) / 2 + 0.5}px`,
+                        flex: (index === activeIndex ? 3 : 2),
+                        clipPath: clipPath,
+                    }}
+                    className="flex items-center justify-center cursor-pointer transition-all ease-in-out duration-300 overflow-hidden "
+                    onClick={() => handleClick(index)}
+                >
+                    {renderItem(item, {
+                        isSelected: index === activeIndex,
+                        currentTilt: tilt,
+                        direction: tiltTowards,
+                    })}
+                </div>
             ))}
         </div>
     );

@@ -1,16 +1,36 @@
-import fs from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import merge from 'lodash.merge';
 import path from 'path';
 import os from 'node:os';
-import { registerAs } from '@nestjs/config';
-import { Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { getPackageAwarePath } from '@/utils/PackagedPath';
-import { EnvConfigV1DTO, EnvConfigV1DTOSchema, OverridableConfigV1Schema } from '@/config/ConfigV1.schema';
+import {
+    EnvConfigV1DTO,
+    EnvConfigV1DTOSchema,
+    OverridableConfigV1,
+    OverridableConfigV1Schema,
+} from '@/config/ConfigV1.schema';
 
 export const SYMBOL_CONFIG = Symbol('CONFIG');
 
-class ConfigLoader {
+/**
+ * The resolved, effective config as injected under {@link SYMBOL_CONFIG}.
+ * This is a snapshot taken at bootstrap — see {@link ConfigLoader.invalidate}.
+ */
+export type AppConfig = EnvConfigV1DTO;
+
+export const InjectConfig = () => Inject(SYMBOL_CONFIG);
+
+const isNotFound = (e: unknown): boolean =>
+    (e as NodeJS.ErrnoException)?.code === 'ENOENT';
+
+@Injectable()
+export class ConfigLoader {
     private readonly logger = new Logger(this.constructor.name);
+
+    /** Memoized promises — resolved once, until `invalidate()` is called. */
+    private staticConfig?: Promise<EnvConfigV1DTO>;
+    private effectiveConfig?: Promise<EnvConfigV1DTO>;
 
     public getPersistentPath(): string {
         const localAppData =
@@ -23,33 +43,66 @@ class ConfigLoader {
         return path.join(this.getPersistentPath(), 'config-overrides.json');
     }
 
-    public load(): EnvConfigV1DTO {
-        const defaultConfig = JSON.parse(fs.readFileSync(getPackageAwarePath('config.json'), 'utf8'));
-        let configToUse: any = merge({}, defaultConfig);
+    /**
+     * Shipped base config. Read from disk at most once.
+     */
+    public getStaticConfig(): Promise<EnvConfigV1DTO> {
+        this.staticConfig ??= this.readBaseConfig();
+        return this.staticConfig;
+    }
 
+    /**
+     * User overrides. Always reads the file — never memoized.
+     * Resolves to an empty patch when no override file exists.
+     * Rejects when the file exists but is malformed or fails validation.
+     */
+    public async getConfigOverrides(): Promise<OverridableConfigV1> {
+        const configPath = this.getConfigOverridesPath();
+        this.logger.log(`Attempting to load config overrides from ${configPath}`);
+
+        let file: string;
         try {
-            const configPath = this.getConfigOverridesPath();
-            this.logger.log(`Attempting to load config overrides from ${configPath}`);
-
-            if (fs.existsSync(configPath)) {
-                const overrides = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-                OverridableConfigV1Schema.parse(overrides);
-                configToUse = merge({}, defaultConfig, overrides);
-                return EnvConfigV1DTOSchema.parse(configToUse);
-            } else {
-                this.logger.log(`No config overrides found at ${configPath}`);
-            }
+            file = await readFile(configPath, 'utf8');
         } catch (e) {
-            this.logger.warn('Failed to load config overrides, using default config.', e);
+            if (isNotFound(e)) {
+                this.logger.log(`No config overrides found at ${configPath}`);
+                return {};
+            }
+            throw e;
         }
 
-        return EnvConfigV1DTOSchema.parse(defaultConfig);
+        return OverridableConfigV1Schema.parseAsync(JSON.parse(file));
+    }
+
+    /**
+     * Base config merged with the overrides present at first call.
+     * Computed at most once, until `invalidate()` is called.
+     */
+    public getEffectiveConfig(): Promise<EnvConfigV1DTO> {
+        this.effectiveConfig ??= this.computeEffectiveConfig();
+        return this.effectiveConfig;
+    }
+
+    /** Drops both caches; the next getter re-reads from disk. */
+    public invalidate(): void {
+        this.staticConfig = undefined;
+        this.effectiveConfig = undefined;
+    }
+
+    private async computeEffectiveConfig(): Promise<EnvConfigV1DTO> {
+        const base = await this.getStaticConfig();
+
+        try {
+            const overrides = await this.getConfigOverrides();
+            return await EnvConfigV1DTOSchema.parseAsync(merge({}, base, overrides));
+        } catch (e) {
+            this.logger.warn('Failed to load config overrides, using default config.', e);
+            return base;
+        }
+    }
+
+    private async readBaseConfig(): Promise<EnvConfigV1DTO> {
+        const file = await readFile(getPackageAwarePath('config.json'), 'utf8');
+        return EnvConfigV1DTOSchema.parseAsync(JSON.parse(file));
     }
 }
-
-const configLoader = new ConfigLoader();
-
-export const getPersistentPath = () => configLoader.getPersistentPath();
-export const getConfigOverridesPath = () => configLoader.getConfigOverridesPath();
-
-export const appConfig = registerAs(SYMBOL_CONFIG, () => configLoader.load());

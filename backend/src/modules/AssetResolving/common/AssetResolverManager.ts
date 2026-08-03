@@ -1,11 +1,10 @@
 import { Logger, OnModuleInit } from '@nestjs/common';
-import type { ConfigType } from '@nestjs/config';
 import { ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
-import { appConfig } from '@/config/configLoader';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { RecomputingMapMappingBehavior } from '@/core/data/behaviors/viewMapping/RecomputingMapMappingBehavior';
 import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataViewable';
+import { type AppConfig } from '@/config/configLoader';
 
 /**
  * Base for asset resolver managers: fetches a list of entries from the
@@ -20,7 +19,7 @@ export abstract class AssetResolverManager<TId extends PropertyKey, TEntry, TDto
 
     protected constructor(
         protected readonly valorantAssetAPI: ValorantAssetAPI,
-        protected readonly config: ConfigType<typeof appConfig>,
+        protected readonly config: AppConfig,
     ) {
         const base = new SimpleMapDataManager<TId, TEntry>();
         this.manager = new RecomputingMapMappingBehavior(base, (entry) => this.mapEntry(entry));

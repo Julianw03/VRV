@@ -1,9 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
-import { appConfig } from '@/config/configLoader';
-import type { ConfigType } from '@nestjs/config';
 import { AssetResolverManager } from '@/modules/AssetResolving/common/AssetResolverManager';
 import { WeaponAssetDTO } from '#/schemas/assets/WeaponAssetDTO';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 export type WeaponId = string;
 
@@ -11,8 +10,8 @@ export type WeaponId = string;
 export class WeaponAssetResolverManager extends AssetResolverManager<WeaponId, WeaponAssetDTO, WeaponAssetDTO> {
     constructor(
         valorantAssetAPI: ValorantAssetAPI,
-        @Inject(appConfig.KEY)
-        config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        config: AppConfig,
     ) {
         super(valorantAssetAPI, config);
     }

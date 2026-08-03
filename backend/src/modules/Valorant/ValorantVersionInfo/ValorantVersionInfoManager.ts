@@ -1,10 +1,8 @@
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import fs from 'node:fs';
 import * as readline from 'node:readline';
 import { ProductSessionManager } from '@/modules/ProductSessionModule/ProductSessionManager';
-import { type ConfigType } from '@nestjs/config';
-import { appConfig } from '@/config/configLoader';
 import { MinimalVersionInfoDTO } from '@/modules/Valorant/ValorantVersionInfo/MinimalVersionInfoDTO';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
@@ -12,6 +10,7 @@ import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/Emitt
 import path from 'path';
 import { EventType } from '@/core/events/EventTypes';
 import { FilepathEntry } from '@/config/ConfigV1.schema';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 @Injectable()
 export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVersionInfoDTO, MinimalVersionInfoDTO>, OnModuleInit, OnModuleDestroy {
@@ -19,8 +18,8 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
     protected readonly logger = new Logger(this.constructor.name);
 
     constructor(
-        @Inject(appConfig.KEY)
-        protected readonly config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        protected readonly config: AppConfig,
         protected readonly eventBus: SimpleEventBus,
     ) {
         const base = new SimpleObjectDataManager<MinimalVersionInfoDTO>();

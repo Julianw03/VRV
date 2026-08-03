@@ -1,9 +1,7 @@
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { EntitlementTokenManager } from '@/modules/EntitlementTokenModule/EntitlementTokenManager';
 import { ProductSessionManager } from '@/modules/ProductSessionModule/ProductSessionManager';
 import { ValorantVersionInfoManager } from '@/modules/Valorant/ValorantVersionInfo/ValorantVersionInfoManager';
-import { type ConfigType } from '@nestjs/config';
-import { appConfig } from '@/config/configLoader';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { combineLatest, fromEventPattern, Subscription } from 'rxjs';
 import { MinimalVersionInfoDTO } from '@/modules/Valorant/ValorantVersionInfo/MinimalVersionInfoDTO';
@@ -18,6 +16,7 @@ import { RegionToDefaultShardMap } from '@/config/ConfigV1.schema';
 import { RiotMatchApiResponseDTO, RiotMatchApiResponseDTOSchema } from '#/schemas/RiotMatchApiReponseDTO';
 import { ProductSessionDTO } from '#/schemas/ProductSession.schema';
 import { z } from 'zod';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 
 export enum ValorantServiceUrl {
@@ -70,8 +69,8 @@ type RemoteConfig = {
 
 const ReplaySummarySchema = z.object({
     GameVersion: z.string().nonempty(),
-    Checksum: z.string().nonempty()
-})
+    Checksum: z.string().nonempty(),
+});
 
 export type ReplaySummary = z.infer<typeof ReplaySummarySchema>;
 
@@ -150,8 +149,8 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
     );
 
     constructor(
-        @Inject(appConfig.KEY)
-        protected readonly config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        protected readonly config: AppConfig,
         private readonly entitlementTokenManager: EntitlementTokenManager,
         private readonly versionInfoManager: ValorantVersionInfoManager,
         private readonly eventBus: SimpleEventBus,
@@ -285,10 +284,10 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
         const json = await response.json();
 
         try {
-           return await RiotMatchApiResponseDTOSchema.parseAsync(json)
+            return await RiotMatchApiResponseDTOSchema.parseAsync(json);
         } catch (error) {
             this.logger.error(json, error);
-            throw new Error("Failed to parse match details", error);
+            throw new Error('Failed to parse match details', error);
         }
     }
 

@@ -1,10 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
-import { appConfig } from '@/config/configLoader';
-import type { ConfigType } from '@nestjs/config';
 import { AssetResolverManager } from '@/modules/AssetResolving/common/AssetResolverManager';
 import { GUID } from '#/schemas/GUIDSchema';
 import { AgentAssetDTO } from '#/schemas/assets/AgentAssetDTO';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 export type AgentId = GUID;
 
@@ -12,8 +11,8 @@ export type AgentId = GUID;
 export class AgentAssetResolverManager extends AssetResolverManager<AgentId, AgentAssetDTO, AgentAssetDTO> {
     constructor(
         valorantAssetAPI: ValorantAssetAPI,
-        @Inject(appConfig.KEY)
-        config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        config: AppConfig,
     ) {
         super(valorantAssetAPI, config);
     }
