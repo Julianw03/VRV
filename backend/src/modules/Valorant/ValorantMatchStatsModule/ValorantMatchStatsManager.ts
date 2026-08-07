@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
-import { AsyncResultUnion } from '#/utils/AsyncResult';
 import { KeyValueUpdatedEvent } from '@/core/events/BasicEvent';
 import { RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManager';
 import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasManager';
@@ -11,6 +10,7 @@ import { EmittingMapDataBehavior } from '@/core/data/behaviors/emission/Emitting
 import { GUID } from '#/schemas/GUIDSchema';
 import { MatchStatus, MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
 import { RiotMatchMetadata } from '#/schemas/ReplayFormatV2.schema';
+import { AsyncResult } from '#/utils/AsyncResult';
 
 @Injectable()
 export class ValorantMatchStatsManager
@@ -25,7 +25,7 @@ export class ValorantMatchStatsManager
         protected readonly valorantApi: RiotValorantAPIManager,
         protected readonly playerAliasManager: PuuidToPlayerAliasManager,
     ) {
-        const base = new SimpleMapDataManager<GUID, AsyncResultUnion<RiotMatchMetadata, Error>>();
+        const base = new SimpleMapDataManager<GUID, AsyncResult<RiotMatchMetadata, Error>>();
         const emitting = new EmittingMapDataBehavior(base, eventBus, ValorantMatchStatsManager.name);
         super(emitting);
     }

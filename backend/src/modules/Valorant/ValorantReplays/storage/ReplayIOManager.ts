@@ -321,7 +321,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         }
         return await expect(DownloadState.DOWNLOADED, current).flatMapAsync(async () => {
             const content = await this.getMetadataFileContents(matchId);
-            return AsyncResult.fromPromise(this.parseMetadataFileContents(content));
+            return AsyncResult.fromPromiseWithGuaranteedErrorType(this.parseMetadataFileContents(content));
         });
     }
 

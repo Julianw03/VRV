@@ -4,10 +4,10 @@ import { RIOT_CLIENT_SERVICE } from '@/core/riotclient/RiotClientTokens';
 import { PlayerAccountLookupV2NamesetsForPuuidResponse, PluginPlayerAccountApi } from '../../../gen';
 import { AsyncMapDataBehavior } from '@/core/data/behaviors/async/AsyncMapDataBehavior';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
-import { AsyncResultUnion } from '#/utils/AsyncResult';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { GUID } from '#/schemas/GUIDSchema';
 import { PlayerAliasDTO } from '#/schemas/PlayerAlias.schema';
+import { AsyncResult } from '#/utils/AsyncResult';
 
 export type PuuidToPlayerAliasErrorUnion = NetworkRequestError;
 
@@ -23,13 +23,13 @@ export class PuuidToPlayerAliasManager extends AsyncMapDataBehavior<
     PlayerAliasDTO,
     PuuidToPlayerAliasErrorUnion
 > {
-    protected manager: IMapDataManager<string, PlayerAccountLookupV2NamesetsForPuuidResponse, AsyncResultUnion<PlayerAliasDTO, PuuidToPlayerAliasErrorUnion>>;
+    protected manager: IMapDataManager<string, PlayerAccountLookupV2NamesetsForPuuidResponse, AsyncResult<PlayerAliasDTO, PuuidToPlayerAliasErrorUnion>>;
 
     constructor(
         @Inject(RIOT_CLIENT_SERVICE)
         protected readonly riotClientService: RiotClientService,
     ) {
-        const base = new SimpleMapDataManager<GUID, AsyncResultUnion<PlayerAliasDTO, PuuidToPlayerAliasErrorUnion>>();
+        const base = new SimpleMapDataManager<GUID, AsyncResult<PlayerAliasDTO, PuuidToPlayerAliasErrorUnion>>();
         super(base);
     }
 

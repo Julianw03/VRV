@@ -153,7 +153,8 @@ export const RoundResultSchema = z.object({
     winningTeam: z.union([TwoTeamIdSchema, z.string()]),
     winningTeamRole: z.union([TwoTeamRoleIdSchema, z.string()]),
     firstBloodPlayer: z.uuid().optional().nullable(),
-    bombPlanter: GUIDSchema.optional(),
+    bombPlanter: GUIDSchema.optional().nullable(),
+    bombDefuser: GUIDSchema.optional().nullable(),
     plantRoundTime: z.number().optional(),
     plantPlayerLocations: z
         .array(
