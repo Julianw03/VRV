@@ -83,7 +83,8 @@ export function RecentMatchesPage() {
                         <div>Queue</div>
                         <div>Map</div>
                         <div>Date</div>
-                        <div />
+                        <div>Compatibility</div>
+                        <div>Actions</div>
                     </div>
                     {matches.map((match) => (
                         <MatchRow key={match.matchMetadata.matchInfo.matchId} match={match.matchMetadata} />
