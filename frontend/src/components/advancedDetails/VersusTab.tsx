@@ -4,6 +4,7 @@ import SlantedDisplay, { FacingDirections } from '@/components/advancedDetails/S
 import AgentDisplayComponent from '@/components/advancedDetails/AgentDisplayComponent.tsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
+import { Checkbox } from '@/components/ui/checkbox.tsx';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion.tsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.tsx';
 import { type RiotMatchPlayer, TWO_TEAM_IDS, type TWO_TEAMS_TEAM_ID } from '#/schemas/RiotMatchApiReponseDTO.ts';
@@ -181,7 +182,7 @@ const NameRow = ({ left, right }: { left: VersusPlayerStats; right: VersusPlayer
             {left.gameName}
         </span>
         <span />
-        <span className={cn('truncate text-sm font-semibold', TEAM_STYLES[right.teamId].text)}>
+        <span className={cn('truncate text-left text-sm font-semibold', TEAM_STYLES[right.teamId].text)}>
             {right.gameName}
         </span>
     </div>
@@ -231,16 +232,21 @@ export function VersusTab({ data }: VersusTabProps) {
     const [leftTeam, rightTeam] = index.playersByTeam;
 
     const seed = (team: typeof leftTeam): GUID | undefined =>
-        team?.players.find((p) => p.subject === data.downloaderMetadata.downloaderId)?.subject ?? topFragger(team?.players ?? [])?.subject;
+        team?.players.find((p) => p.subject === data.downloaderMetadata?.downloaderId)?.subject ?? topFragger(team?.players ?? [])?.subject;
 
     const [leftId, setLeftId] = useState<GUID | undefined>(() => seed(leftTeam));
     const [rightId, setRightId] = useState<GUID | undefined>(() => seed(rightTeam));
+    const [showAssists, setShowAssists] = useState(false);
 
     const left = useMemo(() => (leftId ? buildPlayerStats(index, leftId) : undefined), [index, leftId]);
     const right = useMemo(() => (rightId ? buildPlayerStats(index, rightId) : undefined), [index, rightId]);
     const duels = useMemo(
         () => (leftId && rightId ? buildDuelSummary(index, leftId, rightId) : undefined),
         [index, leftId, rightId],
+    );
+    const visibleEvents = useMemo(
+        () => (showAssists ? duels?.events ?? [] : duels?.events.filter((event) => event.kind === 'direct') ?? []),
+        [duels, showAssists],
     );
 
     if (!leftTeam || !rightTeam) {
@@ -250,7 +256,7 @@ export function VersusTab({ data }: VersusTabProps) {
     return (
         <div className={'space-y-4'}>
             <div className={'flex aspect-[6] w-full overflow-hidden sm:aspect-[10]'}>
-                <div className={'flex-1'}>
+                <div className={'flex-1 w-full'}>
                     <TeamStrip
                         index={index}
                         teamId={leftTeam.teamId}
@@ -266,7 +272,7 @@ export function VersusTab({ data }: VersusTabProps) {
                     className={'flex w-8 items-center justify-center text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground'}>
                     vs
                 </div>
-                <div className={'flex-1'}>
+                <div className={'flex-1 w-full'}>
                     <TeamStrip
                         index={index}
                         teamId={rightTeam.teamId}
@@ -288,28 +294,22 @@ export function VersusTab({ data }: VersusTabProps) {
                         </CardHeader>
                         <CardContent className={'space-y-4'}>
                             <div className={'text-center'}>
-                                <div className={'text-xs uppercase tracking-wide text-muted-foreground'}>Duels won</div>
+                                <div className={'text-xs uppercase tracking-wide text-muted-foreground'}>Kills on each other</div>
                                 <div className={'mt-1 grid grid-cols-3 items-baseline gap-3'}>
                                     <span
                                         className={cn('text-right text-4xl font-bold tabular-nums', TEAM_STYLES[left.teamId].text)}>
-                                        {duels.a.total}
+                                        {duels.a.direct}
                                     </span>
                                     <span className={'text-center text-lg text-muted-foreground'}>–</span>
                                     <span
                                         className={cn('text-left text-4xl font-bold tabular-nums', TEAM_STYLES[right.teamId].text)}>
-                                        {duels.b.total}
+                                        {duels.b.direct}
                                     </span>
                                 </div>
                                 <NameRow left={left} right={right} />
-                                <p className={'mt-2 text-xs text-muted-foreground'}>
-                                    They met in {duels.roundsContested} rounds · {left.teamId} took{' '}
-                                    {duels.contestedRoundsWonByA} of them
-                                </p>
                             </div>
 
                             <div>
-                                <StatRow label={'Kills on each other'} left={duels.a.direct} right={duels.b.direct}
-                                         leftTeam={left.teamId} rightTeam={right.teamId} />
                                 <StatRow label={'Assisted kills'} left={duels.a.assisted} right={duels.b.assisted}
                                          leftTeam={left.teamId} rightTeam={right.teamId} />
                                 <StatRow label={'Damage dealt'} left={duels.a.damage.damage}
@@ -317,9 +317,22 @@ export function VersusTab({ data }: VersusTabProps) {
                                          rightTeam={right.teamId} />
                             </div>
 
-                            {duels.events.length === 0 ? (
+                            <div className={'flex items-center justify-end gap-2'}>
+                                <Checkbox
+                                    id={'show-assists'}
+                                    checked={showAssists}
+                                    onCheckedChange={(checked) => setShowAssists(checked === true)}
+                                />
+                                <label htmlFor={'show-assists'} className={'text-xs text-muted-foreground'}>
+                                    Show assists
+                                </label>
+                            </div>
+
+                            {visibleEvents.length === 0 ? (
                                 <p className={'py-4 text-center text-sm text-muted-foreground'}>
-                                    These two never crossed paths. Pick another pairing to see their fights.
+                                    {duels.events.length === 0
+                                        ? 'These two never crossed paths. Pick another pairing to see their fights.'
+                                        : 'No direct kills between them yet — enable "Show assists" to see assisted kills.'}
                                 </p>
                             ) : (
                                 <Table>
@@ -333,7 +346,7 @@ export function VersusTab({ data }: VersusTabProps) {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {duels.events.map((event, i) => (
+                                        {visibleEvents.map((event, i) => (
                                             <DuelRow
                                                 key={`${event.round}-${event.roundTimeMs}-${i}`}
                                                 event={event}

@@ -99,7 +99,7 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
             this.logger.warn('Failed to fetch version info', error);
         }
         if (retryIterations <= 0) {
-            this.logger.log(`Max retry count reached. Assuming that the current available version ${this.manager.getView()} is the correct one.`);
+            this.logger.log(`Max retry count reached. Assuming that the current available version ${this.manager.getView()?.version} is the correct one.`);
             return;
         }
         const newRetryCount = retryIterations - 1;

@@ -1,7 +1,7 @@
 {
   "version": {
     "config": 1,
-    "app": "0.7.0"
+    "app": "0.8.0"
   },
   "filepaths": {
     "riot-games-folder": {

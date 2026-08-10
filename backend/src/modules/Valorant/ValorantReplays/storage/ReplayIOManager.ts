@@ -159,7 +159,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
     async onModuleInit() {
         const isSetup = await this.isSetup();
         if (!isSetup) return;
-        this.handleInitialLoad().catch();
+        await this.handleInitialLoad().catch();
         this.updateStorageStatus();
     }
 
@@ -349,6 +349,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
             this.logger.log('Storage not set up, skipping initial load');
             return;
         }
+        await fs.mkdir(this.storageLegacyPath, { recursive: true });
         const matchIds = await this.listStoredMatchIds();
         await Promise.allSettled(
             matchIds.map(async (matchId) => {
@@ -360,7 +361,8 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
                     if (this.isUnsupportedFormat(contents)) {
                         this.logger.warn(`Metadata for match ${matchId} is in an unsupported format, moving to legacy files...`);
                         await this.moveToLegacyDir(matchId);
-                        throw new Error('Unsupported format for match ' + matchId);
+                        this.manager.updateKeyValue(matchId, DownloadState.FAILED);
+                        return;
                     }
                     this.manager.updateKeyValue(matchId, matchExists ? DownloadState.DOWNLOADED : DownloadState.FAILED);
                 } catch (err) {

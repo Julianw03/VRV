@@ -180,8 +180,8 @@ export function MatchRow({ match }: MatchRowProps) {
                     {
                         match.matchInfo.isReplayRecorded ?
                             <Tooltip>
-                                <TooltipTrigger>
-                                <span className={'flex items-center justify-center size-7 text-green-500/80'}>
+                                <TooltipTrigger asChild>
+                                <span className={'flex items-center justify-center size-7'}>
                                     <Video className={'size-4'} />
                                 </span>
                                 </TooltipTrigger>
@@ -190,7 +190,7 @@ export function MatchRow({ match }: MatchRowProps) {
                                 </TooltipContent>
                             </Tooltip>
                             :
-                            <span className={'flex items-center justify-center size-7 text-green-500/80'} />
+                            <span className={'flex items-center justify-center size-7'} />
                     }
                     <DownloadButton
                         canDownload={canDownload}

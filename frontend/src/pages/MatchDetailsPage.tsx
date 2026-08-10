@@ -1,13 +1,12 @@
 import { type JSX, useState } from 'react';
 import { groupBy, groupByUnique } from '@/lib/utils.ts';
 import { RoundOverviewTab } from '@/components/match-details/RoundOverviewTab.tsx';
-import { VersusTab } from '@/components/match-details/VersusTab.tsx';
+import { VersusTab } from '@/components/advancedDetails/VersusTab.tsx';
 import { useMatchMetadata } from '@/lib/queries.ts';
 import { type Params, useParams } from 'react-router-dom';
 import { MatchOverviewHeader, type MatchOverviewHeaderProps } from '@/components/advancedDetails/MatchOverviewHeader.tsx';
 import { TWO_TEAM_IDS, type RiotMatchTeam, type TWO_TEAMS_TEAM_ID } from '#/schemas/RiotMatchApiReponseDTO.ts';
-import { Button } from '@/components/ui/button.tsx';
-import { cn } from '@/lib/utils.ts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.tsx';
 
 const TABS = {
     ROUND_OVERVIEW: 'RoundOverview',
@@ -15,6 +14,87 @@ const TABS = {
 } as const;
 
 type Tab = typeof TABS[keyof typeof TABS];
+
+const OVERVIEW_TAB_LABELS: Record<Tab, string> = {
+    [TABS.ROUND_OVERVIEW]: 'ROUND OVERVIEW',
+    [TABS.VERSUS]: 'VERSUS',
+};
+
+const OverviewTypeSelector = (
+    {
+        tab,
+        onSelectTab,
+    }: {
+        tab: Tab;
+        onSelectTab: (tab: Tab) => void;
+    },
+) => {
+    const tabs = Object.values(TABS);
+
+    return (
+        <div className={"flex gap-0.5 py-4 px-2"}>
+            {tabs.map((value, index) => {
+                const isActive = tab === value;
+                const isFirst = index === 0;
+                const isLast = index === tabs.length - 1;
+                const clipPath = isFirst
+                    ? 'polygon(0 0, 100% 0, 94% 100%, 0% 100%)'
+                    : isLast
+                        ? 'polygon(6% 0, 100% 0, 100% 100%, 0% 100%)'
+                        : 'polygon(6% 0, 100% 0, 94% 100%, 0% 100%)';
+
+                return (
+                    <div
+                        key={value}
+                        role={'button'}
+                        tabIndex={0}
+                        onClick={() => onSelectTab(value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                onSelectTab(value);
+                            }
+                        }}
+                        style={{
+                            flex: '1 1 0%',
+                            position: 'relative',
+                            clipPath,
+                            background: isActive
+                                ? `linear-gradient(${isLast ? '270deg' : '90deg'}, rgba(255, 70, 85, 0.16), rgba(255, 70, 85, 0.04))`
+                                : 'rgba(255, 255, 255, 0.02)',
+                            padding: isLast ? '9px 22px 9px 0px' : `9px 0px 9px ${isFirst ? 14 : 22}px`,
+                            textAlign: isLast ? 'right' : 'left',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <span
+                            style={{
+                                fontSize: '11.5px',
+                                fontWeight: isActive ? 700 : 600,
+                                letterSpacing: '0.06em',
+                                color: isActive ? 'rgb(232, 232, 234)' : 'rgba(255, 255, 255, 0.35)',
+                            }}
+                        >
+                            {OVERVIEW_TAB_LABELS[value]}
+                        </span>
+                        {isActive && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    left: isLast ? undefined : 0,
+                                    right: isLast ? 0 : undefined,
+                                    width: '60%',
+                                    height: '2px',
+                                    background: `linear-gradient(${isLast ? '270deg' : '90deg'}, rgb(255, 70, 85), rgba(255, 70, 85, 0.15))`,
+                                }}
+                            />
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
 
 const TeamPerspectiveSelector = (
     {
@@ -28,20 +108,20 @@ const TeamPerspectiveSelector = (
     },
 ) => {
     return (
-        <div className={'flex items-center gap-2 px-3 pb-3 text-sm'}>
+        <div className={'flex items-center gap-2 px-6 pb-3 text-sm'}>
             <span className={'text-muted-foreground'}>Viewing as</span>
-            {Object.keys(teams).map((teamId) => (
-                <Button
-                    key={teamId}
-                    type={'button'}
-                    variant={selectedTeam === teamId ? 'default' : 'outline'}
-                    size={'sm'}
-                    className={cn(selectedTeam === teamId && 'pointer-events-none')}
-                    onClick={() => onSelectTeam(teamId as TWO_TEAMS_TEAM_ID)}
-                >
-                    {teamId} Team
-                </Button>
-            ))}
+            <Select value={selectedTeam} onValueChange={(value) => onSelectTeam(value as TWO_TEAMS_TEAM_ID)}>
+                <SelectTrigger size={'sm'} className={'w-36'}>
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    {Object.keys(teams).map((teamId) => (
+                        <SelectItem key={teamId} value={teamId}>
+                            {teamId} Team
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
     );
 };
@@ -49,8 +129,7 @@ const TeamPerspectiveSelector = (
 const MatchDetailsPage = (): JSX.Element => {
     const { matchId } = useParams<Params>();
     const { data, isLoading, isError } = useMatchMetadata(matchId || '');
-    //TODO: Tab selection.
-    const [tab] = useState<Tab>(TABS.ROUND_OVERVIEW);
+    const [tab, setTab] = useState<Tab>(TABS.ROUND_OVERVIEW);
     const [selectedTeam, setSelectedTeam] = useState<TWO_TEAMS_TEAM_ID>(TWO_TEAM_IDS.RED);
 
     if (isLoading) {
@@ -102,6 +181,7 @@ const MatchDetailsPage = (): JSX.Element => {
                             onSelectTeam={setSelectedTeam}
                         />
                     )}
+                    <OverviewTypeSelector tab={tab} onSelectTab={setTab} />
                     <RoundOverviewTab data={data} highlightPlayerUuid={highlightPlayer} highlightPlayerTeam={highlightPlayerTeam} /></>
             );
         case TABS.VERSUS:
@@ -114,6 +194,7 @@ const MatchDetailsPage = (): JSX.Element => {
                         onSelectTeam={setSelectedTeam}
                     />
                 )}
+                <OverviewTypeSelector tab={tab} onSelectTab={setTab} />
                 <VersusTab data={data} />
             </>;
     }
