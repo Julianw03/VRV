@@ -1,26 +1,29 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManager';
 import { ValorantMatchStatsManager } from '@/modules/Valorant/ValorantMatchStatsModule/ValorantMatchStatsManager';
 import { DataDeletable } from '@/core/data/interfaces/capabilities/DataDeletable';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
-import { Subscription } from 'rxjs';
+import { distinctUntilChanged, distinctUntilKeyChanged, filter, map, Subscription } from 'rxjs';
 import { onSource } from '@/core/events/adapters/rxjsAdapters';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { EventType } from '@/core/events/EventTypes';
-import { KeyValueUpdatedEvent } from '@/core/events/BasicEvent';
+import { KeyValueUpdatedEvent, StateUpdatedEvent } from '@/core/events/BasicEvent';
 import { GUID } from '#/schemas/GUIDSchema';
 import { MatchStatus, MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
 import { RiotMatchMetadata } from '#/schemas/ReplayFormatV2.schema';
+import { AccountPuuidModule } from '@/modules/Account/AccountPuuidModule/AccountPuuidModule';
+import { PlayerUuidDTO } from '#/schemas/PlayerUuid.schema';
 
 @Injectable()
-export class MatchHistoryManager implements DataDeletable, OnModuleInit {
+export class MatchHistoryManager implements DataDeletable, OnModuleInit, OnModuleDestroy {
     private readonly orderedMatchIds: GUID[] = [];
     private readonly knownMatchIds = new Set<GUID>();
     private readonly logger = new Logger(MatchHistoryManager.name);
 
     private loadingMore: Promise<void> | null = null;
     private remoteMatchHistoryEndReached = false;
-    private subscription$: Subscription;
+    private matchFinishedSubscription: Subscription;
+    private userSubscription: Subscription;
 
     constructor(
         private readonly riot: RiotValorantAPIManager,
@@ -29,8 +32,22 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit {
     ) {
     }
 
+    onModuleDestroy() {
+        this.userSubscription?.unsubscribe();
+        this.matchFinishedSubscription?.unsubscribe();
+    }
+
     onModuleInit() {
-        this.subscription$ = onSource(this.eventBus, ValorantGameSessionManager.name)
+        this.userSubscription = onSource(this.eventBus, AccountPuuidModule.name)
+            .pipe(
+                filter((it) => it.type === EventType.StateUpdated),
+                map(it => (it as StateUpdatedEvent<PlayerUuidDTO>).payload.value?.uuid),
+                distinctUntilChanged()
+            )
+            .subscribe((it) => {
+                this.deleteState()
+            })
+        this.matchFinishedSubscription = onSource(this.eventBus, ValorantGameSessionManager.name)
             .subscribe((it) => {
                     switch (it.type) {
                         case EventType.KeyValueUpdated: {
