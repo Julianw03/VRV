@@ -28,11 +28,13 @@ import { type AppConfig, InjectConfig } from '@/config/configLoader';
 type ImportMatchError =
     | MatchAlreadyExistsError
     | IllegalDownloadStateError
-    | InvalidReplayArchiveError;
+    | InvalidReplayArchiveError
+    | IOError;
 
 type LoadSavedMetadataError =
     | MatchNotFoundError
     | IllegalDownloadStateError
+    | IOError
 
 type DeleteMatchError = MatchNotFoundError;
 
@@ -51,6 +53,13 @@ export class MatchAlreadyExistsError extends Error {
 export class IllegalDownloadStateError extends Error {
     constructor(message: string) {
         super(message);
+    }
+}
+
+export class IOError extends Error {
+    constructor(message: string, e: Error) {
+        super(`IOError ${message}`);
+        this.cause = e;
     }
 }
 
@@ -281,7 +290,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
             this.manager.deleteKey(matchId);
         } catch (e) {
             this.logger.warn(`Failed to delete match ${matchId}`);
-            return AsyncResult.failure(new UnableToDeleteMatchError(matchId, e));
+            return AsyncResult.failure(new UnableToDeleteMatchError(matchId, e as Error));
         }
         await this.updateStorageStatus();
         return AsyncResult.success(undefined);
@@ -340,7 +349,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         }
         return await expect(DownloadState.DOWNLOADED, current).flatMapAsync(async () => {
             const content = await this.getMetadataFileContents(matchId);
-            return AsyncResult.fromPromiseWithGuaranteedErrorType(this.parseMetadataFileContents(content));
+            return AsyncResult.fromPromiseWithErrorMapper(this.parseMetadataFileContents(content), (e) => new IOError(`Failed to parse metadata for match ${matchId}`, e as Error));
         });
     }
 
@@ -509,7 +518,9 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
                 this.logger.debug(`Rejecting import for ${matchId}: Already exists and no override provided.`);
                 throw new MatchAlreadyExistsError(matchId);
             }
-            await this.doSaveReplay(matchId, replayFile, metadata);
+            await this.doSaveReplay(matchId, replayFile, metadata).catch((e) => {
+                throw new IOError(`Failed to save replay file for match ${matchId}: ${e.message}`, e as Error);
+            });
             this.logger.log(`Imported match ${matchId} (type: ${request.type})`);
             this.manager.updateKeyValue(matchId, DownloadState.DOWNLOADED);
         } catch (err) {

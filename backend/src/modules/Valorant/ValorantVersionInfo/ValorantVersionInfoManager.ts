@@ -9,7 +9,7 @@ import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/EmittingObjectDataBehavior';
 import path from 'path';
 import { EventType } from '@/core/events/EventTypes';
-import { FilepathEntry } from '@/config/ConfigV1.schema';
+import { getResolvedPath } from '@/config/ConfigV1.schema';
 import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 @Injectable()
@@ -33,19 +33,8 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
     private lastSeesSessionId: string | null = null;
     private readonly regex: RegExp;
 
-    private getResolvedPath = (entry: FilepathEntry): string => {
-        if (entry.relativeToEnvVar) {
-            const envValue = process.env[entry.relativeToEnvVar];
-            if (!envValue) {
-                throw new Error(`Environment variable ${entry.relativeToEnvVar} is not set`);
-            }
-            return path.join(envValue, ...entry.path);
-        }
-        return path.join(...entry.path);
-    };
-
     private async readValue(signal?: AbortSignal): Promise<MinimalVersionInfoDTO> {
-        const filePath = path.join(this.getResolvedPath(this.config.filepaths['valorant-saved']), 'Logs', 'ShooterGame.log');
+        const filePath = path.join(getResolvedPath(this.config.filepaths['valorant-saved']), 'Logs', 'ShooterGame.log');
         const stream = fs.createReadStream(filePath, { encoding: 'utf-8' });
         const rl = readline.createInterface({
             input: stream,

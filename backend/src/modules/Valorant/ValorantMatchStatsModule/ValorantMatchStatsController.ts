@@ -2,6 +2,7 @@ import {
     BadRequestException,
     ClassSerializerInterceptor,
     Controller,
+    Get,
     HttpCode,
     HttpStatus,
     Logger,
@@ -11,10 +12,17 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
+import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
 import { RiotClientReadyGuard } from '@/core/riotclient/RiotClientReadyGuard';
 import { ValorantMatchStatsManager } from '@/modules/Valorant/ValorantMatchStatsModule/ValorantMatchStatsManager';
 import { ProductSessionGuard, RequiredProduct } from '@/modules/ProductSessionModule/ProductSessionGuard';
 import type { GUID } from '#/schemas/GUIDSchema';
+import { RiotMatchMetadataSchema } from '#/schemas/ReplayFormatV2.schema';
+import { AsyncResultSchema, Failure, Pending, Success } from '@/utils/AsyncResultSwagger';
+import { createZodDto } from 'nestjs-zod';
+
+class RiotMatchMetadataModel extends createZodDto(RiotMatchMetadataSchema) {
+}
 
 @RequiredProduct('valorant')
 @UseGuards(RiotClientReadyGuard, ProductSessionGuard)
@@ -31,16 +39,16 @@ export class ValorantMatchStatsController {
     ) {
     }
 
-    // @Get('')
-    // @ApiExtraModels(Pending, Success, Failure, RiotMatchApiResponseDTOSchema)
-    // @ApiOkResponse({
-    //     schema: {
-    //         type: 'object',
-    //         additionalProperties: AsyncResultSchema(
-    //             getSchemaPath(RiotMatchApiResponseDTOSchema),
-    //         ),
-    //     },
-    // })
+    @Get('')
+    @ApiExtraModels(Pending, Success, Failure, RiotMatchMetadataModel)
+    @ApiOkResponse({
+        schema: {
+            type: 'object',
+            additionalProperties: AsyncResultSchema(
+                getSchemaPath(RiotMatchMetadataModel),
+            ),
+        },
+    })
     public async getMatchOverview() {
         const view = this.valorantMatchEndedManager.getView();
 
@@ -51,13 +59,13 @@ export class ValorantMatchStatsController {
         return view;
     }
 
-    // @Get(':id')
-    // @ApiExtraModels(Success, Failure, Pending, RiotMatchApiResponseDTOSchema)
-    // @ApiOkResponse({
-    //     schema: AsyncResultSchema(getSchemaPath(RiotMatchApiResponseDTOSchema)),
-    // })
+    @Get(':id')
+    @ApiExtraModels(Success, Failure, Pending, RiotMatchMetadataModel)
+    @ApiOkResponse({
+        schema: AsyncResultSchema(getSchemaPath(RiotMatchMetadataModel)),
+    })
     public async getById(@Param('id') id: GUID) {
-        if (!id) return new BadRequestException();
+        if (!id) throw new BadRequestException();
         const viewEntry = this.valorantMatchEndedManager.getKeyView(id);
 
         if (viewEntry === null) {

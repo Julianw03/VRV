@@ -6,7 +6,7 @@ import {
     Delete,
     Get,
     HttpCode,
-    HttpStatus,
+    HttpStatus, InternalServerErrorException,
     Logger,
     NotFoundException,
     Param,
@@ -19,7 +19,7 @@ import {
 } from '@nestjs/common';
 import {
     IllegalDownloadStateError,
-    InvalidReplayArchiveError,
+    InvalidReplayArchiveError, IOError,
     MatchAlreadyExistsError,
     MatchNotFoundError,
     ReplayIOManager,
@@ -170,6 +170,7 @@ export class ReplayIOController {
         return mapErrorAsync(
             this.replayIOManager.importReplay(file.buffer, parseResult.data, override !== 'false'),
             new Map([
+                [IOError, (e) => new InternalServerErrorException(e.message)],
                 [MatchAlreadyExistsError, (e) => new ConflictException(e.message)],
                 [IllegalDownloadStateError, (e) => new ConflictException(e.message)],
                 [InvalidReplayArchiveError, (e) => new BadRequestException(e.message)],
@@ -229,6 +230,7 @@ export class ReplayIOController {
         return mapErrorAsync(
             this.replayIOManager.loadSavedMetadata(matchId),
             new Map([
+                [IOError, (e) => new InternalServerErrorException(e.message)],
                 [MatchNotFoundError, (e) => new NotFoundException(e.message)],
                 [IllegalDownloadStateError, (e) => new ConflictException(e.message)],
             ]),

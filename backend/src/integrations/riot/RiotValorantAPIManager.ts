@@ -287,7 +287,7 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
             return await RiotMatchApiResponseDTOSchema.parseAsync(json);
         } catch (error) {
             this.logger.error(json, error);
-            throw new Error('Failed to parse match details', error);
+            throw new Error('Failed to parse match details', { cause: error });
         }
     }
 

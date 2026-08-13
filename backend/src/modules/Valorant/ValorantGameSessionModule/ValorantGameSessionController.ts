@@ -50,7 +50,10 @@ export class ValorantGameSessionController {
     @ApiOkResponse({
         description:
             'Returns the current match status for the specified match ID.',
-        type: MatchStatusSchema.type,
+        schema: {
+            type: 'string',
+            enum: Object.values(MatchStatusSchema.enum),
+        },
     })
     @ApiNotFoundResponse({
         description: 'Returned when the specified match ID is not found.',

@@ -62,7 +62,7 @@ export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModule
             throw new ConflictException(`Failed to load metadata for match ${matchId}`);
         }
 
-        const hasReplay = metadata.data?.replayFileMetadata !== undefined
+        const hasReplay = metadata.data?.replayFileMetadata != null
 
         if (!hasReplay) {
             throw new ConflictException(`Match ${matchId} has no replay file.`);
