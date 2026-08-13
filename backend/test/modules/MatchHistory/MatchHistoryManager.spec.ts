@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Subject } from 'rxjs';
 import { MatchHistoryManager } from '@/modules/Valorant/MatchHistory/MatchHistoryManager';
 import { RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManager';
@@ -6,8 +6,7 @@ import { ValorantMatchStatsManager } from '@/modules/Valorant/ValorantMatchStats
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { EventType } from '@/core/events/EventTypes';
 import * as rxjsAdapters from '@/core/events/adapters/rxjsAdapters';
-import { MatchStatusDTOSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatusDTO.schema';
-import { MatchStatus, MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
+import { MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
 
 // We mock the adapter so we can push events into a Subject we control,
 // instead of needing a real SimpleEventBus wiring.

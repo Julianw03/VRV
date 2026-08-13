@@ -11,8 +11,8 @@ import { KeyValueUpdatedEvent, StateUpdatedEvent } from '@/core/events/BasicEven
 import { GUID } from '#/schemas/GUIDSchema';
 import { MatchStatus, MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
 import { RiotMatchMetadata } from '#/schemas/ReplayFormatV2.schema';
-import { AccountPuuidModule } from '@/modules/Account/AccountPuuidModule/AccountPuuidModule';
 import { PlayerUuidDTO } from '#/schemas/PlayerUuid.schema';
+import { AccountPuuidManager } from '@/modules/Account/AccountPuuidModule/AccountPuuidManager';
 
 @Injectable()
 export class MatchHistoryManager implements DataDeletable, OnModuleInit, OnModuleDestroy {
@@ -38,7 +38,7 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit, OnModul
     }
 
     onModuleInit() {
-        this.userSubscription = onSource(this.eventBus, AccountPuuidModule.name)
+        this.userSubscription = onSource(this.eventBus, AccountPuuidManager.name)
             .pipe(
                 filter((it) => it.type === EventType.StateUpdated),
                 map(it => (it as StateUpdatedEvent<PlayerUuidDTO>).payload.value?.uuid),
