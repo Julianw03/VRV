@@ -170,6 +170,84 @@ describe('MatchHistoryManager', () => {
     });
 
     // ---------------------------------------------------------------------
+    // account uuid change -> state reset (via event subscription)
+    // ---------------------------------------------------------------------
+    describe('account uuid change resets state', () => {
+        function pushUuid(uuid: string | null) {
+            eventSubject.next({
+                type: EventType.StateUpdated,
+                payload: { value: uuid === null ? null : { uuid } },
+            });
+        }
+
+        it('clears loaded matches and the exhausted flag when the uuid changes', async () => {
+            // Short page marks history as exhausted for the current user.
+            riot.getMatchHistory.mockResolvedValueOnce([makeMatch('a', 100)]);
+            const ids = await manager.getMatchIdsAfter(null, 10);
+            expect(ids).toEqual(['a']);
+
+            riot.getMatchHistory.mockClear();
+            await manager.getMatchIdsAfter(null, 100);
+            expect(riot.getMatchHistory).not.toHaveBeenCalled(); // still exhausted, proves 'a' was cached
+
+            pushUuid('user-2');
+
+            // A fresh fetch must happen: neither the old match nor the
+            // exhausted flag should have survived the uuid change.
+            riot.getMatchHistory.mockResolvedValueOnce([makeMatch('b', 50)]);
+            const idsAfterReset = await manager.getMatchIdsAfter(null, 10);
+            expect(idsAfterReset).toEqual(['b']);
+            expect(riot.getMatchHistory).toHaveBeenCalledWith(0, 20);
+        });
+
+        it('allows a previously-seen match id to be re-prepended after a reset', async () => {
+            eventSubject.next({
+                type: EventType.KeyValueUpdated,
+                payload: { key: 'match-1', value: MatchStatusSchema.enum.ENDED },
+            });
+            expect(stats.requestMatchFetch).toHaveBeenCalledTimes(1);
+
+            pushUuid('user-2');
+
+            eventSubject.next({
+                type: EventType.KeyValueUpdated,
+                payload: { key: 'match-1', value: MatchStatusSchema.enum.ENDED },
+            });
+
+            const ids = await manager.getMatchIdsAfter(null, 10);
+            expect(ids).toEqual(['match-1']);
+            expect(stats.requestMatchFetch).toHaveBeenCalledTimes(2);
+        });
+
+        it('does not reset state when the same uuid is emitted again', async () => {
+            pushUuid('user-1');
+
+            riot.getMatchHistory.mockResolvedValueOnce([makeMatch('a', 100)]);
+            await manager.getMatchIdsAfter(null, 10);
+            riot.getMatchHistory.mockClear();
+
+            pushUuid('user-1'); // same uuid again, must be a no-op (distinctUntilChanged)
+
+            const ids = await manager.getMatchIdsAfter(null, 10);
+            expect(ids).toEqual(['a']);
+            expect(riot.getMatchHistory).not.toHaveBeenCalled();
+        });
+
+        it('treats a transition to a null uuid (logout) as a change and resets state', async () => {
+            pushUuid('user-1');
+
+            riot.getMatchHistory.mockResolvedValueOnce([makeMatch('a', 100)]);
+            await manager.getMatchIdsAfter(null, 10);
+
+            pushUuid(null);
+
+            riot.getMatchHistory.mockResolvedValueOnce([makeMatch('b', 50)]);
+            const ids = await manager.getMatchIdsAfter(null, 10);
+            expect(ids).toEqual(['b']);
+        });
+    });
+
+    // ---------------------------------------------------------------------
     // loadMore / doLoadMore (exercised through getMatchIdsAfter(null, ...))
     // ---------------------------------------------------------------------
     describe('loading match history from Riot', () => {
