@@ -39,6 +39,9 @@ export const checkCompatibility = (
         if (currentVersion === null || versionToCheck === null) {
             return VersionComparisonResult.UNKNOWN;
         }
+        if (versionToCheck === 'Unknown') {
+            return VersionComparisonResult.PROBABLY_COMPATIBLE;
+        }
         const current = parseSemver(currentVersion);
         const candidate = parseSemver(versionToCheck);
 

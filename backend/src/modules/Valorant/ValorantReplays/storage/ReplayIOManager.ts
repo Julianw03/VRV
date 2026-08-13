@@ -456,6 +456,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
 
     async postImportValidate(importData: ImportData): Promise<ImportData> {
         const { replayFile: replay, metadata: metadata } = importData;
+        this.logger.debug("Metadata Contents: ", JSON.stringify(metadata));
         const schemaValidated = await ReplayMetadataV2Schema.parseAsync(metadata);
 
         if (!!schemaValidated.replayFileMetadata) {
