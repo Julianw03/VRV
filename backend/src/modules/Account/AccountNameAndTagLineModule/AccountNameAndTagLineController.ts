@@ -5,6 +5,10 @@ import {
 import { ApiNotFoundResponse, ApiResponse } from '@nestjs/swagger';
 import { RiotClientReadyGuard } from '@/core/riotclient/RiotClientReadyGuard';
 import { PlayerAliasSchema } from '#/schemas/PlayerAlias.schema';
+import { createZodDto } from 'nestjs-zod';
+
+class PlayerAliasModel extends createZodDto(PlayerAliasSchema) {
+}
 
 @UseGuards(RiotClientReadyGuard)
 @Controller({
@@ -23,7 +27,7 @@ export class AccountNameAndTagLineController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Returns the active account name and tag line.',
-        type: PlayerAliasSchema.type,
+        type: PlayerAliasModel,
     })
     @ApiNotFoundResponse({
         description:
