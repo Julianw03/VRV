@@ -8,7 +8,10 @@ import {
 } from '@/modules/Valorant/MatchHistory/GetRecentMatches.schema';
 import { type GetNewMatchesDTO, GetNewMatchesDTOSchema } from '@/modules/Valorant/MatchHistory/GetNewMatches.schema';
 import { RiotMatchApiResponseDTOSchema } from '#/schemas/RiotMatchApiReponseDTO';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { createZodDto, ZodValidationPipe } from 'nestjs-zod';
+
+class RiotMatchApiResponseDTOModel extends createZodDto(RiotMatchApiResponseDTOSchema) {
+}
 
 @RequiredProduct('valorant')
 @UseGuards(ProductSessionGuard)
@@ -30,7 +33,7 @@ export class MatchHistoryController {
     })
     @ApiOkResponse({
         description: 'List of recent matches sorted from most to least recent matches (older than the cursor).',
-        type: RiotMatchApiResponseDTOSchema.type,
+        type: RiotMatchApiResponseDTOModel,
         isArray: true,
     })
     async getRecentMatches(
@@ -52,7 +55,7 @@ export class MatchHistoryController {
     })
     @ApiOkResponse({
         description: 'List of new matches sorted from newest to least recent matches (newer than the cursor)',
-        type: RiotMatchApiResponseDTOSchema.type,
+        type: RiotMatchApiResponseDTOModel,
         isArray: true,
     })
     async getNewMatches(
