@@ -4,13 +4,19 @@ import { ReplayFileTypeSchema, ReplayImportRequest } from '#/schemas/upload/Impo
 import { ReplayMetadataV2 } from '#/schemas/ReplayFormatV2.schema';
 import { CURRENT_REPLAY_FORMAT_VERSION } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageDTO.schema';
 
+const UUID_OFFSET = 0x30;
+const UUID_LENGTH = 36;
+
 export class ReplayFileImportHandler implements ImportHandler {
     async import(file: Buffer, request: ReplayImportRequest): Promise<ImportData> {
         if (request.type !== ReplayFileTypeSchema.enum.replayFile) {
             throw new Error(`ReplayFileImportHandler received unexpected import type: ${request.type}`);
         }
 
-        const matchUuid = request.matchUuid;
+        if (file.length < UUID_OFFSET + UUID_LENGTH) {
+            throw new Error("Unable to extract replay Match UUID");
+        }
+        const matchUuid = file.subarray(UUID_OFFSET, UUID_OFFSET + UUID_LENGTH).toString('utf16le');
         const checksum = createHash('sha256').update(file).digest('hex');
         const concatId = matchUuid.substring(0, 8);
 

@@ -19,7 +19,6 @@ export const ReplayImportSchema = z.discriminatedUnion("type", [
         type: z.literal(ReplayFileTypeSchema.enum.riotMetadata),
     }),
     BaseImportSchema.extend({
-        matchUuid: z.uuid(),
         type: z.literal(ReplayFileTypeSchema.enum.replayFile),
     }),
 ]);
