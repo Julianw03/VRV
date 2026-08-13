@@ -1,14 +1,14 @@
 import React from 'react';
 import { formatClock } from '@/lib/utils.ts';
 import { useAgentRegistry } from '@/lib/queries.ts';
-import { TWO_TEAM_ROLE_IDS, type TWO_TEAMS_ROLE_ID } from '#/dto/RiotMatchApiReponseDTO.ts';
+import { TWO_TEAM_ROLE_IDS, type TWO_TEAMS_ROLE_ID } from '#/schemas/RiotMatchApiReponseDTO.ts';
 
 export interface TimelineKill {
     roundTimeMs: number;
     killerSide: TWO_TEAMS_ROLE_ID;
     killerId: string;
     killerAgentId: string;
-    weaponIconUrl: string;
+    weaponIconUrl: string | undefined;
 }
 
 export interface RoundTimelineData {

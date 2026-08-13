@@ -1,4 +1,4 @@
-import { AsyncResult, AsyncResultUnion } from '#/utils/AsyncResult';
+import { AsyncResult } from '#/utils/AsyncResult';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { DataViewable } from '@/core/data/interfaces/capabilities/DataViewable';
 import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataViewable';
@@ -9,8 +9,8 @@ const TIMED_OUT = Symbol('TIMED_OUT');
 type TimedOut = typeof TIMED_OUT;
 
 export type AsyncMapBackable<K extends PropertyKey, V, E extends Error> =
-    DataViewable<Record<K, AsyncResultUnion<V, E>>>
-    & KeyDataViewable<K, AsyncResultUnion<V, E>>
+    DataViewable<Record<K, AsyncResult<V, E>>>
+    & KeyDataViewable<K, AsyncResult<V, E>>
     & DataDeletable;
 
 export class AsyncMapDataBehavior<K extends PropertyKey, V, E extends Error> implements AsyncMapBackable<K, V, E> {
@@ -18,7 +18,7 @@ export class AsyncMapDataBehavior<K extends PropertyKey, V, E extends Error> imp
     private resetMarker = 0;
 
     public constructor(
-        protected readonly externalRepresentation: IMapDataManager<K, AsyncResultUnion<V, E>, AsyncResultUnion<V, E>>,
+        protected readonly externalRepresentation: IMapDataManager<K, AsyncResult<V, E>, AsyncResult<V, E>>,
     ) {
     }
 
@@ -81,11 +81,11 @@ export class AsyncMapDataBehavior<K extends PropertyKey, V, E extends Error> imp
         return result;
     }
 
-    getKeyView(key: K): AsyncResultUnion<V, E> | null {
+    getKeyView(key: K): AsyncResult<V, E> | null {
         return this.externalRepresentation.getKeyView(key);
     }
 
-    getView(): Record<K, AsyncResultUnion<V, E>> | null {
+    getView(): Record<K, AsyncResult<V, E>> | null {
         return this.externalRepresentation.getView();
     }
 

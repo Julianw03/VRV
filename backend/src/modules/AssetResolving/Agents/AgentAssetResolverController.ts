@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { AgentAssetResolverManager, AgentId } from '@/modules/AssetResolving/Agents/AgentAssetResolverManager';
 import { AssetResolverController } from '@/modules/AssetResolving/common/AssetResolverController';
-import { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO';
+import { AgentAssetDTO } from '#/schemas/assets/AgentAssetDTO';
 
 @Controller({
     path: 'assets/agents',

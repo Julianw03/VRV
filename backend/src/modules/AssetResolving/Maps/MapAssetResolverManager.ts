@@ -1,27 +1,26 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { MapEntry, ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
-import { appConfig } from '@/config/configLoader';
-import type { ConfigType } from '@nestjs/config';
-import { MapAssetDTO } from '#/dto/assets/MapAssetDTO';
+import { Injectable } from '@nestjs/common';
+import { ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
 import { AssetResolverManager } from '@/modules/AssetResolving/common/AssetResolverManager';
+import { MapAssetDTO } from '#/schemas/assets/MapAssetDTO';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 export type MapId = string;
 
 @Injectable()
-export class MapAssetResolverManager extends AssetResolverManager<MapId, MapEntry, MapAssetDTO> {
+export class MapAssetResolverManager extends AssetResolverManager<MapId, MapAssetDTO, MapAssetDTO> {
     constructor(
         valorantAssetAPI: ValorantAssetAPI,
-        @Inject(appConfig.KEY)
-        config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        config: AppConfig,
     ) {
         super(valorantAssetAPI, config);
     }
 
-    protected keyOf(entry: MapEntry): MapId {
+    protected keyOf(entry: MapAssetDTO): MapId {
         return entry.mapUrl;
     }
 
-    protected fetchEntries(): Promise<MapEntry[]> {
+    protected fetchEntries(): Promise<MapAssetDTO[]> {
         return this.valorantAssetAPI.getMapList();
     }
 }

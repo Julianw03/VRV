@@ -2,12 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { RiotClientService } from '@/core/riotclient/RiotClientService';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { RCUMessageType } from '@/core/riotclient/messaging/RCUMessage';
-import { MatchStatus } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus';
 import { RIOT_CLIENT_SERVICE, RIOT_CLIENT_STATE_DISPATCHING_SERVICE } from '@/core/riotclient/RiotClientTokens';
 import type { RiotClientStateDispatcher } from '@/core/riotclient/RiotClientStateDispatcher';
 import { ForwardedMessage, TrieRCUMessageDispatcher } from '@/core/riotclient/messaging/trie/TrieRCUMessageDispatcher';
 import { AnyPathPattern, parsePatternString } from '@/core/riotclient/messaging/path/PatternParser';
 import { RCUDataAdapter } from '@/core/data/adapters/RCUDataAdapter';
+import { MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
+import type { GUID } from '#/schemas/GUIDSchema';
 
 @Injectable()
 export class ValorantGameInProgressRCUAdapter extends RCUDataAdapter<ValorantGameSessionManager> {
@@ -33,13 +34,13 @@ export class ValorantGameInProgressRCUAdapter extends RCUDataAdapter<ValorantGam
             matchResult,
         }: ForwardedMessage,
     ): Promise<void> {
-        const matchId = matchResult.params['matchId'] as UUID;
+        const matchId = matchResult.params['matchId'] as GUID;
 
         switch (type) {
             case RCUMessageType.UPDATE:
             case RCUMessageType.CREATE:
                 this.logger.log('Received match in progress', data);
-                this.manager.updateKeyValue(matchId, MatchStatus.IN_PROGRESS);
+                this.manager.updateKeyValue(matchId, MatchStatusSchema.enum.IN_PROGRESS);
                 break;
             case RCUMessageType.DELETE:
             default:

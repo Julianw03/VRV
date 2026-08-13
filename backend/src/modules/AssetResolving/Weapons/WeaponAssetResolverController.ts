@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { WeaponAssetResolverManager, WeaponId } from '@/modules/AssetResolving/Weapons/WeaponAssetResolverManager';
 import { AssetResolverController } from '@/modules/AssetResolving/common/AssetResolverController';
-import { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO';
+import { WeaponAssetDTO } from '#/schemas/assets/WeaponAssetDTO';
 
 @Controller({
     path: 'assets/weapons',

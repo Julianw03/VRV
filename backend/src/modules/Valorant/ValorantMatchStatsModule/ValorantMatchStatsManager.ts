@@ -1,19 +1,20 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
-import { AsyncResultUnion } from '#/utils/AsyncResult';
-import { MatchStatus } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus';
 import { KeyValueUpdatedEvent } from '@/core/events/BasicEvent';
 import { RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManager';
 import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasManager';
 import { AsyncMapDataBehavior } from '@/core/data/behaviors/async/AsyncMapDataBehavior';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { EmittingMapDataBehavior } from '@/core/data/behaviors/emission/EmittingMapDataBehavior';
-import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
+import { GUID } from '#/schemas/GUIDSchema';
+import { MatchStatus, MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
+import { RiotMatchMetadata } from '#/schemas/ReplayFormatV2.schema';
+import { AsyncResult } from '#/utils/AsyncResult';
 
 @Injectable()
 export class ValorantMatchStatsManager
-    extends AsyncMapDataBehavior<UUID, RiotMatchApiResponseDTO, Error>
+    extends AsyncMapDataBehavior<GUID, RiotMatchMetadata, Error>
     implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(this.constructor.name);
 
@@ -24,7 +25,7 @@ export class ValorantMatchStatsManager
         protected readonly valorantApi: RiotValorantAPIManager,
         protected readonly playerAliasManager: PuuidToPlayerAliasManager,
     ) {
-        const base = new SimpleMapDataManager<UUID, AsyncResultUnion<RiotMatchApiResponseDTO, Error>>();
+        const base = new SimpleMapDataManager<GUID, AsyncResult<RiotMatchMetadata, Error>>();
         const emitting = new EmittingMapDataBehavior(base, eventBus, ValorantMatchStatsManager.name);
         super(emitting);
     }
@@ -42,7 +43,7 @@ export class ValorantMatchStatsManager
         this.deleteState();
     }
 
-    public requestMatchFetch(matchId: UUID) {
+    public requestMatchFetch(matchId: GUID) {
         if (this.externalRepresentation.getKeyView(matchId) !== null) {
             return;
         }
@@ -51,9 +52,9 @@ export class ValorantMatchStatsManager
     }
 
     private gameSessionStateChange(
-        event: KeyValueUpdatedEvent<UUID, MatchStatus>,
+        event: KeyValueUpdatedEvent<GUID, MatchStatus>,
     ) {
-        if (event.payload.value !== MatchStatus.ENDED) {
+        if (event.payload.value !== MatchStatusSchema.enum.ENDED) {
             return;
         }
 
@@ -61,7 +62,7 @@ export class ValorantMatchStatsManager
         this.requestMatchFetch(matchId);
     }
 
-    private async fetchMatchData(matchId: UUID) {
+    private async fetchMatchData(matchId: GUID): Promise<RiotMatchMetadata> {
         const result = await this.valorantApi.getMatchDetails(matchId);
         const puuids = result.players.map(p => p.subject).filter((p) => p !== undefined);
         this.playerAliasManager.requestBatchFetch(puuids);
@@ -70,25 +71,13 @@ export class ValorantMatchStatsManager
         );
         const aliasMap = await this.playerAliasManager.getBestEffortBatchedResult(puuids, 5_000);
 
-        for (const player of result.players) {
-            const resolvedAlias = aliasMap[player.subject ?? ''];
-            if (resolvedAlias) {
-                this.logger.debug(
-                    `Resolved alias for player with puuid ${player.subject} in match ID ${matchId}: ${resolvedAlias.gameName}#${resolvedAlias.tagLine}`,
-                );
-                player.gameName = resolvedAlias.gameName;
-                player.tagLine = resolvedAlias.tagLine;
-            } else {
-                this.logger.warn(
-                    `Failed to resolve alias for player with puuid ${player.subject} in match ID ${matchId}`,
-                );
-            }
-        }
-
         this.logger.debug(
             `Received match data for match ID ${matchId}`,
         );
 
-        return result;
+        return {
+            matchMetadata: result,
+            puuidResolver: aliasMap,
+        };
     }
 }

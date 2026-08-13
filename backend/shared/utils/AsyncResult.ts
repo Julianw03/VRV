@@ -1,97 +1,188 @@
 export const AsyncResultType = {
-    PENDING: 'PENDING',
-    SUCCESS: 'SUCCESS',
-    FAILURE: 'FAILURE',
+    PENDING: "PENDING",
+    SUCCESS: "SUCCESS",
+    FAILURE: "FAILURE",
 } as const;
 
-export type AsyncResultType = typeof AsyncResultType[keyof typeof AsyncResultType];
+export type AsyncResultType =
+    (typeof AsyncResultType)[keyof typeof AsyncResultType];
 
-export type AsyncResultUnion<T, E extends Error> =
-    | Pending<T, E>
-    | Success<T, E>
-    | Failure<T, E>;
-
-// TODO: Make lazy eval possible
 export abstract class AsyncResult<T, E extends Error> {
     abstract readonly type: AsyncResultType;
 
-    static pending<T, E extends Error = Error>() {
+    static pending<T, E extends Error = Error>(): Pending<T, E> {
         return new Pending<T, E>();
     }
 
-    static success<T, E extends Error = Error>(data: T) {
-        return new Success<T, E>(data);
+    static success<T, E extends Error = Error>(
+        value: T,
+    ): Success<T, E> {
+        return new Success<T, E>(value);
     }
 
-    static failure<T, E extends Error = Error>(error: E) {
+    static failure<T, E extends Error = Error>(
+        error: E,
+    ): Failure<T, E> {
         return new Failure<T, E>(error);
     }
 
-    static async fromPromise<T, E extends Error = Error>(
+    static async fromPromise<T>(
+        promise: Promise<T>,
+    ): Promise<AsyncResult<T, Error>> {
+        try {
+            return AsyncResult.success<T, Error>(await promise);
+        } catch (e: unknown) {
+            const error =
+                e instanceof Error
+                    ? e
+                    : new Error(String(e));
+
+            return AsyncResult.failure<T, Error>(error);
+        }
+    }
+
+    static async fromPromiseWithErrorMapper<
+        T,
+        E extends Error,
+    >(
+        promise: Promise<T>,
+        mapError: (error: unknown) => E,
+    ): Promise<AsyncResult<T, E>> {
+        try {
+            return AsyncResult.success<T, E>(await promise);
+        } catch (e: unknown) {
+            return AsyncResult.failure<T, E>(mapError(e));
+        }
+    }
+
+    static async fromPromiseWithGuaranteedErrorType<T, E extends Error>(
         promise: Promise<T>,
     ): Promise<AsyncResult<T, E>> {
         try {
-            const value = await promise;
-            return AsyncResult.success<T, E>(value);
-        } catch (err) {
-            return AsyncResult.failure<T, E>(err as E);
+            return AsyncResult.success<T, E>(await promise);
+        } catch (e: unknown) {
+            return AsyncResult.failure<T, E>(e as E);
         }
-    }
-
-    isSuccess(): this is Success<T, E> {
-        return this.type === AsyncResultType.SUCCESS;
-    }
-
-    isFailure(): this is Failure<T, E> {
-        return this.type === AsyncResultType.FAILURE;
     }
 
     isPending(): this is Pending<T, E> {
-        return this.type === AsyncResultType.PENDING;
+        return this instanceof Pending;
     }
 
-    map<F>(mapper: (from: T) => F): AsyncResult<F, E> {
-        if (this.isSuccess()) {
-            return AsyncResult.success(mapper(this.data));
-        }
-        return this as unknown as AsyncResult<F, E>;
+    isSuccess(): this is Success<T, E> {
+        return this instanceof Success;
     }
 
-    async flatMapAsync<F>(
-        mapper: (value: T) => Promise<AsyncResult<F, E>>,
-    ): Promise<AsyncResult<F, E>> {
-        if (this.isSuccess()) {
-            return mapper(this.data);
-        }
-        return this as unknown as AsyncResult<F, E>;
+    isFailure(): this is Failure<T, E> {
+        return this instanceof Failure;
     }
 
-    mapOrElse<F>(mapper: (from: T) => F, defaultValue: F): AsyncResult<F, E> {
-        if (this.isSuccess()) {
-            return AsyncResult.success(mapper(this.data));
-        }
-        return AsyncResult.success(defaultValue);
-    }
+    abstract map<U>(fn: (value: T) => U): AsyncResult<U, E>;
 
-    mapError<F extends Error>(mapper: (from: E) => F): AsyncResult<T, F> {
-        if (this.isFailure()) {
-            return AsyncResult.failure(mapper(this.error));
-        }
-        return this as unknown as AsyncResult<T, F>;
-    }
+    abstract flatMap<U>(
+        fn: (value: T) => AsyncResult<U, E>,
+    ): AsyncResult<U, E>;
+
+    abstract flatMapAsync<U>(
+        fn: (value: T) => Promise<AsyncResult<U, E>>,
+    ): Promise<AsyncResult<U, E>>;
+
+    abstract mapError<F extends Error>(
+        fn: (error: E) => F,
+    ): AsyncResult<T, F>;
+
+    abstract unwrapOr(defaultValue: T): T;
+
+    abstract match<R>(
+        success: (value: T) => R,
+        failure: (error: E) => R,
+        pending: () => R,
+    ): R;
+
+    abstract toPromise(): Promise<T>;
 }
 
-export class Pending<T, E extends Error> extends AsyncResult<T, E> {
+export class Pending<T, E extends Error>
+    extends AsyncResult<T, E> {
     readonly type = AsyncResultType.PENDING;
+
+    map<U>(): AsyncResult<U, E> {
+        return new Pending<U, E>();
+    }
+
+    flatMap<U>(): AsyncResult<U, E> {
+        return new Pending<U, E>();
+    }
+
+    async flatMapAsync<U>(): Promise<AsyncResult<U, E>> {
+        return new Pending<U, E>();
+    }
+
+    mapError<F extends Error>(): AsyncResult<T, F> {
+        return new Pending<T, F>();
+    }
+
+    unwrapOr(defaultValue: T): T {
+        return defaultValue;
+    }
+
+    match<R>(
+        _: (value: T) => R,
+        __: (error: E) => R,
+        pending: () => R,
+    ): R {
+        return pending();
+    }
+
+    toPromise(): Promise<T> {
+        return Promise.reject(
+            new Error("Cannot convert Pending to Promise"),
+        );
+    }
 }
 
-export class Success<T, E extends Error> extends AsyncResult<T, E> {
+export class Success<T, E extends Error>
+    extends AsyncResult<T, E> {
     readonly type = AsyncResultType.SUCCESS;
-    public readonly data: T;
+    readonly data: T;
 
     constructor(data: T) {
         super();
         this.data = data;
+    }
+
+    map<U>(fn: (value: T) => U): AsyncResult<U, E> {
+        return new Success<U, E>(fn(this.data));
+    }
+
+    flatMap<U>(
+        fn: (value: T) => AsyncResult<U, E>,
+    ): AsyncResult<U, E> {
+        return fn(this.data);
+    }
+
+    flatMapAsync<U>(
+        fn: (value: T) => Promise<AsyncResult<U, E>>,
+    ): Promise<AsyncResult<U, E>> {
+        return fn(this.data);
+    }
+
+    mapError<F extends Error>(
+        _fn: (error: E) => F,
+    ): AsyncResult<T, F> {
+        return new Success<T, F>(this.data);
+    }
+
+    unwrapOr(_defaultValue: T): T {
+        return this.data;
+    }
+
+    match<R>(
+        success: (value: T) => R,
+        _failure: (error: E) => R,
+        _pending: () => R,
+    ): R {
+        return success(this.data);
     }
 
     toPromise(): Promise<T> {
@@ -99,16 +190,47 @@ export class Success<T, E extends Error> extends AsyncResult<T, E> {
     }
 }
 
-export class Failure<T, E extends Error> extends AsyncResult<T, E> {
+export class Failure<T, E extends Error>
+    extends AsyncResult<T, E> {
     readonly type = AsyncResultType.FAILURE;
-    public readonly error: E;
+    readonly error: E;
 
     constructor(error: E) {
         super();
         this.error = error;
     }
 
-    toPromise(): Promise<never> {
+    map<U>(): AsyncResult<U, E> {
+        return new Failure<U, E>(this.error);
+    }
+
+    flatMap<U>(): AsyncResult<U, E> {
+        return new Failure<U, E>(this.error);
+    }
+
+    async flatMapAsync<U>(): Promise<AsyncResult<U, E>> {
+        return new Failure<U, E>(this.error);
+    }
+
+    mapError<F extends Error>(
+        fn: (error: E) => F,
+    ): AsyncResult<T, F> {
+        return new Failure<T, F>(fn(this.error));
+    }
+
+    unwrapOr(defaultValue: T): T {
+        return defaultValue;
+    }
+
+    match<R>(
+        _success: (value: T) => R,
+        failure: (error: E) => R,
+        _pending: () => R,
+    ): R {
+        return failure(this.error);
+    }
+
+    toPromise(): Promise<T> {
         return Promise.reject(this.error);
     }
 }

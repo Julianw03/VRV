@@ -1,16 +1,14 @@
+import { Controller, Get, HttpStatus, Logger, NotFoundException, UseGuards } from '@nestjs/common';
 import {
-    Controller,
-    Get,
-    HttpStatus,
-    Logger,
-    NotFoundException,
-    UseGuards,
-} from '@nestjs/common';
-import { AccountNameAndTagLineManager } from '@/modules/Account/AccountNameAndTagLineModule/AccountNameAndTagLineManager';
+    AccountNameAndTagLineManager,
+} from '@/modules/Account/AccountNameAndTagLineModule/AccountNameAndTagLineManager';
 import { ApiNotFoundResponse, ApiResponse } from '@nestjs/swagger';
-import { PlayerAlias } from '@/modules/Account/AccountNameAndTagLineModule/PlayerAlias';
 import { RiotClientReadyGuard } from '@/core/riotclient/RiotClientReadyGuard';
-import { EntitlementTokenManager } from '@/modules/EntitlementTokenModule/EntitlementTokenManager';
+import { PlayerAliasSchema } from '#/schemas/PlayerAlias.schema';
+import { createZodDto } from 'nestjs-zod';
+
+class PlayerAliasModel extends createZodDto(PlayerAliasSchema) {
+}
 
 @UseGuards(RiotClientReadyGuard)
 @Controller({
@@ -21,14 +19,15 @@ export class AccountNameAndTagLineController {
     private readonly logger = new Logger(this.constructor.name);
 
     constructor(
-        protected readonly accountNameAndTagLineManager: AccountNameAndTagLineManager
-    ) {}
+        protected readonly accountNameAndTagLineManager: AccountNameAndTagLineManager,
+    ) {
+    }
 
     @Get('alias')
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Returns the active account name and tag line.',
-        type: PlayerAlias,
+        type: PlayerAliasModel,
     })
     @ApiNotFoundResponse({
         description:

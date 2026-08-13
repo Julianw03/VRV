@@ -1,21 +1,22 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import {
-    PlayerSummary,
-    CURRENT_REPLAY_FORMAT_VERSION,
-    ReplayMetadata,
-    RoundResult,
-    TeamSummary,
-} from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageFormat';
-import { MatchHistoryEntry, RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManager';
-import { ValorantMatchStatsManager } from '@/modules/Valorant/ValorantMatchStatsModule/ValorantMatchStatsManager';
+import { ReplaySummary, RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManager';
 import { EntitlementTokenManager } from '@/modules/EntitlementTokenModule/EntitlementTokenManager';
 import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasManager';
-import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
+import { RiotMatchApiResponseDTO } from '#/schemas/RiotMatchApiReponseDTO';
+import { CURRENT_REPLAY_FORMAT_VERSION } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageDTO.schema';
+import { GUID } from '#/schemas/GUIDSchema';
+import { PlayerAliasDTO } from '#/schemas/PlayerAlias.schema';
+import { ReplayMetadataV2 } from '#/schemas/ReplayFormatV2.schema';
+import { createHash } from 'node:crypto';
 
 export interface CombinedReplayData {
-    metadata: ReplayMetadata;
-    replayBuffer: Buffer;
-    matchDetails: RiotMatchApiResponseDTO;
+    metadata: ReplayMetadataV2;
+    replayBuffer?: Buffer;
+}
+
+interface ReplayData {
+    buffer: Buffer;
+    summary: ReplaySummary;
 }
 
 @Injectable()
@@ -29,29 +30,69 @@ export class ReplayFetchManager {
     ) {
     }
 
-
-
     public async fetchCombinedReplayData(matchId: string): Promise<CombinedReplayData> {
-        const [summary, replayBuffer, matchDetails] = await Promise.all([
-            this.apiClient.getReplaySummary(matchId),
+        const summary = await this.apiClient.getMatchDetails(matchId);
+        const shouldAttemptReplayDownload = summary.matchInfo.isReplayRecorded;
+        let replayData: ReplayData | undefined = undefined;
+        if (shouldAttemptReplayDownload) {
+            this.logger.log("Match has replay data, attempting to fetch.")
+            replayData = await this.getReplayData(matchId);
+        } else {
+            this.logger.log("No replay data available.")
+        }
+        const puuidResolver = await this.getPuuidResolverMap(summary);
+        const currrentId = this.tokenManager.getView()?.subject;
+
+        const metadata = buildMetadata(
+            replayData,
+            summary,
+            puuidResolver,
+            currrentId,
+        );
+        return {
+            metadata,
+            replayBuffer: replayData?.buffer,
+        };
+    }
+
+    private async getReplayData(matchId: string): Promise<ReplayData> {
+        const [replayBuffer, replaySummary] = await Promise.all([
             this.apiClient.downloadReplayFile(matchId),
-            this.apiClient.getMatchDetails(matchId),
+            this.apiClient.getReplaySummary(matchId),
         ]);
 
+        const hash = createHash('sha256')
+            .update(replayBuffer)
+            .digest('hex');
 
+        if (hash !== replaySummary.Checksum) {
+            throw new Error(
+                `Replay file checksum mismatch for match with Id ${matchId}. Expected ${replaySummary.Checksum}, got ${hash}`,
+            );
+        }
+
+        return { buffer: replayBuffer, summary: replaySummary };
+    }
+
+    private async getPuuidResolverMap(matchDetails: RiotMatchApiResponseDTO): Promise<Record<GUID, PlayerAliasDTO>> {
         const puuids = matchDetails.players
             .map((p) => p.subject)
             .filter((p) => p !== undefined);
 
+        const puuidResolver = {} as Record<GUID, PlayerAliasDTO>;
         try {
             this.puuidManager.requestBatchFetch(puuids);
             const resolveMap = await this.puuidManager.getBestEffortBatchedResult(puuids, 5_000);
 
+            this.logger.debug('Resolved player aliases for replay metadata.', resolveMap);
+
             for (const matchDetail of matchDetails?.players ?? []) {
-                const resolvedAlias = resolveMap[matchDetail.subject ?? ''];
+                const subject = matchDetail.subject;
+                if (!subject) continue;
+
+                const resolvedAlias = resolveMap[subject];
                 if (resolvedAlias) {
-                    matchDetail.gameName = resolvedAlias.gameName;
-                    matchDetail.tagLine = resolvedAlias.tagLine;
+                    puuidResolver[subject] = resolvedAlias;
                 }
             }
         } catch (error) {
@@ -61,127 +102,53 @@ export class ReplayFetchManager {
             );
         }
 
-        const tokens = this.tokenManager.getView();
-
-        if (!tokens) {
-            throw new InternalServerErrorException(
-                'Current user\'s account name and tag line not found',
-            );
-        }
-
-        const metadata = buildMetadata(
-            matchId,
-            summary.GameVersion,
-            replayBuffer.byteLength,
-            matchDetails,
-            tokens.subject,
-        );
-        return {
-            metadata,
-            replayBuffer,
-            matchDetails,
-        };
+        return puuidResolver;
     }
 }
 
-function buildMetadata(
-    matchId: string,
-    gameVersion: string,
-    replayFileSize: number,
+export function buildMetadata(
+    replayData: ReplayData | undefined,
     matchDetails: RiotMatchApiResponseDTO,
-    subject: string,
-): ReplayMetadata {
-    const { matchInfo, players, teams, roundResults, kills } = matchDetails;
+    puuidResolver: Record<GUID, PlayerAliasDTO>,
+    subject: string | undefined,
+): ReplayMetadataV2 {
 
-    const teamSummaries: TeamSummary[] = (teams ?? []).map((t) => ({
-        teamId: t.teamId,
-        won: t.won,
-        roundsWon: t.roundsWon,
-        roundsPlayed: t.roundsPlayed,
-        numPoints: t.numPoints,
-    }));
+    const concatId = matchDetails.matchInfo.matchId.substring(0, 8);
 
-    const playerSummaries: PlayerSummary[] = players.map((p) => ({
-        puuid: p.subject ?? '',
-        gameName: p.gameName ?? '',
-        tagLine: p.tagLine ?? '',
-        teamId: p.teamId ?? '',
-        characterId: p.characterId ?? '',
-        kills: p.stats?.kills ?? 0,
-        deaths: p.stats?.deaths ?? 0,
-        assists: p.stats?.assists ?? 0,
-        isObserver: p.isObserver ?? false,
-        competitiveTier: p.competitiveTier ?? 0,
-        score: p.stats?.score ?? 0,
-        roundsPlayed: p.stats?.roundsPlayed ?? 0,
-        playtimeMillis: p.stats?.playtimeMillis ?? 0,
-        abilityCasts: p.stats?.abilityCasts ?? {
-            grenadeCasts: 0,
-            ability1Casts: 0,
-            ability2Casts: 0,
-            ultimateCasts: 0,
-        },
-    }));
 
-    const roundResultSummaries: RoundResult[] = (roundResults ?? []).map((r) => ({
-        roundNum: r.roundNum ?? 0,
-        roundResult: r.roundResult ?? '',
-        roundCeremony: r.roundCeremony ?? '',
-        roundResultCode: r.roundResultCode ?? '',
-        winningTeam: r.winningTeam ?? '',
-        winningTeamRole: r.winningTeamRole ?? '',
-        bombPlanter: r.bombPlanter,
-        plantRoundTime: r.plantRoundTime,
-        plantPlayerLocations: r.plantPlayerLocations ?? undefined,
-        plantLocation: r.plantLocation,
-        plantSite: r.plantSite,
-        defuseRoundTime: r.defuseRoundTime,
-        defusePlayerLocations: r.defusePlayerLocations ?? undefined,
-        defuseLocation: r.defuseLocation,
-        playerStats: (r.playerStats ?? []).map((ps) => ({
-            subject: ps.subject ?? '',
-            score: ps.score ?? 0,
-            kills: ps.kills ?? [],
-            damage: ps.damage ?? [],
-            economy: ps.economy ?? { loadoutValue: 0, weapon: '', armor: '', remaining: 0, spent: 0 },
-            wasAfk: ps.wasAfk ?? false,
-            wasPenalized: ps.wasPenalized ?? false,
-            stayedInSpawn: ps.stayedInSpawn ?? false,
-        })),
-        playerEconomies: r.playerEconomies ?? [],
-        playerScores: r.playerScores ?? [],
-    }));
-
-    return {
+    const obj: ReplayMetadataV2 = {
         formatVersion: CURRENT_REPLAY_FORMAT_VERSION,
-        matchInfo: {
-            matchId,
-            mapId: matchInfo.mapId,
-            queueID: matchInfo.queueID,
-            gameStartMillis: matchInfo.gameStartMillis,
-            gameLengthMillis: matchInfo.gameLengthMillis,
-            isRanked: matchInfo.isRanked,
-            isReplayRecorded: matchInfo.isReplayRecorded,
-            gameVersion,
+        uuid: matchDetails.matchInfo.matchId,
+        riotMatchMetadata: {
+            matchMetadata: matchDetails,
+            puuidResolver: puuidResolver,
         },
-        downloadInfo: {
+        userMetadata: {
+            name: `Replay ${concatId}`,
+            tags: [],
+            notes: null,
+        },
+    };
+
+    if (replayData) {
+        obj.replayFileMetadata = {
+            fileSizeBytes: replayData.buffer.length,
+            checksum: replayData.summary.Checksum,
+        };
+    }
+
+    if (subject) {
+        obj.downloaderMetadata = {
             downloadedAt: Date.now(),
             downloaderId: subject,
-        },
-        replayFileSize,
-        teams: teamSummaries,
-        players: playerSummaries,
-        roundResults: roundResultSummaries,
-        kills: (kills ?? []).map((k) => ({
-            gameTime: k.gameTime ?? 0,
-            round: k.round ?? 0,
-            roundTime: k.roundTime ?? 0,
-            killer: k.killer ?? '',
-            victim: k.victim ?? '',
-            victimLocation: k.victimLocation ?? { x: 0, y: 0 },
-            assistants: k.assistants ?? [],
-            playerLocations: k.playerLocations ?? [],
-            finishingDamage: k.finishingDamage!!,
-        })),
-    };
+        };
+
+        const resolvedTagline = puuidResolver?.[subject];
+        if (resolvedTagline) {
+            obj.userMetadata!.name = `${resolvedTagline.gameName}#${resolvedTagline.tagLine}'s Replay ${concatId}`;
+        }
+    }
+
+
+    return obj;
 }

@@ -1,20 +1,20 @@
 import { PlayerAccountGameNameAndTagLine } from '../../../../gen';
 import { Injectable } from '@nestjs/common';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
-import { PlayerAlias } from '@/modules/Account/AccountNameAndTagLineModule/PlayerAlias';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import {
     RecomputingObjectMappingBehavior,
 } from '@/core/data/behaviors/viewMapping/RecomputingObjectMappingBehavior';
 import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/EmittingObjectDataBehavior';
+import { PlayerAliasDTO } from '#/schemas/PlayerAlias.schema';
 
 @Injectable()
 export class AccountNameAndTagLineManager implements IObjectDataManager<
     PlayerAccountGameNameAndTagLine,
-    PlayerAlias
+    PlayerAliasDTO
 > {
-    protected readonly manager: IObjectDataManager<PlayerAccountGameNameAndTagLine, PlayerAlias>;
+    protected readonly manager: IObjectDataManager<PlayerAccountGameNameAndTagLine, PlayerAliasDTO>;
 
     constructor(protected readonly eventBus: SimpleEventBus) {
         const base = new SimpleObjectDataManager();
@@ -26,7 +26,7 @@ export class AccountNameAndTagLineManager implements IObjectDataManager<
         this.manager.deleteState();
     }
 
-    getView(): PlayerAlias | null {
+    getView(): PlayerAliasDTO | null {
         return this.manager.getView();
     }
 
@@ -36,7 +36,7 @@ export class AccountNameAndTagLineManager implements IObjectDataManager<
 
     protected static map(
         state: PlayerAccountGameNameAndTagLine,
-    ): PlayerAlias {
+    ): PlayerAliasDTO {
         return {
             tagLine: state.tagLine!,
             gameName: state.gameName!,

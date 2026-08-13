@@ -1,16 +1,16 @@
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import fs from 'node:fs';
 import * as readline from 'node:readline';
 import { ProductSessionManager } from '@/modules/ProductSessionModule/ProductSessionManager';
-import { type ConfigType } from '@nestjs/config';
-import { appConfig } from '@/config/configLoader';
 import { MinimalVersionInfoDTO } from '@/modules/Valorant/ValorantVersionInfo/MinimalVersionInfoDTO';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/EmittingObjectDataBehavior';
 import path from 'path';
 import { EventType } from '@/core/events/EventTypes';
+import { getResolvedPath } from '@/config/ConfigV1.schema';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 @Injectable()
 export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVersionInfoDTO, MinimalVersionInfoDTO>, OnModuleInit, OnModuleDestroy {
@@ -18,8 +18,8 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
     protected readonly logger = new Logger(this.constructor.name);
 
     constructor(
-        @Inject(appConfig.KEY)
-        protected readonly config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        protected readonly config: AppConfig,
         protected readonly eventBus: SimpleEventBus,
     ) {
         const base = new SimpleObjectDataManager<MinimalVersionInfoDTO>();
@@ -34,7 +34,7 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
     private readonly regex: RegExp;
 
     private async readValue(signal?: AbortSignal): Promise<MinimalVersionInfoDTO> {
-        const filePath = path.join(this.config.filepaths['valorant-saved'].getResolvedPath(), 'Logs', 'ShooterGame.log');
+        const filePath = path.join(getResolvedPath(this.config.filepaths['valorant-saved']), 'Logs', 'ShooterGame.log');
         const stream = fs.createReadStream(filePath, { encoding: 'utf-8' });
         const rl = readline.createInterface({
             input: stream,
@@ -88,7 +88,7 @@ export class ValorantVersionInfoManager implements IObjectDataManager<MinimalVer
             this.logger.warn('Failed to fetch version info', error);
         }
         if (retryIterations <= 0) {
-            this.logger.log('Max retry count reached. Assuming that the current available version (if present) is the correct one.');
+            this.logger.log(`Max retry count reached. Assuming that the current available version ${this.manager.getView()?.version} is the correct one.`);
             return;
         }
         const newRetryCount = retryIterations - 1;

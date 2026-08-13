@@ -1,18 +1,18 @@
 import { useState } from 'react';
-import { CheckCircle2, ChevronLeft, Download, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, Download, Loader2, Video, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDownloadStateFlags, useRetryDownload, useTriggerDownload } from '@/lib/queries';
 import { cn } from '@/lib/utils';
-import type { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO.ts';
 import { mapDisplayName } from '@/components/saved-replays/formatters';
 import { MatchStatsPanel } from './MatchStatsPanel';
 import { useAppStore } from '@/store/useAppStore';
 import { useRelativeTime } from '@/hooks/useRelativeTime.ts';
 import { OutdatedTag } from '@/components/OutdatedTag';
+import type { RiotMatchApiResponseDTO } from '#/schemas/RiotMatchApiReponseDTO.ts';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 
-// Shared grid layout: queue | map | date | tags | actions
-export const GRID_COLS = '7rem 6rem 1fr 4rem 6rem' as const;
+export const GRID_COLS = '7rem 6rem 1fr 8rem 6rem' as const;
 
 function formatDate(millis: number): string {
     return new Date(millis).toLocaleString('en-US', {
@@ -43,37 +43,71 @@ function DownloadButton({
 
     if (isDownloading) {
         return (
-            <Button size="icon-sm" variant="ghost" disabled title="Downloading…">
-                <Loader2 className="animate-spin" />
-            </Button>
+            <Tooltip>
+                <TooltipTrigger>
+                    <Button size="icon-sm" variant="ghost" disabled>
+                        <Loader2 className="animate-spin" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Downloading ...
+                </TooltipContent>
+            </Tooltip>
+
         );
     }
 
     if (isDownloaded) {
         return (
-            <span className="flex items-center justify-center size-7 text-green-500" title="Saved">
-                <CheckCircle2 className="size-4" />
-            </span>
+            <Tooltip>
+                <TooltipTrigger>
+                    <span className="flex items-center justify-center size-7 text-green-500">
+                        <CheckCircle2 className="size-4" />
+                    </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Downloaded
+                </TooltipContent>
+            </Tooltip>
+
         );
     }
 
     if (isFailed) {
         return (
-            <Button size="icon-sm" variant="ghost" title="Retry download" onClick={onRetry}>
-                <XCircle className="size-4 text-destructive" />
-            </Button>
+            <Tooltip>
+                <TooltipTrigger>
+                    <Button size="icon-sm" variant="ghost" onClick={onRetry}>
+                        <XCircle className="size-4 text-destructive" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <div>
+                        Something went wrong
+                        <br />
+                        Click to retry the download
+                    </div>
+                </TooltipContent>
+            </Tooltip>
         );
     }
     return (
-        <Button
-            size="icon-sm"
-            variant="ghost"
-            title="Download replay"
-            disabled={!canDownload}
-            onClick={onDownload}
-        >
-            <Download />
-        </Button>
+        <Tooltip>
+            <TooltipTrigger>
+                <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    disabled={!canDownload}
+                    onClick={onDownload}
+                >
+                    <Download />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+                Download match data
+            </TooltipContent>
+        </Tooltip>
+
     );
 }
 
@@ -93,10 +127,9 @@ export function MatchRow({ match }: MatchRowProps) {
     const relativeTime = useRelativeTime(match.matchInfo.gameStartMillis);
 
     const matchStats = useAppStore((s) => s.matchStatsCache?.[matchId]);
-    const mapId = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo.mapId : null;
+    const mapId = matchStats?.type === 'SUCCESS' ? matchStats.data.matchMetadata.matchInfo.mapId : null;
     const mapAsset = useAppStore((s) => (mapId ? s.mapRegistry?.[mapId] ?? null : null));
-    const isDownloadAvailable = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo?.isReplayRecorded : false;
-    const matchGameVersion = matchStats?.type === 'SUCCESS' ? matchStats.data.matchInfo.gameVersion : null;
+    const matchGameVersion = matchStats?.type === 'SUCCESS' ? matchStats.data.matchMetadata.matchInfo.gameVersion : null;
 
     return (
         <Collapsible
@@ -143,9 +176,24 @@ export function MatchRow({ match }: MatchRowProps) {
                 <div className="flex items-center">
                     <OutdatedTag matchGameVersion={matchGameVersion} />
                 </div>
-                <div className="flex items-center justify-end gap-1">
+                <div className="flex items-center gap-1">
+                    {
+                        match.matchInfo.isReplayRecorded ?
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                <span className={'flex items-center justify-center size-7'}>
+                                    <Video className={'size-4'} />
+                                </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    Replay Available
+                                </TooltipContent>
+                            </Tooltip>
+                            :
+                            <span className={'flex items-center justify-center size-7'} />
+                    }
                     <DownloadButton
-                        canDownload={canDownload && isDownloadAvailable}
+                        canDownload={canDownload}
                         isDownloading={isDownloading}
                         isFailed={isFailed}
                         isDownloaded={isDownloaded}

@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import { InjectStates, type InjectStatus, type MatchStatsResult } from '@/lib/api';
-import type { ProductSession } from '#/dto/ProductSessionDTO.ts';
+import type { DownloadStateDTO } from '#/schemas/DownloadState.schema.ts';
+import type { AgentAssetDTO } from '#/schemas/assets/AgentAssetDTO.ts';
+import type { MapAssetDTO } from '#/schemas/assets/MapAssetDTO.ts';
+import type { WeaponAssetDTO } from '#/schemas/assets/WeaponAssetDTO.ts';
+import type { GearAssetDTO } from '#/schemas/assets/GearAssetDTO.ts';
+import type { ProductSessionDTO } from '#/schemas/ProductSession.schema.ts';
+import type { PlayerAliasDTO } from '#/schemas/PlayerAlias.schema.ts';
+import type { PlayerUuidDTO } from '#/schemas/PlayerUuid.schema.ts';
 import type { MinimalVersionInfo } from '#/dto/MinimalVersionInfo.ts';
-import { type DownloadStateDTO } from '#/dto/DownloadStateDTO.ts';
-import type { PlayerAliasDTO } from '#/dto/PlayerAliasDTO.ts';
-import type { MapAssetDTO } from '#/dto/assets/MapAssetDTO.ts';
-import type { AgentAssetDTO } from '#/dto/assets/AgentAssetDTO.ts';
-import type { WeaponAssetDTO } from '#/dto/assets/WeaponAssetDTO.ts';
-import type { GearAssetDTO } from '#/dto/assets/GearAssetDTO.ts';
-import type { PlayerUuidDTO } from '#/dto/PlayerUuidDTO.ts';
 
 export type EventType =
     | 'StateUpdated'
@@ -62,7 +62,7 @@ interface AppState {
     agentRegistry: Record<string, AgentAssetDTO> | null;
     weaponRegistry: Record<string, WeaponAssetDTO> | null;
     gearRegistry: Record<string, GearAssetDTO> | null;
-    sessionRegistry: Record<string, ProductSession> | null;
+    sessionRegistry: Record<string, ProductSessionDTO> | null;
 
     setWsConnected: (connected: boolean) => void;
     setPlayerAlias: (alias: PlayerAliasDTO) => void;
@@ -82,7 +82,7 @@ interface AppState {
     setAgentRegistry: (agentRegistry: Record<string, AgentAssetDTO>) => void;
     setWeaponRegistry: (weaponRegistry: Record<string, WeaponAssetDTO>) => void;
     setGearRegistry: (gearRegistry: Record<string, GearAssetDTO>) => void;
-    setSessionRegistry: (registry: Record<string, ProductSession>) => void;
+    setSessionRegistry: (registry: Record<string, ProductSessionDTO>) => void;
     setCurrentShippingVersion: (version: string | null) => void;
 
     /**
@@ -154,7 +154,7 @@ export const useAppStore = create<AppState>((set) => {
     const setGearRegistry = (registry: Record<string, GearAssetDTO>) =>
         set({ gearRegistry: registry });
 
-    const setSessionRegistry = (registry: Record<string, ProductSession>) =>
+    const setSessionRegistry = (registry: Record<string, ProductSessionDTO>) =>
         set({ sessionRegistry: registry });
 
     const setCurrentShippingVersion = (version: string | null) =>
@@ -175,8 +175,8 @@ export const useAppStore = create<AppState>((set) => {
             },
 
             AccountPuuidManager: (event) => {
-              if (event.type !== 'StateUpdated') return;
-              set({ playerUuid: event.payload.value as PlayerUuidDTO | null })
+                if (event.type !== 'StateUpdated') return;
+                set({ playerUuid: event.payload.value as PlayerUuidDTO | null });
             },
 
             ReplayInjectManager: (event) => {
@@ -218,13 +218,13 @@ export const useAppStore = create<AppState>((set) => {
             ProductSessionManager: (event) => {
                 switch (event.type) {
                     case 'StateUpdated': {
-                        const sessions = event.payload.value as Record<string, ProductSession>;
+                        const sessions = event.payload.value as Record<string, ProductSessionDTO>;
                         if (sessions !== undefined) set({ sessionRegistry: sessions });
                         break;
                     }
                     case 'KeyValueUpdated': {
                         const sessionId = event.payload.key as string;
-                        const session = event.payload.value as ProductSession | null;
+                        const session = event.payload.value as ProductSessionDTO | null;
                         set((s) => {
                             if (session === null) {
                                 if (!s.sessionRegistry) return {};

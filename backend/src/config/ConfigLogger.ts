@@ -1,18 +1,17 @@
-import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { appConfig } from '@/config/configLoader';
-import { type ConfigType } from '@nestjs/config';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
 
 @Injectable()
 export class ConfigLogger implements OnModuleInit {
     private readonly logger = new Logger(this.constructor.name);
 
     constructor(
-        @Inject(appConfig.KEY)
-        private readonly config: ConfigType<typeof appConfig>
+        @InjectConfig()
+        private readonly config: AppConfig,
     ) {
     }
 
     onModuleInit() {
-        this.logger.log('Init with config', this.config)
+        this.logger.log('Init with config', this.config);
     }
 }

@@ -1,4 +1,3 @@
-import { ReplayFetchManager } from '@/modules/Valorant/ValorantReplays/remote/ReplayFetchManager';
 import {
     BadRequestException,
     Controller,
@@ -8,15 +7,12 @@ import {
     Logger,
     Param,
     Post,
-    Query,
     UseGuards,
 } from '@nestjs/common';
-import { ApiAcceptedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiAcceptedResponse, ApiOperation } from '@nestjs/swagger';
 import { ReplayIOManager } from '@/modules/Valorant/ValorantReplays/storage/ReplayIOManager';
-import { GetRecentMatchesDto } from '@/modules/Valorant/ValorantReplays/remote/GetRecentMatchesDTO';
-import { MatchHistoryEntry } from '@/integrations/riot/RiotValorantAPIManager';
 import { ProductSessionGuard, RequiredProduct } from '@/modules/ProductSessionModule/ProductSessionGuard';
-import { DownloadStateDTO } from '#/dto/DownloadStateDTO';
+import { DownloadStateDTO } from '#/schemas/DownloadState.schema';
 
 @RequiredProduct('valorant')
 @UseGuards(ProductSessionGuard)

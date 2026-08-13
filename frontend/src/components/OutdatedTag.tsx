@@ -44,7 +44,35 @@ export function OutdatedTag({ matchGameVersion }: OutdatedTagProps) {
             );
 
         case VersionComparisonResult.UNKNOWN:
+            return (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span className="cursor-default rounded-md border border-gray-500/30 bg-gray-500/20 px-2 py-0.5 text-xs font-medium text-gray-400">
+                            Unknown
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>
+                            Unable to determine version compatibility for this match game version.
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+            );
         case VersionComparisonResult.EXACT_MATCH:
+            return (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span className="cursor-default rounded-md border border-green-500/30 bg-green-500/20 px-2 py-0.5 text-green-500 text-xs font-medium">
+                            Ok
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>
+                            This match was played on the same game version.
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
+            )
         default:
             return null;
     }

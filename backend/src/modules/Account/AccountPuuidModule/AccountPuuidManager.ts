@@ -3,9 +3,10 @@ import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { EntitlementsToken } from '../../../../gen';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import { RecomputingObjectMappingBehavior } from '@/core/data/behaviors/viewMapping/RecomputingObjectMappingBehavior';
-import { PlayerUuidDTO } from '#/dto/PlayerUuidDTO';
 import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/EmittingObjectDataBehavior';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
+import { GUID } from '#/schemas/GUIDSchema';
+import { PlayerUuidDTO } from '#/schemas/PlayerUuid.schema';
 
 @Injectable()
 export class AccountPuuidManager implements IObjectDataManager<EntitlementsToken, PlayerUuidDTO> {
@@ -19,7 +20,7 @@ export class AccountPuuidManager implements IObjectDataManager<EntitlementsToken
 
     private static map(state: EntitlementsToken): PlayerUuidDTO {
         return {
-            uuid: state.subject as UUID,
+            uuid: state.subject as GUID,
         };
     }
 

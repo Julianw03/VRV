@@ -15,7 +15,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { MapAssetResolverModule } from '@/modules/AssetResolving/Maps/MapAssetResolverModule';
 import { StaticAssetProxyModule } from '@/modules/AssetProxyModule/StaticAssetProxyModule';
 import { ValorantVersionInfoModule } from '@/modules/Valorant/ValorantVersionInfo/ValorantVersionInfoModule';
-import { appConfig } from '@/config/configLoader';
 import { ConfigurationModule } from '@/config/ConfigurationModule';
 import { getPackageAwarePath } from '@/utils/PackagedPath';
 import { PuuidToPlayerAliasModule } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasModule';
@@ -33,10 +32,6 @@ export const APP = Symbol('APP');
         ServeStaticModule.forRoot({
             rootPath: getPackageAwarePath('public'),
             serveRoot: '/',
-        }),
-        ConfigModule.forRoot({
-            load: [appConfig],
-            isGlobal: true,
         }),
         ConfigurationModule,
         RiotClientModule,

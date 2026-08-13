@@ -26,8 +26,8 @@
         "include": "../gen/**/*",
         "outDir": "dist/gen"
       }, {
-        "include": "../config.yml",
-        "outDir": "dist/config.yml"
+        "include": "../config.json",
+        "outDir": "dist/config.json"
       }
     ]
   }

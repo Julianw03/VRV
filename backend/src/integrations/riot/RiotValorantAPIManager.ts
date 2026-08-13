@@ -1,12 +1,8 @@
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { EntitlementTokenManager } from '@/modules/EntitlementTokenModule/EntitlementTokenManager';
 import { ProductSessionManager } from '@/modules/ProductSessionModule/ProductSessionManager';
 import { ValorantVersionInfoManager } from '@/modules/Valorant/ValorantVersionInfo/ValorantVersionInfoManager';
-import { type ConfigType } from '@nestjs/config';
-import { appConfig } from '@/config/configLoader';
-import { ProductSessionDTO } from '@/modules/ProductSessionModule/ProductSessionDTO';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
-import { RegionToDefaultShardMap } from '@/config/ConfigV1DTO';
 import { combineLatest, fromEventPattern, Subscription } from 'rxjs';
 import { MinimalVersionInfoDTO } from '@/modules/Valorant/ValorantVersionInfo/MinimalVersionInfoDTO';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
@@ -16,7 +12,12 @@ import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/Emitt
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import { EventType } from '@/core/events/EventTypes';
 import { RiotValorantAPIReadyState } from '@/integrations/riot/RiotValorantAPIReadyState';
-import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
+import { RegionToDefaultShardMap } from '@/config/ConfigV1.schema';
+import { RiotMatchApiResponseDTO, RiotMatchApiResponseDTOSchema } from '#/schemas/RiotMatchApiReponseDTO';
+import { ProductSessionDTO } from '#/schemas/ProductSession.schema';
+import { z } from 'zod';
+import { type AppConfig, InjectConfig } from '@/config/configLoader';
+
 
 export enum ValorantServiceUrl {
     ACCOUNT_XP = 'ACCOUNT_XP',
@@ -66,10 +67,12 @@ type RemoteConfig = {
     'Collapsed': Record<RemoteConfigEntry, string>
 }
 
-export interface ReplaySummary {
-    GameVersion: string;
-    Checksum: string;
-}
+const ReplaySummarySchema = z.object({
+    GameVersion: z.string().nonempty(),
+    Checksum: z.string().nonempty(),
+});
+
+export type ReplaySummary = z.infer<typeof ReplaySummarySchema>;
 
 export interface MatchHistoryEntry {
     MatchID: string;
@@ -146,8 +149,8 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
     );
 
     constructor(
-        @Inject(appConfig.KEY)
-        protected readonly config: ConfigType<typeof appConfig>,
+        @InjectConfig()
+        protected readonly config: AppConfig,
         private readonly entitlementTokenManager: EntitlementTokenManager,
         private readonly versionInfoManager: ValorantVersionInfoManager,
         private readonly eventBus: SimpleEventBus,
@@ -255,9 +258,9 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
             headers: this.getAuthHeaders(version),
         });
         if (!response.ok) {
-            this.logger.error("Request failed: ", response);
+            this.logger.error('Request failed: ', response);
             throw new Error(
-                `Match history request failed with status ${response.status}`
+                `Match history request failed with status ${response.status}`,
             );
         }
 
@@ -278,7 +281,14 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
             );
         }
 
-        return response.json();
+        const json = await response.json();
+
+        try {
+            return await RiotMatchApiResponseDTOSchema.parseAsync(json);
+        } catch (error) {
+            this.logger.error(json, error);
+            throw new Error('Failed to parse match details', { cause: error });
+        }
     }
 
     async getReplaySummary(matchId: string): Promise<ReplaySummary> {
@@ -294,7 +304,8 @@ export class RiotValorantAPIManager implements OnModuleInit, OnModuleDestroy {
             );
         }
 
-        return response.json();
+        const json = await response.json();
+        return await ReplaySummarySchema.parseAsync(json);
     }
 
     async downloadReplayFile(matchId: string): Promise<Buffer> {

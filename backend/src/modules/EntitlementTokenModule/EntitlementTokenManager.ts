@@ -1,11 +1,11 @@
 import { EntitlementsToken } from '../../../gen';
 import { Injectable } from '@nestjs/common';
-import { EntitlementTokenDTO } from '@/modules/EntitlementTokenModule/EntitlementTokenDTO';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import {
     RecomputingObjectMappingBehavior,
 } from '@/core/data/behaviors/viewMapping/RecomputingObjectMappingBehavior';
+import { EntitlementTokenDTO } from '@/modules/EntitlementTokenModule/EntitlementToken.schema';
 
 @Injectable()
 export class EntitlementTokenManager implements IObjectDataManager<

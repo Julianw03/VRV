@@ -3,7 +3,8 @@ import {
     ClassSerializerInterceptor,
     Controller,
     Get,
-    HttpCode, HttpStatus,
+    HttpCode,
+    HttpStatus,
     Logger,
     NotFoundException,
     Param,
@@ -11,17 +12,17 @@ import {
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
+import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
 import { RiotClientReadyGuard } from '@/core/riotclient/RiotClientReadyGuard';
 import { ValorantMatchStatsManager } from '@/modules/Valorant/ValorantMatchStatsModule/ValorantMatchStatsManager';
-import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
-import {
-    Failure,
-    Pending,
-    Success,
-} from '#/utils/AsyncResult';
 import { ProductSessionGuard, RequiredProduct } from '@/modules/ProductSessionModule/ProductSessionGuard';
-import { AsyncResultSchema } from '@/utils/AsyncResultSwagger';
-import { RiotMatchApiResponseDTO } from '#/dto/RiotMatchApiReponseDTO';
+import type { GUID } from '#/schemas/GUIDSchema';
+import { RiotMatchMetadataSchema } from '#/schemas/ReplayFormatV2.schema';
+import { AsyncResultSchema, Failure, Pending, Success } from '@/utils/AsyncResultSwagger';
+import { createZodDto } from 'nestjs-zod';
+
+class RiotMatchMetadataModel extends createZodDto(RiotMatchMetadataSchema) {
+}
 
 @RequiredProduct('valorant')
 @UseGuards(RiotClientReadyGuard, ProductSessionGuard)
@@ -35,15 +36,16 @@ export class ValorantMatchStatsController {
 
     constructor(
         protected readonly valorantMatchEndedManager: ValorantMatchStatsManager,
-    ) {}
+    ) {
+    }
 
     @Get('')
-    @ApiExtraModels(Pending, Success, Failure, RiotMatchApiResponseDTO)
+    @ApiExtraModels(Pending, Success, Failure, RiotMatchMetadataModel)
     @ApiOkResponse({
         schema: {
             type: 'object',
             additionalProperties: AsyncResultSchema(
-                getSchemaPath(RiotMatchApiResponseDTO),
+                getSchemaPath(RiotMatchMetadataModel),
             ),
         },
     })
@@ -58,12 +60,12 @@ export class ValorantMatchStatsController {
     }
 
     @Get(':id')
-    @ApiExtraModels(Success, Failure, Pending, RiotMatchApiResponseDTO)
+    @ApiExtraModels(Success, Failure, Pending, RiotMatchMetadataModel)
     @ApiOkResponse({
-        schema: AsyncResultSchema(getSchemaPath(RiotMatchApiResponseDTO)),
+        schema: AsyncResultSchema(getSchemaPath(RiotMatchMetadataModel)),
     })
-    public async getById(@Param('id') id: UUID) {
-        if (!id) return new BadRequestException();
+    public async getById(@Param('id') id: GUID) {
+        if (!id) throw new BadRequestException();
         const viewEntry = this.valorantMatchEndedManager.getKeyView(id);
 
         if (viewEntry === null) {
@@ -75,7 +77,7 @@ export class ValorantMatchStatsController {
 
     @Post(':id/fetch')
     @HttpCode(HttpStatus.ACCEPTED.valueOf())
-    public triggerFetch(@Param('id') id: UUID) {
+    public triggerFetch(@Param('id') id: GUID) {
         if (!id) throw new BadRequestException();
         this.valorantMatchEndedManager.requestMatchFetch(id);
     }

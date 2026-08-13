@@ -2,12 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { RCUMessageType } from '@/core/riotclient/messaging/RCUMessage';
 import type { RiotClientService } from '@/core/riotclient/RiotClientService';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
-import { MatchStatus } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus';
 import { RIOT_CLIENT_SERVICE, RIOT_CLIENT_STATE_DISPATCHING_SERVICE } from '@/core/riotclient/RiotClientTokens';
 import { AnyPathPattern, parsePatternString } from '@/core/riotclient/messaging/path/PatternParser';
 import type { RiotClientStateDispatcher } from '@/core/riotclient/RiotClientStateDispatcher';
 import { ForwardedMessage, TrieRCUMessageDispatcher } from '@/core/riotclient/messaging/trie/TrieRCUMessageDispatcher';
 import { RCUDataAdapter } from '@/core/data/adapters/RCUDataAdapter';
+import { MatchStatusSchema } from '@/modules/Valorant/ValorantGameSessionModule/MatchStatus.schema';
 
 @Injectable()
 export class ValorantGameChampSelectRCUAdapter extends RCUDataAdapter<ValorantGameSessionManager> {
@@ -35,7 +35,7 @@ export class ValorantGameChampSelectRCUAdapter extends RCUDataAdapter<ValorantGa
             case RCUMessageType.UPDATE:
             case RCUMessageType.CREATE:
                 this.logger.log('Received champ select start message', data);
-                this.manager.updateKeyValue(matchId, MatchStatus.CHAMPION_SELECTION);
+                this.manager.updateKeyValue(matchId, MatchStatusSchema.enum.CHAMPION_SELECTION);
                 break;
             case RCUMessageType.DELETE:
             default:

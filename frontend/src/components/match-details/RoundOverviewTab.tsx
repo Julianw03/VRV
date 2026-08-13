@@ -8,12 +8,17 @@ import {
     RoundEconomyOverview,
 } from '@/components/advancedDetails/RoundEconomyOverview.tsx';
 import {
+    type Kill,
+    type RiotMatchApiResponseDTO,
     TWO_TEAM_IDS,
     TWO_TEAM_ROLE_IDS,
     type TWO_TEAMS_ROLE_ID,
     type TWO_TEAMS_TEAM_ID,
-} from '#/dto/RiotMatchApiReponseDTO.ts';
-import type { Kill, ReplayMetadata, RoundResult } from '@/lib/api.ts';
+} from '#/schemas/RiotMatchApiReponseDTO.ts';
+import type { GUID } from '#/schemas/GUIDSchema.ts';
+import type { ReplayMetadataV2, RiotMatchMetadata } from '#/schemas/ReplayFormatV2.schema.ts';
+
+type RoundResult = RiotMatchApiResponseDTO["roundResults"][number]
 
 function roundDuration(r: RoundResult, kills: Kill[]): number {
     let last = 0;
@@ -41,7 +46,7 @@ function deriveRolesRoundResult(
 }
 
 function roundTimeline(
-    match: ReplayMetadata,
+    match: RiotMatchApiResponseDTO,
     roundNum: number,
 ): RoundTimelineData {
     const roundResult = match.roundResults?.find((x) => x.roundNum === roundNum) as RoundResult;
@@ -50,7 +55,7 @@ function roundTimeline(
 
     const roles = deriveRolesRoundResult(roundResult);
 
-    const players = groupByUnique(f => f.puuid, ...match.players);
+    const players = groupByUnique(f => f.subject, ...match.players);
 
     return {
         roundNum,
@@ -60,7 +65,7 @@ function roundTimeline(
             killerId: k.killer,
             killerSide: roles[players[k.killer].teamId as TWO_TEAMS_TEAM_ID],
             killerAgentId: players[k.killer]?.characterId,
-            weaponIconUrl: k.finishingDamage?.damageItem,
+            weaponIconUrl: k.finishingDamage?.damageItem || undefined,
             headshot: (k.finishingDamage?.damageType || '').toLowerCase() === 'head',
             firstBlood: i === 0,
         })) ?? [],
@@ -70,20 +75,22 @@ function roundTimeline(
 }
 
 function roundEconomy(
-    match: ReplayMetadata,
+    matchData: RiotMatchMetadata,
     roundNum: number,
 ): RoundEconomyData {
+    const match = matchData.matchMetadata
     const roundResult = match.roundResults?.find((x) => x.roundNum === roundNum)!;
     const roles = deriveRolesRoundResult(roundResult);
-    const players = groupByUnique(f => f.puuid, ...match.players);
+    const players = groupByUnique(f => f.subject, ...match.players);
 
     const rows = roundResult.playerStats.map((stat): EconomyPlayerRow => {
         const player = players[stat.subject];
+        const resolved = matchData.puuidResolver[stat.subject];
         return {
             subject: stat.subject,
             agentId: player?.characterId,
-            gameName: player?.gameName ?? '',
-            tagLine: player?.tagLine ?? '',
+            gameName: resolved?.gameName ?? '',
+            tagLine: resolved?.tagLine ?? '',
             weaponId: stat.economy.weapon,
             armorId: stat.economy.armor,
             remaining: stat.economy.remaining,
@@ -105,27 +112,31 @@ function roundEconomy(
 }
 
 export interface RoundOverviewTabProps {
-    data: ReplayMetadata;
-    highlightPlayerUuid: UUID | undefined;
+    data: ReplayMetadataV2;
+    highlightPlayerUuid: GUID | undefined;
+    highlightPlayerTeam: TWO_TEAMS_TEAM_ID | undefined;
 }
 
-export function RoundOverviewTab({ data, highlightPlayerUuid }: RoundOverviewTabProps) {
-    const [selectedRound, setSelectedRound] = useState<number>(1);
-    const highlightPlayerTeam = data.players.find(p => p.puuid === highlightPlayerUuid)?.teamId;
+export function RoundOverviewTab({ data, highlightPlayerUuid, highlightPlayerTeam }: RoundOverviewTabProps) {
+    const [selectedRound, setSelectedRound] = useState<number>(0);
+
+    if (!data.riotMatchMetadata || !data.riotMatchMetadata.matchMetadata) {
+        return <div>No data</div>
+    }
 
     return (
         <>
 
             <RoundSelectorStrip
-                chips={buildRoundChips(data.roundResults!, data.players, highlightPlayerTeam as TWO_TEAMS_TEAM_ID)}
+                chips={buildRoundChips(data.riotMatchMetadata.matchMetadata.roundResults, data.riotMatchMetadata!.matchMetadata!.players, highlightPlayerTeam)}
                 selectedRound={selectedRound}
                 onSelect={setSelectedRound}
             />
             <RoundTimeline
-                data={roundTimeline(data, selectedRound)}
+                data={roundTimeline(data.riotMatchMetadata.matchMetadata, selectedRound)}
             />
             <RoundEconomyOverview
-                data={roundEconomy(data, selectedRound)}
+                data={roundEconomy(data.riotMatchMetadata, selectedRound)}
                 highlightPlayer={highlightPlayerUuid}
             />
         </>

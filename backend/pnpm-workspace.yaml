@@ -1,3 +1,6 @@
+packages:
+  - "."
+  - "shared"
 minimumReleaseAge: 10080
 allowBuilds:
   '@nestjs/core': true

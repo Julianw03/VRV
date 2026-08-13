@@ -1,5 +1,7 @@
-import { MinimalVersionInfo } from '#/dto/MinimalVersionInfo';
+import { z } from 'zod';
 
-export class MinimalVersionInfoDTO implements MinimalVersionInfo {
-    version: string;
-}
+export const MinimalVersionSchema = z.object({
+    version: z.string(),
+});
+
+export type MinimalVersionInfoDTO = z.infer<typeof MinimalVersionSchema>;

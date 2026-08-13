@@ -33,6 +33,7 @@
     "@nestjs/serve-static": "^5.0.5",
     "@nestjs/swagger": "^11.4.2",
     "@nestjs/websockets": "^11.1.19",
+    "@types/adm-zip": "^0.5.8",
     "@types/lodash": "^4.17.24",
     "@types/lodash.merge": "^4.6.9",
     "@types/ws": "^8.18.1",
@@ -45,10 +46,12 @@
     "lodash": "^4.18.1",
     "lodash.merge": "^4.6.2",
     "multer": "^2.1.1",
+    "nestjs-zod": "^5.4.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "semver": "^7.7.4",
-    "ws": "^8.20.0"
+    "ws": "^8.20.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
@@ -87,7 +90,7 @@
   "pkg": {
     "assets": [
       "dist/public/**/*",
-      "dist/config.yml"
+      "dist/config.json"
     ]
   }
 }

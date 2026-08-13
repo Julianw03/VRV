@@ -1,26 +1,30 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Delete,
-    Get, Inject,
+    Get,
     InternalServerErrorException,
-    Logger, NotFoundException,
+    Logger,
+    NotFoundException,
     Post,
 } from '@nestjs/common';
 import {
     ApiBadRequestResponse,
-    ApiNoContentResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
     ApiOperation,
 } from '@nestjs/swagger';
-import { EnvConfigV1DTO } from '@/config/ConfigV1DTO';
-import { appConfig, getConfigOverridesPath, getPersistentPath } from '@/config/configLoader';
-import { unlink } from 'node:fs/promises';
-import fs from 'node:fs';
-import yaml from 'js-yaml';
-import { ConfigService, type ConfigType } from '@nestjs/config';
+import { mkdir, unlink, writeFile } from 'node:fs/promises';
+import { ZodValidationPipe } from 'nestjs-zod';
+import {
+    type EnvConfigV1DTO,
+    type OverridableConfigV1,
+    OverridableConfigV1Schema,
+} from '@/config/ConfigV1.schema';
+import { ConfigLoader } from '@/config/configLoader';
+
+const isNotFound = (e: unknown): boolean =>
+    (e as NodeJS.ErrnoException)?.code === 'ENOENT';
 
 @Controller({
     path: 'configuration',
@@ -29,57 +33,66 @@ import { ConfigService, type ConfigType } from '@nestjs/config';
 export class ConfigController {
     private readonly logger = new Logger(this.constructor.name);
 
-    constructor(
-        @Inject(appConfig.KEY)
-        private readonly config: ConfigType<typeof appConfig>
-    ) {
+    constructor(private readonly loader: ConfigLoader) {
     }
 
     @ApiOperation({
-        summary: 'Check if a provided configuration is valid',
-        description: 'Can be used to validate a configuration file before saving it. This does not change the current configuration.',
+        summary: 'Check if a provided configuration override is valid',
+        description:
+            'Can be used to validate an override payload before saving it. This does not change the current configuration.',
     })
     @Post('validate')
-    @ApiBadRequestResponse(
-        {
-            description: 'Invalid configuration',
-        },
-    )
-    @ApiOkResponse(
-        {
-            description: 'The config that would be saved.',
-        },
-    )
-    public async validateConfig(@Body() config: EnvConfigV1DTO): Promise<EnvConfigV1DTO> {
+    @ApiBadRequestResponse({
+        description: 'Invalid configuration',
+    })
+    @ApiOkResponse({
+        description: 'The overrides that would be saved.',
+    })
+    public validateConfig(
+        @Body(new ZodValidationPipe(OverridableConfigV1Schema)) config: OverridableConfigV1,
+    ): OverridableConfigV1 {
         return config;
     }
 
+    @ApiOperation({
+        summary: 'Delete all configuration overrides',
+        description: 'Restores the shipped default configuration.',
+    })
     @Delete('overrides')
     public async restoreDefaultConfiguration(): Promise<void> {
         try {
-            await unlink(getConfigOverridesPath());
+            await unlink(this.loader.getConfigOverridesPath());
         } catch (e) {
-            this.logger.error('Failed to delete config overrides file', e);
-            throw new InternalServerErrorException('Failed to delete config overrides file');
+            if (!isNotFound(e)) {
+                this.logger.error('Failed to delete config overrides file', e);
+                throw new InternalServerErrorException('Failed to delete config overrides file');
+            }
+        } finally {
+            this.loader.invalidate();
         }
     }
 
+    @ApiOperation({
+        summary: 'Persist configuration overrides',
+    })
     @Post('overrides')
-    @ApiBadRequestResponse(
-        {
-            description: 'Invalid configuration',
-        },
-    )
-    @ApiOkResponse(
-        {
-            description: 'Can be used to validate a configuration file before saving it. This does not change the current configuration.',
-        },
-    )
-    public async updateCurrentConfiguration(@Body() config: EnvConfigV1DTO): Promise<EnvConfigV1DTO> {
+    @ApiBadRequestResponse({
+        description: 'Invalid configuration',
+    })
+    @ApiOkResponse({
+        description: 'The persisted overrides.',
+    })
+    public async updateCurrentConfiguration(
+        @Body(new ZodValidationPipe(OverridableConfigV1Schema)) config: OverridableConfigV1,
+    ): Promise<OverridableConfigV1> {
         try {
-            const content = yaml.dump(config);
-            await fs.promises.mkdir(getPersistentPath(), { recursive: true });
-            await fs.promises.writeFile(getConfigOverridesPath(), content, 'utf8');
+            await mkdir(this.loader.getPersistentPath(), { recursive: true });
+            await writeFile(
+                this.loader.getConfigOverridesPath(),
+                JSON.stringify(config, null, 2),
+                'utf8',
+            );
+            this.loader.invalidate();
             return config;
         } catch (e) {
             this.logger.error('Failed to write config overrides file', e);
@@ -87,24 +100,29 @@ export class ConfigController {
         }
     }
 
+    @ApiOperation({
+        summary: 'Read the currently persisted configuration overrides',
+    })
     @Get('overrides')
-    @ApiNotFoundResponse(
-        {
-            description: 'No configuration overrides found'
-        },
-    )
-    public async readCurrentConfiguration(): Promise<EnvConfigV1DTO> {
-        try {
-            const content = await fs.promises.readFile(getConfigOverridesPath(), 'utf8');
-            return yaml.load(content) as EnvConfigV1DTO;
-        } catch (e) {
-            this.logger.error('Failed to read config overrides file', e);
-            throw new NotFoundException("No configuration overrides found");
+    @ApiNotFoundResponse({
+        description: 'No configuration overrides found',
+    })
+    public async readCurrentConfiguration(): Promise<OverridableConfigV1> {
+        const overrides = await this.loader.getConfigOverrides();
+
+        if (Object.keys(overrides).length === 0) {
+            throw new NotFoundException('No configuration overrides found');
         }
+
+        return overrides;
     }
 
+    @ApiOperation({
+        summary: 'Read the effective configuration',
+        description: 'Base configuration merged with any persisted overrides.',
+    })
     @Get('current')
-    public async getEffectiveConfiguration(): Promise<EnvConfigV1DTO> {
-        return this.config;
+    public getEffectiveConfiguration(): Promise<EnvConfigV1DTO> {
+        return this.loader.getEffectiveConfig();
     }
 }

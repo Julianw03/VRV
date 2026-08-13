@@ -1,0 +1,8 @@
+{
+  "name": "@vrv/shared",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

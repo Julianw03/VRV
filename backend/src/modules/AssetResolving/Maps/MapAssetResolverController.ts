@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MapAssetResolverManager, MapId } from '@/modules/AssetResolving/Maps/MapAssetResolverManager';
 import { AssetResolverController } from '@/modules/AssetResolving/common/AssetResolverController';
-import { MapAssetDTO } from '#/dto/assets/MapAssetDTO';
+import { MapAssetDTO } from '#/schemas/assets/MapAssetDTO';
 
 @Controller({
     path: 'assets/maps',

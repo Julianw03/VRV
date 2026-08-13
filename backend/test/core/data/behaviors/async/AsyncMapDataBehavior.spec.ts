@@ -1,6 +1,6 @@
 import { AsyncMapDataBehavior } from '@/core/data/behaviors/async/AsyncMapDataBehavior';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
-import { AsyncResult, AsyncResultUnion, Success } from '#/utils/AsyncResult';
+import { AsyncResult, Success } from '#/utils/AsyncResult';
 import { TimeoutError } from '@/utils/PromiseUtils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -11,7 +11,7 @@ class TestableAsyncMapBehavior extends AsyncMapDataBehavior<string, string, Erro
 }
 
 function makeSetup() {
-    const inner = new SimpleMapDataManager<string, AsyncResultUnion<string, Error>>();
+    const inner = new SimpleMapDataManager<string, AsyncResult<string, Error>>();
     const behavior = new TestableAsyncMapBehavior(inner);
     return { inner, behavior };
 }

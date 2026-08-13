@@ -48,6 +48,7 @@ export const KNOWN_QUEUE_IDS = {
     SWIFTPLAY: 'swiftplay',
     DEATHMATCH: 'deathmatch',
     PREMIER: 'premier',
+    TEAM_DEATHMATCH: 'hurm'
 } as const;
 
 export const MatchDetailsPanel = (
@@ -64,8 +65,9 @@ export const MatchDetailsPanel = (
                 <TwoTeamDetailsPanel {...props} />
             );
         case KNOWN_QUEUE_IDS.DEATHMATCH:
+        case KNOWN_QUEUE_IDS.TEAM_DEATHMATCH:
             return (<FFAMatchDetailsPanel {...props} />);
         default:
-            return (<div>Unknown queue type: {queueId}</div>);
+            return (<div>Unknown queue type: {queueId} unable to render correctly.</div>);
     }
 };
