@@ -56,7 +56,24 @@ export function UploadReplayDialog({ children }: { children: ReactNode }) {
 
     function handleOpenChange(next: boolean) {
         setOpen(next);
-        if (!next) resetToDefault();
+        if (!next) reset();
+    }
+
+    function acceptFile(candidate: File | undefined) {
+        if (!candidate) return;
+        if (!candidate.name.toLowerCase().endsWith('.vrp')) return;
+        uploadReplay.reset();
+        setFile(candidate);
+    }
+
+    function handleFileInputChange(e: ChangeEvent<HTMLInputElement>) {
+        acceptFile(e.target.files?.[0]);
+        e.target.value = '';
+    }
+
+    function handleDragOver(e: DragEvent<HTMLDivElement>) {
+        e.preventDefault();
+        setDragOver(true);
     }
 
     function handleUploaded() {

@@ -1,7 +1,7 @@
 import * as RiotclientParametersAcquisitionStrategy from '@/core/riotclient/connection/RiotClientParametersAcquisitionStrategy';
 import { RiotClientService } from './RiotClientService';
 import { RiotClientConnectionParameters } from '@/core/riotclient/connection/RiotClientConnectionParameters';
-import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import * as https from 'node:https';
 import Websocket from 'ws';
 import { RCUMessage } from './messaging/RCUMessage';
@@ -206,7 +206,7 @@ export class RiotClientServiceImpl implements RiotClientService {
                 error,
             );
             this.disconnect();
-            throw new Error(
+            throw new ServiceUnavailableException(
                 'Failed to connect to Riot Client: ' + error.message,
             );
         }
