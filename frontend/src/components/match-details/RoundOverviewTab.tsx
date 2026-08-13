@@ -65,7 +65,7 @@ function roundTimeline(
             killerId: k.killer,
             killerSide: roles[players[k.killer].teamId as TWO_TEAMS_TEAM_ID],
             killerAgentId: players[k.killer]?.characterId,
-            weaponIconUrl: k.finishingDamage?.damageItem,
+            weaponIconUrl: k.finishingDamage?.damageItem || undefined,
             headshot: (k.finishingDamage?.damageType || '').toLowerCase() === 'head',
             firstBlood: i === 0,
         })) ?? [],
@@ -120,11 +120,15 @@ export interface RoundOverviewTabProps {
 export function RoundOverviewTab({ data, highlightPlayerUuid, highlightPlayerTeam }: RoundOverviewTabProps) {
     const [selectedRound, setSelectedRound] = useState<number>(0);
 
+    if (!data.riotMatchMetadata || !data.riotMatchMetadata.matchMetadata) {
+        return <div>No data</div>
+    }
+
     return (
         <>
 
             <RoundSelectorStrip
-                chips={buildRoundChips(data.riotMatchMetadata.matchMetadata.roundResults!, data.riotMatchMetadata.matchMetadata.players, highlightPlayerTeam)}
+                chips={buildRoundChips(data.riotMatchMetadata.matchMetadata.roundResults, data.riotMatchMetadata!.matchMetadata!.players, highlightPlayerTeam)}
                 selectedRound={selectedRound}
                 onSelect={setSelectedRound}
             />

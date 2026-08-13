@@ -8,7 +8,7 @@ export interface TimelineKill {
     killerSide: TWO_TEAMS_ROLE_ID;
     killerId: string;
     killerAgentId: string;
-    weaponIconUrl: string;
+    weaponIconUrl: string | undefined;
 }
 
 export interface RoundTimelineData {

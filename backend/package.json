@@ -90,7 +90,7 @@
   "pkg": {
     "assets": [
       "dist/public/**/*",
-      "dist/config.yml"
+      "dist/config.json"
     ]
   }
 }

@@ -119,7 +119,7 @@ export function ReplayEntryMenu({
                         description={<>
                             This will permanently delete the replay for match{' '}
                             <span className="font-mono rounded-sm bg-muted px-2 py-0.5">
-                                {replay.userMetadata.name ?? truncateId(replay.uuid)}
+                                {replay.userMetadata?.name ?? truncateId(replay.uuid)}
                             </span>.
                             <br />
                             This action cannot be undone.

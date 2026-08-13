@@ -157,7 +157,7 @@ export function ReplayEntry({
                     "label on the left, icon cluster on the right" last column. */}
                 <div className="flex items-center justify-end">
                     <div className="flex items-center px-2">
-                        <OutdatedTag matchGameVersion={matchInfo?.gameVersion} />
+                        <OutdatedTag matchGameVersion={matchInfo?.gameVersion || null} />
                     </div>
 
                     <div className="flex items-center gap-3">

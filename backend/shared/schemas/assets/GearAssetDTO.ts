@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { ExternalURLSchema } from '#/schemas/ExternalURL.schema';
-import { GUIDSchema } from '#/schemas/GUIDSchema';
 
 export const GearAssetDetailSchema = z.object({
     name: z.string(),

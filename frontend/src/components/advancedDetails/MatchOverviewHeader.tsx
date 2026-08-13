@@ -41,7 +41,7 @@ export const MatchOverviewHeader = (
         <div className={'w-full flex overflow-hidden h-24 gap-4 mb-4 p-3'}>
             <div className={'w-32 h-full rounded-sm overflow-hidden'}>
                 <img className={'object-cover h-full w-full'}
-                     src={map?.splash} />
+                     src={map?.splash ?? ""} />
             </div>
             <div className={'relative text-3xl h-full flex flex-col pb-4'}>
                 <div className={'flex-1 flex align-items-center justify-start h-full'}>

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { GUIDSchema } from '#/schemas/GUIDSchema';
 import { ExternalURLSchema } from '#/schemas/ExternalURL.schema';
 
 

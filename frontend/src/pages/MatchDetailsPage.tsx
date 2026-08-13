@@ -4,8 +4,11 @@ import { RoundOverviewTab } from '@/components/match-details/RoundOverviewTab.ts
 import { VersusTab } from '@/components/advancedDetails/VersusTab.tsx';
 import { useMatchMetadata } from '@/lib/queries.ts';
 import { type Params, useParams } from 'react-router-dom';
-import { MatchOverviewHeader, type MatchOverviewHeaderProps } from '@/components/advancedDetails/MatchOverviewHeader.tsx';
-import { TWO_TEAM_IDS, type RiotMatchTeam, type TWO_TEAMS_TEAM_ID } from '#/schemas/RiotMatchApiReponseDTO.ts';
+import {
+    MatchOverviewHeader,
+    type MatchOverviewHeaderProps,
+} from '@/components/advancedDetails/MatchOverviewHeader.tsx';
+import { type RiotMatchTeam, TWO_TEAM_IDS, type TWO_TEAMS_TEAM_ID } from '#/schemas/RiotMatchApiReponseDTO.ts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.tsx';
 
 const TABS = {
@@ -32,7 +35,7 @@ const OverviewTypeSelector = (
     const tabs = Object.values(TABS);
 
     return (
-        <div className={"flex gap-0.5 py-4 px-2"}>
+        <div className={'flex gap-0.5 py-4 px-2'}>
             {tabs.map((value, index) => {
                 const isActive = tab === value;
                 const isFirst = index === 0;
@@ -140,6 +143,10 @@ const MatchDetailsPage = (): JSX.Element => {
         return <div>Error loading match data.</div>;
     }
 
+    if (!data.riotMatchMetadata) {
+        return <div>No metadata for match ${matchId}</div>;
+    }
+
     const hasHighlightPlayer = !!data.downloaderMetadata;
 
     const highlightPlayer = data.downloaderMetadata?.downloaderId;
@@ -147,8 +154,8 @@ const MatchDetailsPage = (): JSX.Element => {
     const highlightPlayerTeam: TWO_TEAMS_TEAM_ID | undefined = hasHighlightPlayer
         ? data.riotMatchMetadata.matchMetadata.players.find(p => p.subject === highlightPlayer)?.teamId as TWO_TEAMS_TEAM_ID | undefined
         : selectedTeam;
-    const winningTeam = data.riotMatchMetadata.matchMetadata.teams.find(it => it.won);
-    const teamsById = groupByUnique((t => t.teamId), ...data.riotMatchMetadata.matchMetadata.teams) as Record<TWO_TEAMS_TEAM_ID, RiotMatchTeam>;
+    const winningTeam = data.riotMatchMetadata?.matchMetadata?.teams?.find(it => it.won);
+    const teamsById = groupByUnique((t => t.teamId), ...data.riotMatchMetadata?.matchMetadata?.teams ?? []) as Record<TWO_TEAMS_TEAM_ID, RiotMatchTeam>;
     const matchOverviewHeaderData: MatchOverviewHeaderProps = {
         teams: teamsById,
         mapId: data.riotMatchMetadata.matchMetadata.matchInfo.mapId,
@@ -182,7 +189,8 @@ const MatchDetailsPage = (): JSX.Element => {
                         />
                     )}
                     <OverviewTypeSelector tab={tab} onSelectTab={setTab} />
-                    <RoundOverviewTab data={data} highlightPlayerUuid={highlightPlayer} highlightPlayerTeam={highlightPlayerTeam} /></>
+                    <RoundOverviewTab data={data} highlightPlayerUuid={highlightPlayer}
+                                      highlightPlayerTeam={highlightPlayerTeam} /></>
             );
         case TABS.VERSUS:
             return <>

@@ -198,7 +198,7 @@ const DuelRow = ({
     right: VersusPlayerStats;
 }) => {
     const winner = event.winner === left.subject ? left : right;
-    const weapon = useWeaponRegistry()?.[event.weaponId?.toLowerCase()];
+    const weapon = useWeaponRegistry()?.[event.weaponId?.toLowerCase() ?? ""];
 
     return (
         <TableRow>

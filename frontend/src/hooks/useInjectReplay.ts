@@ -82,7 +82,7 @@ export const useInjectReplay = (replay: ReplayMetadataV2) => {
         isInjecting,
         hasReplay: !!replay?.replayFileMetadata,
         currentGameVersion: shippingVersion,
-        replayGameVersion: replay?.riotMatchMetadata?.matchMetadata?.matchInfo?.gameVersion,
+        replayGameVersion: replay?.riotMatchMetadata?.matchMetadata?.matchInfo?.gameVersion ?? null,
         sessionAvailable: !!session,
     });
 
