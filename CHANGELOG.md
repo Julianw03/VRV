@@ -13,10 +13,7 @@
 
 ### Advanced Round Details
 Now has a Versus Tab where you can compare your performance over the game against an enemy.
-Pretty number based for now.
-
-This feature is still in development, and you can expect more features in the future. If you have any suggestions for what you would like to see in this feature,
-feel free to open an issue on GitHub.
+Pretty number based for now. I still hope that this may offer some value and if not I would appreciate constructive feedback.
 
 ### Bug Fixes
 - Fixed an issue where the match history would show a stale state when switching accounts.
