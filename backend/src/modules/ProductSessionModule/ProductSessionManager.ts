@@ -2,7 +2,7 @@ import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { ProductSessionSession } from '../../../gen';
-import { RecomputingMapMappingBehavior } from '@/core/data/behaviors/viewMapping/RecomputingMapMappingBehavior';
+import { OutputMappingRecomputingMapBehavior } from '@/core/data/behaviors/viewMapping/OutputMappingRecomputingMapBehavior';
 import { EmittingMapDataBehavior } from '@/core/data/behaviors/emission/EmittingMapDataBehavior';
 import { EventType } from '@/core/events/EventTypes';
 import { KeyUpdateActionType, KeyValueUpdatedEvent, StateUpdatedEvent } from '@/core/events/BasicEvent';
@@ -25,7 +25,7 @@ export class ProductSessionManager implements IMapDataManager<SessionId, Product
         readonly eventBus: SimpleEventBus,
     ) {
         const store = new SimpleMapDataManager<SessionId, ProductSessionSession>();
-        const mapped = new RecomputingMapMappingBehavior(store, ProductSessionManager.mapSession);
+        const mapped = new OutputMappingRecomputingMapBehavior(store, ProductSessionManager.mapSession);
         this.manager = new EmittingMapDataBehavior(mapped, eventBus, this.constructor.name);
     }
 

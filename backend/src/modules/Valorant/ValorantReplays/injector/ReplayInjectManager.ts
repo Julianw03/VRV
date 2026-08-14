@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { EventType } from '@/core/events/EventTypes';
 import { StateUpdatedEvent } from '@/core/events/BasicEvent';
@@ -25,9 +25,6 @@ export interface InjectStatus {
     targetMatchId: string | null;
     placeholderMatchId: string | null;
 }
-
-//TODO: Instead get metadata
-const VALID_QUEUE_IDS = ['competitive', 'unrated', 'spikerush', 'swiftplay'];
 
 @Injectable()
 export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModuleDestroy {
@@ -62,7 +59,7 @@ export class ReplayInjectManager implements DataViewable<InjectStatus>, OnModule
             throw new ConflictException(`Failed to load metadata for match ${matchId}`);
         }
 
-        const hasReplay = metadata.data?.replayFileMetadata != null
+        const hasReplay = metadata.data?.replayFileMetadata != null;
 
         if (!hasReplay) {
             throw new ConflictException(`Match ${matchId} has no replay file.`);

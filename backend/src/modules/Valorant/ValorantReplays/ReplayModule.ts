@@ -3,7 +3,6 @@ import { RiotClientModule } from '@/core/riotclient/RiotClientModule';
 import { EntitlementTokenModule } from '@/modules/EntitlementTokenModule/EntitlementTokenModule';
 import { ProductSessionModule } from '@/modules/ProductSessionModule/ProductSessionModule';
 import { ReplayFetchManager } from '@/modules/Valorant/ValorantReplays/remote/ReplayFetchManager';
-import { ReplayInjectManager } from '@/modules/Valorant/ValorantReplays/injector/ReplayInjectManager';
 import { EventBusModule } from '@/core/events/EventBusModule';
 import { ReplayRemoteController } from '@/modules/Valorant/ValorantReplays/remote/ReplayRemoteController';
 import { ReplayInjectController } from '@/modules/Valorant/ValorantReplays/injector/ReplayInjectController';
@@ -15,6 +14,7 @@ import { ReplayIOManager } from '@/modules/Valorant/ValorantReplays/storage/Repl
 import { ReplayIOController } from '@/modules/Valorant/ValorantReplays/storage/ReplayIOController';
 import { PuuidToPlayerAliasModule } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasModule';
 import { ValorantMatchHistoryModule } from '@/modules/Valorant/MatchHistory/MatchHistoryModule';
+import { ReplayInjectManagerV2 } from '@/modules/Valorant/ValorantReplays/injector/ReplayInjectManagerV2';
 
 @Module({
     imports: [
@@ -29,7 +29,7 @@ import { ValorantMatchHistoryModule } from '@/modules/Valorant/MatchHistory/Matc
         RiotValorantAPIModule,
         ConfigModule,
     ],
-    providers: [ReplayIOManager, ReplayFetchManager, ReplayInjectManager],
+    providers: [ReplayIOManager, ReplayFetchManager, ReplayInjectManagerV2],
     controllers: [
         ReplayIOController,
         ReplayRemoteController,

@@ -11,10 +11,10 @@ import { AccountNameAndTagLineManager } from '@/modules/Account/AccountNameAndTa
 import { ValorantGameLoopManager } from '@/modules/Valorant/ValorantGameLoopModule/ValorantGameLoopManager';
 import { ValorantGameSessionManager } from '@/modules/Valorant/ValorantGameSessionModule/ValorantGameSessionManager';
 import { ValorantMatchStatsManager } from '@/modules/Valorant/ValorantMatchStatsModule/ValorantMatchStatsManager';
-import { ReplayInjectManager } from '@/modules/Valorant/ValorantReplays/injector/ReplayInjectManager';
 import { ValorantVersionInfoManager } from '@/modules/Valorant/ValorantVersionInfo/ValorantVersionInfoManager';
 import { ProductSessionManager } from '@/modules/ProductSessionModule/ProductSessionManager';
 import { ReplayIOManager } from '@/modules/Valorant/ValorantReplays/storage/ReplayIOManager';
+import { ReplayInjectManagerV2 } from '@/modules/Valorant/ValorantReplays/injector/ReplayInjectManagerV2';
 
 @WebSocketGateway({})
 @Injectable()
@@ -36,7 +36,7 @@ export class WSEventPublisher
         ValorantGameLoopManager.name,
         ValorantGameSessionManager.name,
         ValorantMatchStatsManager.name,
-        ReplayInjectManager.name,
+        ReplayInjectManagerV2.name,
         ValorantVersionInfoManager.name,
         ProductSessionManager.name,
         ReplayIOManager.name
