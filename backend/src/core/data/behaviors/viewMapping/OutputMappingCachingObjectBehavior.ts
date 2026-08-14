@@ -1,8 +1,8 @@
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
-import { ViewMappingObjectDataBehavior } from '@/core/data/behaviors/viewMapping/ViewMappingObjectDataBehavior';
+import { OutputMappingObjectBehavior } from '@/core/data/behaviors/viewMapping/OutputMappingObjectBehavior';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 
-export class RecomputingObjectMappingBehavior<S, From, To> extends ViewMappingObjectDataBehavior<S, From, To> {
+export class OutputMappingCachingObjectBehavior<S, From, To> extends OutputMappingObjectBehavior<S, From, To> {
     private cache: IObjectDataManager<To, To> = new SimpleObjectDataManager<To>();
 
     public constructor(

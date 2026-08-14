@@ -1,7 +1,8 @@
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 
 export class SimpleObjectDataManager<V> implements IObjectDataManager<V, V> {
-    private state: V | null = null;
+    constructor(private state: V | null = null) {
+    }
 
     deleteState(): void {
         this.state = null;

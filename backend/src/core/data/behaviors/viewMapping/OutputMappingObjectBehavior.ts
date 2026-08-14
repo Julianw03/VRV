@@ -9,7 +9,7 @@ type ObjectMappingBehaviorOptions = {
     backingPolicy?: ObjectBackingPolicy;
 };
 
-export abstract class ViewMappingObjectDataBehavior<S, From, To> implements IObjectDataManager<S, To> {
+export abstract class OutputMappingObjectBehavior<S, From, To> implements IObjectDataManager<S, To> {
     protected constructor(
         protected readonly stateManager: IObjectDataManager<S, From>,
         protected readonly mappingFn: (from: From) => To,
