@@ -34,7 +34,7 @@ export class ValorantGameChampSelectRCUAdapter extends RCUDataAdapter<ValorantGa
         switch (type) {
             case RCUMessageType.UPDATE:
             case RCUMessageType.CREATE:
-                this.logger.log('Received champ select start message', data);
+                this.logger.debug('Received champ select start message', data);
                 this.manager.updateKeyValue(matchId, MatchStatusSchema.enum.CHAMPION_SELECTION);
                 break;
             case RCUMessageType.DELETE:
