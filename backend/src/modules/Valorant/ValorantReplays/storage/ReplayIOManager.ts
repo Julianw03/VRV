@@ -14,9 +14,12 @@ import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataView
 import { OuputMappingCachingMapBehavior } from '@/core/data/behaviors/viewMapping/OuputMappingCachingMapBehavior';
 import { DownloadState, DownloadStateDTO } from '#/schemas/DownloadState.schema';
 import { getResolvedPath } from '@/config/ConfigV1.schema';
-import { ReplayMetadataV2, ReplayMetadataV2Schema } from '#/schemas/ReplayFormatV2.schema';
+import {
+    CURRENT_REPLAY_FORMAT_VERSION,
+    ReplayMetadataV2,
+    ReplayMetadataV2Schema,
+} from '#/schemas/ReplayFormatV2.schema';
 import { StorageStatusDTO } from '#/schemas/StorageStatusDTO';
-import { CURRENT_REPLAY_FORMAT_VERSION } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageDTO.schema';
 import { ReplayImportRequest } from '#/schemas/upload/ImportReplay.schema';
 import { ImportData } from '@/modules/Valorant/ValorantReplays/storage/import/ImportHandler';
 import { forType as forImportType } from '@/modules/Valorant/ValorantReplays/storage/import/HandlerFactory';

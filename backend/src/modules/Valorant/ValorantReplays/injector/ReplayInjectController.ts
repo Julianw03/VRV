@@ -1,8 +1,8 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Logger, NotFoundException, Param, Post } from '@nestjs/common';
 import { ReplayIOManager } from '@/modules/Valorant/ValorantReplays/storage/ReplayIOManager';
-import { type InjectStatus } from '@/modules/Valorant/ValorantReplays/injector/ReplayInjectManager';
 import { ApiOperation } from '@nestjs/swagger';
 import { ReplayInjectManagerV2 } from '@/modules/Valorant/ValorantReplays/injector/ReplayInjectManagerV2';
+import { type InjectStatus } from '@/modules/Valorant/ValorantReplays/injector/states/ReplayStates';
 
 @Controller({
     path: 'plugins/replay/injector',

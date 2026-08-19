@@ -35,6 +35,8 @@ export const ReplayMetadataV2Schema = z.object({
     userMetadata: UserMetadataSchema.optional().nullable()
 });
 
+export const CURRENT_REPLAY_FORMAT_VERSION = 3;
+
 export type DownloaderMetadata = z.infer<typeof DownloaderMetadataSchema>;
 export type RiotMatchMetadata = z.infer<typeof RiotMatchMetadataSchema>;
 export type ReplayFileMetadata = z.infer<typeof ReplayFileMetadataSchema>;

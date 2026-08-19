@@ -26,10 +26,8 @@ export class ReplayInjectManagerV2
     implements DataViewable<InjectStatus>, OnModuleInit, OnModuleDestroy {
     protected readonly logger = new Logger(this.constructor.name);
 
-    /** Writes: events go in here. */
     private readonly machine: StateMachine<ReplayState, ReplayEvent, ReplayDeps>;
 
-    /** Reads: the projection the machine writes through on every transition. */
     private readonly status: IObjectDataManager<ReplayState, InjectStatus>;
 
     private unsubscribeFromSession: (() => void) | null = null;
