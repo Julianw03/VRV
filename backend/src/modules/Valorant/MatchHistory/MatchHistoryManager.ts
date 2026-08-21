@@ -57,7 +57,6 @@ export class MatchHistoryManager implements DataDeletable, OnModuleInit, OnModul
                             /**
                              * This is correct under the assumption that a new match that ended is, well
                              * always new and therefore prepending this should be valid.
-                             * This should in theory also work if multiple
                              * */
                             this.prepend(typed.payload.key);
                         }
