@@ -4,8 +4,8 @@ import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import {
-    RecomputingObjectMappingBehavior,
-} from '@/core/data/behaviors/viewMapping/RecomputingObjectMappingBehavior';
+    OutputMappingCachingObjectBehavior,
+} from '@/core/data/behaviors/viewMapping/OutputMappingCachingObjectBehavior';
 import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/EmittingObjectDataBehavior';
 import { PlayerAliasDTO } from '#/schemas/PlayerAlias.schema';
 
@@ -18,7 +18,7 @@ export class AccountNameAndTagLineManager implements IObjectDataManager<
 
     constructor(protected readonly eventBus: SimpleEventBus) {
         const base = new SimpleObjectDataManager();
-        const map = new RecomputingObjectMappingBehavior(base, AccountNameAndTagLineManager.map);
+        const map = new OutputMappingCachingObjectBehavior(base, AccountNameAndTagLineManager.map);
         this.manager = new EmittingObjectDataBehavior(map, eventBus, this.constructor.name);
     }
 

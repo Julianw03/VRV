@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
 import {
-    RecomputingObjectMappingBehavior,
-} from '@/core/data/behaviors/viewMapping/RecomputingObjectMappingBehavior';
+    OutputMappingCachingObjectBehavior,
+} from '@/core/data/behaviors/viewMapping/OutputMappingCachingObjectBehavior';
 import { EntitlementTokenDTO } from '@/modules/EntitlementTokenModule/EntitlementToken.schema';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class EntitlementTokenManager implements IObjectDataManager<
 
     constructor() {
         const store = new SimpleObjectDataManager<EntitlementsToken>();
-        this.manager = new RecomputingObjectMappingBehavior(store, EntitlementTokenManager.map);
+        this.manager = new OutputMappingCachingObjectBehavior(store, EntitlementTokenManager.map);
     }
 
     private static map(state: EntitlementsToken): EntitlementTokenDTO {

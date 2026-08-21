@@ -9,7 +9,7 @@ type MapMappingBehaviorOptions = {
     backingPolicy?: MapBackingPolicy;
 };
 
-export abstract class ViewMappingMapDataBehavior<K extends PropertyKey, S, From, To> implements IMapDataManager<K, S, To> {
+export abstract class OutputMappingMapBehavior<K extends PropertyKey, S, From, To> implements IMapDataManager<K, S, To> {
     protected constructor(
         protected readonly stateManager: IMapDataManager<K, S, From>,
         protected readonly mappingFn: (from: From) => To,

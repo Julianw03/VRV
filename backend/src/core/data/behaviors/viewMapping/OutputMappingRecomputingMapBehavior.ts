@@ -1,7 +1,7 @@
-import { ViewMappingMapDataBehavior } from '@/core/data/behaviors/viewMapping/ViewMappingMapDataBehavior';
+import { OutputMappingMapBehavior } from '@/core/data/behaviors/viewMapping/OutputMappingMapBehavior';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 
-export class RecomputingMapMappingBehavior<K extends PropertyKey, S, From, To> extends ViewMappingMapDataBehavior<K, S, From, To> {
+export class OutputMappingRecomputingMapBehavior<K extends PropertyKey, S, From, To> extends OutputMappingMapBehavior<K, S, From, To> {
     public constructor(
         stateManager: IMapDataManager<K, S, From>,
         mappingFn: (from: From) => To,

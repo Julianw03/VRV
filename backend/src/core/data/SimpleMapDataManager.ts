@@ -1,7 +1,8 @@
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 
 export class SimpleMapDataManager<K extends PropertyKey, V> implements IMapDataManager<K, V, V> {
-    private readonly state = new Map<K, V>();
+    constructor(private state: Map<K, V> = new Map()) {
+    }
 
     updateKeyValue(key: K, value: V): void {
         this.state.set(key, value);

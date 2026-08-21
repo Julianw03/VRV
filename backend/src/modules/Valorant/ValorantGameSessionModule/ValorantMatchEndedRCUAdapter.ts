@@ -47,10 +47,8 @@ export class ValorantMatchEndedRCUAdapter extends RCUDataAdapter<ValorantGameSes
         switch (type) {
             case RCUMessageType.UPDATE:
             case RCUMessageType.CREATE:
-                this.logger.log('Received match ended message', data);
                 const typedData = data as unknown as RMSMessage;
                 const matchId = typedData.payload as GUID;
-                this.logger.log('Received match ended message', data);
                 this.manager.updateKeyValue(matchId, MatchStatusSchema.enum.ENDED);
                 break;
             case RCUMessageType.DELETE:

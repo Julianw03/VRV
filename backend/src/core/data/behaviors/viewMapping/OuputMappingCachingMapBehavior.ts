@@ -1,8 +1,8 @@
-import { ViewMappingMapDataBehavior } from '@/core/data/behaviors/viewMapping/ViewMappingMapDataBehavior';
+import { OutputMappingMapBehavior } from '@/core/data/behaviors/viewMapping/OutputMappingMapBehavior';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 
-export class CachingMapMappingBehavior<K extends PropertyKey, S, From, To> extends ViewMappingMapDataBehavior<K, S, From, To> {
+export class OuputMappingCachingMapBehavior<K extends PropertyKey, S, From, To> extends OutputMappingMapBehavior<K, S, From, To> {
     private cache: IMapDataManager<K, To, To> = new SimpleMapDataManager<K, To>();
 
     public constructor(

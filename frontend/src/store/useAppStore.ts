@@ -179,7 +179,7 @@ export const useAppStore = create<AppState>((set) => {
                 set({ playerUuid: event.payload.value as PlayerUuidDTO | null });
             },
 
-            ReplayInjectManager: (event) => {
+            ReplayInjectManagerV2: (event) => {
                 if (event.type !== 'StateUpdated') return;
                 set({ currentInjectState: event.payload.value as InjectStatus });
             },

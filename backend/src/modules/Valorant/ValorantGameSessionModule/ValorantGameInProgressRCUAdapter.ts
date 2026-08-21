@@ -39,7 +39,6 @@ export class ValorantGameInProgressRCUAdapter extends RCUDataAdapter<ValorantGam
         switch (type) {
             case RCUMessageType.UPDATE:
             case RCUMessageType.CREATE:
-                this.logger.log('Received match in progress', data);
                 this.manager.updateKeyValue(matchId, MatchStatusSchema.enum.IN_PROGRESS);
                 break;
             case RCUMessageType.DELETE:

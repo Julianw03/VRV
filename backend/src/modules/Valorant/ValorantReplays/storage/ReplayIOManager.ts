@@ -11,12 +11,15 @@ import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
 import { EmittingMapDataBehavior } from '@/core/data/behaviors/emission/EmittingMapDataBehavior';
 import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataViewable';
-import { CachingMapMappingBehavior } from '@/core/data/behaviors/viewMapping/CachingMapMappingBehavior';
+import { OuputMappingCachingMapBehavior } from '@/core/data/behaviors/viewMapping/OuputMappingCachingMapBehavior';
 import { DownloadState, DownloadStateDTO } from '#/schemas/DownloadState.schema';
 import { getResolvedPath } from '@/config/ConfigV1.schema';
-import { ReplayMetadataV2, ReplayMetadataV2Schema } from '#/schemas/ReplayFormatV2.schema';
+import {
+    CURRENT_REPLAY_FORMAT_VERSION,
+    ReplayMetadataV2,
+    ReplayMetadataV2Schema,
+} from '#/schemas/ReplayFormatV2.schema';
 import { StorageStatusDTO } from '#/schemas/StorageStatusDTO';
-import { CURRENT_REPLAY_FORMAT_VERSION } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageDTO.schema';
 import { ReplayImportRequest } from '#/schemas/upload/ImportReplay.schema';
 import { ImportData } from '@/modules/Valorant/ValorantReplays/storage/import/ImportHandler';
 import { forType as forImportType } from '@/modules/Valorant/ValorantReplays/storage/import/HandlerFactory';
@@ -117,7 +120,7 @@ export class ReplayIOManager implements KeyDataViewable<string, DownloadStateDTO
         config: AppConfig,
     ) {
         const base = new SimpleMapDataManager<string, DownloadState>();
-        const map = new CachingMapMappingBehavior(base, ReplayIOManager.map);
+        const map = new OuputMappingCachingMapBehavior(base, ReplayIOManager.map);
         this.manager = new EmittingMapDataBehavior(map, eventBus, this.constructor.name);
         const localAppData =
             process.env.LOCALAPPDATA ??

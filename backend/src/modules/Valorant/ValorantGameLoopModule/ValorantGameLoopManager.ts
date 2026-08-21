@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
-import { RecomputingObjectMappingBehavior } from '@/core/data/behaviors/viewMapping/RecomputingObjectMappingBehavior';
+import { OutputMappingCachingObjectBehavior } from '@/core/data/behaviors/viewMapping/OutputMappingCachingObjectBehavior';
 import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/EmittingObjectDataBehavior';
 import { RiotValorantAPIManager } from '@/integrations/riot/RiotValorantAPIManager';
 
@@ -33,7 +33,7 @@ export class ValorantGameLoopManager implements IObjectDataManager<
         protected readonly valApi: RiotValorantAPIManager,
     ) {
         const base = new SimpleObjectDataManager<string>();
-        const map = new RecomputingObjectMappingBehavior(base, ValorantGameLoopManager.map);
+        const map = new OutputMappingCachingObjectBehavior(base, ValorantGameLoopManager.map);
         this.manager = new EmittingObjectDataBehavior(map, eventBus, this.constructor.name);
         this.unsubscribe = RiotValorantAPIManager.onValorantAPIReady(eventBus, this.onValorantAPIReady.bind(this));
     }

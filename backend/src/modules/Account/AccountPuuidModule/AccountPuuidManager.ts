@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IObjectDataManager } from '@/core/data/interfaces/IObjectDataManager';
 import { EntitlementsToken } from '../../../../gen';
 import { SimpleObjectDataManager } from '@/core/data/SimpleObjectDataManager';
-import { RecomputingObjectMappingBehavior } from '@/core/data/behaviors/viewMapping/RecomputingObjectMappingBehavior';
+import { OutputMappingCachingObjectBehavior } from '@/core/data/behaviors/viewMapping/OutputMappingCachingObjectBehavior';
 import { EmittingObjectDataBehavior } from '@/core/data/behaviors/emission/EmittingObjectDataBehavior';
 import { SimpleEventBus } from '@/core/events/SimpleEventBus';
 import { GUID } from '#/schemas/GUIDSchema';
@@ -14,7 +14,7 @@ export class AccountPuuidManager implements IObjectDataManager<EntitlementsToken
 
     constructor(protected readonly eventBus: SimpleEventBus) {
         const store = new SimpleObjectDataManager<EntitlementsToken>();
-        const compute = new RecomputingObjectMappingBehavior(store, AccountPuuidManager.map);
+        const compute = new OutputMappingCachingObjectBehavior(store, AccountPuuidManager.map);
         this.manager = new EmittingObjectDataBehavior(compute, eventBus, AccountPuuidManager.name);
     }
 

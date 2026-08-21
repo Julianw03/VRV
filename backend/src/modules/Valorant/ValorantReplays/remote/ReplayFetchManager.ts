@@ -3,10 +3,9 @@ import { ReplaySummary, RiotValorantAPIManager } from '@/integrations/riot/RiotV
 import { EntitlementTokenManager } from '@/modules/EntitlementTokenModule/EntitlementTokenManager';
 import { PuuidToPlayerAliasManager } from '@/modules/PuuidToPlayerAliasModule/PuuidToPlayerAliasManager';
 import { RiotMatchApiResponseDTO } from '#/schemas/RiotMatchApiReponseDTO';
-import { CURRENT_REPLAY_FORMAT_VERSION } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageDTO.schema';
 import { GUID } from '#/schemas/GUIDSchema';
 import { PlayerAliasDTO } from '#/schemas/PlayerAlias.schema';
-import { ReplayMetadataV2 } from '#/schemas/ReplayFormatV2.schema';
+import { CURRENT_REPLAY_FORMAT_VERSION, ReplayMetadataV2 } from '#/schemas/ReplayFormatV2.schema';
 import { createHash } from 'node:crypto';
 
 export interface CombinedReplayData {

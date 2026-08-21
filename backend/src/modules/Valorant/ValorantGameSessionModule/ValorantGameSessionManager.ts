@@ -74,12 +74,13 @@ export class ValorantGameSessionManager implements KeyDataUpdatable<GUID, MatchS
         if (prev === null) {
             this.latestMatchId = key;
             if (prevMatchId !== null) {
-                this.logger.log(
+                this.logger.debug(
                     `Got a new match id ${key} that will replace ${prevMatchId} -> Attempting to transition it to ${MatchStatusSchema.enum.ASSUMED_CANCELLED}`,
                 );
                 this.updateKeyValue(prevMatchId, MatchStatusSchema.enum.ASSUMED_CANCELLED);
             }
         }
+        this.logger.log(`Updating match status for ${key}: ${prev} -> ${value}`);
         this.manager.updateKeyValue(key, value);
     }
 

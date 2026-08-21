@@ -2,7 +2,7 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { ValorantAssetAPI } from '@/integrations/NotOfficer/ValorantAssetAPI';
 import { IMapDataManager } from '@/core/data/interfaces/IMapDataManager';
 import { SimpleMapDataManager } from '@/core/data/SimpleMapDataManager';
-import { RecomputingMapMappingBehavior } from '@/core/data/behaviors/viewMapping/RecomputingMapMappingBehavior';
+import { OutputMappingRecomputingMapBehavior } from '@/core/data/behaviors/viewMapping/OutputMappingRecomputingMapBehavior';
 import { KeyDataViewable } from '@/core/data/interfaces/capabilities/KeyDataViewable';
 import { type AppConfig } from '@/config/configLoader';
 
@@ -22,7 +22,7 @@ export abstract class AssetResolverManager<TId extends PropertyKey, TEntry, TDto
         protected readonly config: AppConfig,
     ) {
         const base = new SimpleMapDataManager<TId, TEntry>();
-        this.manager = new RecomputingMapMappingBehavior(base, (entry) => this.mapEntry(entry));
+        this.manager = new OutputMappingRecomputingMapBehavior(base, (entry) => this.mapEntry(entry));
     }
 
     protected abstract keyOf(entry: TEntry): TId;

@@ -1,8 +1,7 @@
 import { createHash } from 'node:crypto';
 import { ImportData, ImportHandler } from '@/modules/Valorant/ValorantReplays/storage/import/ImportHandler';
 import { ReplayFileTypeSchema, ReplayImportRequest } from '#/schemas/upload/ImportReplay.schema';
-import { ReplayMetadataV2 } from '#/schemas/ReplayFormatV2.schema';
-import { CURRENT_REPLAY_FORMAT_VERSION } from '@/modules/Valorant/ValorantReplays/storage/ReplayStorageDTO.schema';
+import { CURRENT_REPLAY_FORMAT_VERSION, ReplayMetadataV2 } from '#/schemas/ReplayFormatV2.schema';
 import { Logger } from '@nestjs/common';
 
 const UUID_OFFSET = 0x30;
